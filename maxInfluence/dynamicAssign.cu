@@ -173,9 +173,10 @@ int h_adjList[MAX_NODE * MAX_OUT];
 int h_nodeSet[MAX_NODE];
 
 // for argument parsing
-char short_options[] = "p::";
+char short_options[] = "p::o";
 struct option long_options[]{
-    {"probability", optional_argument, 0, 'p'}
+    {"probability", optional_argument, 0, 'p'},
+    {"output", optional_argument, 0, 'o'}
 };
 
 int main(int argc, char** argv){
@@ -186,6 +187,9 @@ int main(int argc, char** argv){
         case 'p':
             CONSTANT_PROBABILITY = atof(optarg);
             break;
+        case 'o':
+            freopen("../outputs/dynamicOutput.txt", "a", stdout);
+            break;
         }
     }
 
@@ -194,7 +198,9 @@ int main(int argc, char** argv){
     int totalEdges = readGraph("../data/wiki.txt", h_adjCount, h_adjList, totalNodes, maxOutDegree);
     if(totalEdges < 0)
         return 0;
+    printf("========= NEW RUN\n");
     printf("This graph contains %d nodes connected by %d edges\n", totalNodes, totalEdges);
+    printf("Set constant probability: %.2f\n", CONSTANT_PROBABILITY);
 
     // addresses for GPU memory addresses storage
     bool* d_closed;
@@ -259,7 +265,7 @@ int main(int argc, char** argv){
     for(int i = 0;i < totalNodes;i++)
         if(h_nodeSet[i] > 0)
             printf("influence of node %d: %d\n", i, h_nodeSet[i]);
-    printf("========= GPU ELAPSED TIME: %f ms\n", gpu_runtime);
+    printf("========= GPU ELAPSED TIME: %f ms\n\n", gpu_runtime);
 
     // cuda memory free
     cudaEventDestroy(start);
