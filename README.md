@@ -8,7 +8,22 @@ This is a repository for CISC Computational Data Science Lab
 
 Given a directed acyclic graph, for each node in the graph run BFS on the whole graph and find out how many nodes can be reached. To do this parallel, each BFS process should be assigned to a thread in GPU. After one thread finish traversal, the thread will find another node which hasn't been used and start a new BFS from this node. Amount of threads is fixed.
 
-corresponding file: `dynamicAssign.cu`
+Corresponding file: `dynamicAssign.cu`  
+To compile, use following command:
+
+```bash
+$ nvcc --std=c++11 -lcurand dynamicAssign.cu -o dynamicAssign
+```
+
+#### Elapsed Time
+
+This following chart shows GPU elapsed time on the given graph in file `wiki.txt`, which contains $8297$ nodes connected by $103689$ edges.
+
+|||
+|:-:|:-:|
+|**const probability**|**elpsed time in average**|
+|0.01 (1%)|126.0 ms|
+|0.1 (10%)|4875.6 ms|
 
 #### Known Bugs
 
