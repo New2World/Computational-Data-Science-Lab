@@ -3,16 +3,11 @@
 #include <memory.h>
 #include <getopt.h>
 
-#include <vector>
-#include <utility>
-
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <curand_kernel.h>
 
-#define QUE_LEN 1000
-#define QUE_ST(x) (x * QUE_LEN)
-#define QUE_ED(x) (x * QUE_LEN + QUE_LEN)
+#include "cuqueue.cuh"
 
 #define RAND_FACTOR 1e9+7
 
@@ -67,48 +62,6 @@ __device__ int findVertice(int* nodeSet, int from, int nodes){
     return from;
 }
 
-// judge if queue overflow
-__device__ bool que_isFull(int que_h, int que_t){
-    return que_t == que_h;
-}
-
-// judge if queue is empty
-__device__ bool que_isEmpty(int que_h, int que_t, int index){
-    return (que_t == que_h + 1) || (que_t == que_h + 1 - QUE_LEN);
-}
-
-// clear all elements in queue and reset queue
-__device__ void que_clear(int& que_h, int& que_t, int index){
-    que_h = QUE_ST(index);
-    que_t = que_h + 1;
-}
-
-// enqueue
-__device__ bool que_enque(int* queue, int que_h, int& que_t, int val, int index){
-    if(que_isFull(que_h, que_t))
-        return false;
-    int tail = que_t - 1;
-    if(tail < QUE_ST(index))
-        tail += QUE_LEN;
-    queue[tail] = val;
-    que_t++;
-    if(que_t >= QUE_ED(index))
-        que_t -= QUE_LEN;
-    return true;
-}
-
-// dequeue
-__device__ int que_deque(int* queue, int& que_h, int que_t, int index){
-    int val = -1;
-    if(que_isEmpty(que_h, que_t, index))
-        return val;
-    val = queue[que_h];
-    que_h++;
-    if(que_h >= QUE_ED(index))
-        que_h -= QUE_LEN;
-    return val;
-}
-
 // judge if node 'nd' is visited once
 __device__ bool nd_isVisited(bool* vis, int nd, int index){
     return vis[index * THREAD + nd];
@@ -137,13 +90,13 @@ __global__ void bfs(int totalNodes,
                     float constProb){
     int index = getIndex();
     int count = 0, node = index;
+    int que_h, que_t;
     int next, prev = -1;
     float randProb;
-    int que_h = QUE_ST(index), que_t = que_h + 1;
     curandState localState = state[index];
     while(node != prev){
         prev = node;
-        que_clear(que_h, que_t, index);
+        que_init(que_h, que_t, index);
         if(!que_enque(queue, que_h, que_t, prev, index));   // in case queue overflow
         nd_setVisited(closed, prev, index);
         while(!que_isEmpty(que_h, que_t, index)){
@@ -176,7 +129,7 @@ int h_nodeSet[MAX_NODE];
 char short_options[] = "p::o";
 struct option long_options[]{
     {"probability", optional_argument, 0, 'p'},
-    {"output", optional_argument, 0, 'o'}
+    {"output", no_argument, 0, 'o'}
 };
 
 int main(int argc, char** argv){
