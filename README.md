@@ -10,7 +10,7 @@ Given a directed acyclic graph, for each node in the graph run BFS on the whole 
 
 corresponding file: `dynamicAssign.cu`
 
-### Known Bugs
+#### Known Bugs
 
 - [x] results are all the same for different independent tries, maybe a bug related to `curand`;  
 - [ ] recurrent queue has a fixed size, and if overflow the answer may be wrong, even the program may crash;  
