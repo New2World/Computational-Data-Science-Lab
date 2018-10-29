@@ -19,9 +19,8 @@ $ nvcc --std=c++11 -lcurand dynamicAssign.cu -o dynamicAssign
 
 This following chart shows GPU elapsed time on the given graph in file `wiki.txt`, which contains $8297$ nodes connected by $103689$ edges.
 
-|||
+|const probability|elpsed time in average|
 |:-:|:-:|
-|**const probability**|**elpsed time in average**|
 |0.01 (1%)|126.0 ms|
 |0.1 (10%)|4875.6 ms|
 
