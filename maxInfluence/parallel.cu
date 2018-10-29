@@ -3,7 +3,7 @@
 #include <memory.h>
 #include <curand_kernel.h>
 
-#define QUE_LEN 100
+#define QUE_LEN 2000
 #define QUE_ST(x) (x * QUE_LEN)
 #define QUE_ED(x) (x * QUE_LEN + QUE_LEN)
 
@@ -69,7 +69,7 @@ __device__ bool que_isEmpty(int que_h, int que_t, int index){
     return (que_t == que_h + 1) || (que_t == que_h + 1 - QUE_LEN);
 }
 
-__device__ void que_clear(int que_h, int que_t, int index){
+__device__ void que_clear(int& que_h, int& que_t, int index){
     que_h = QUE_ST(index);
     que_t = que_h + 1;
 }
@@ -136,11 +136,11 @@ __global__ void bfs(int totalNodes,
             while(next < adjCount[node + 1]){
                 if(!nd_isVisited(closed, adjList[next], index)){
                     randProb = curand_uniform(&localState);
-                    if(randProb > CONSTANT_PROBABILITY)
-                        continue;
-                    if(!que_enque(queue, que_h, que_t, adjList[next], index));
-                    nd_setVisited(closed, adjList[next], index);
-                    count++;
+                    if(randProb < CONSTANT_PROBABILITY){
+                        if(!que_enque(queue, que_h, que_t, adjList[next], index));
+                        nd_setVisited(closed, adjList[next], index);
+                        count++;
+                    }
                 }
                 next++;
             }
