@@ -8,7 +8,7 @@ This is a repository for CISC Computational Data Science Lab
 
 - `data`: graph data, for input;  
 - `outputs`: output information;  
-- `maxInfluence`: source code
+- `maxInfluence`: source code;
 
 ### Experiment 1
 
@@ -23,7 +23,7 @@ $ nvcc --std=c++11 -lcurand dynamicAssign.cu -o dynamicAssign
 
 #### Elapsed Time
 
-This following chart shows GPU elapsed time on the given graph in file `wiki.txt`, which contains $8297$ nodes connected by $103689$ edges.
+This following chart shows GPU elapsed time on the given graph in file `wiki.txt`, which contains 8297 nodes connected by 103689 edges.
 
 |const probability|elpsed time in average|
 |:-:|:-:|
