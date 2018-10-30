@@ -21,14 +21,21 @@ To compile, use following command:
 $ nvcc --std=c++11 -lcurand dynamicAssign.cu -o dynamicAssign
 ```
 
+#### Environment
+
+- Ubuntu 18.04.1  
+- Intel i7-6700HQ  
+- GTX 970M (Maxwell, 1280 CUDA cores)  
+- CUDA Toolkit 9.0
+
 #### Elapsed Time
 
-This following chart shows GPU elapsed time on the given graph in file `wiki.txt`, which contains 8297 nodes connected by 103689 edges.
+This following chart shows GPU ($2 \times 2$ blocks and $16 \times 16$ threads in each block) elapsed time on the given graph in file `wiki.txt`, which contains 8297 nodes connected by 103689 edges.
 
 |const probability|elpsed time in average|
 |:-:|:-:|
-|0.01 (1%)|126.0 ms|
-|0.1 (10%)|4875.6 ms|
+|0.01 (1%)|95.0 ms|
+|0.1 (10%)|3907.4 ms|
 
 #### Known Bugs
 
