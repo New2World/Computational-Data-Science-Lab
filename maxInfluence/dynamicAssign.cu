@@ -55,7 +55,7 @@ __device__ int getIndex(){
 }
 
 // find next unused node
-__device__ int findVertice(int* nodeSet, int nodes){
+__device__ int findVertex(int* nodeSet, int nodes){
     int nextNode = atomicAdd(&nodeSet[nodes], 1);
     if(nextNode >= nodes)
         return -1;
@@ -72,7 +72,6 @@ __device__ void nd_setVisited(bool* vis, int nd, int tot, int index){
     vis[index * tot + nd] = true;
 }
 
-// set all node invisited, can be optimized
 __device__ void nd_resetVisited(bool* vis, int tot, int index){
     int i = index * tot, end = index * tot + tot;
     for(;i < end;i++)
@@ -101,7 +100,7 @@ __global__ void bfs(int totalNodes,
     int adjNode, from;
     float randProb;
     curandState localState = state[index];
-    while((node = findVertice(nodeSet, totalNodes)) != -1){
+    while((node = findVertex(nodeSet, totalNodes)) != -1){
         count = 0;
         from = node;
         que_init(que_h, que_t, index);
@@ -134,9 +133,11 @@ int h_adjList[MAX_NODE * MAX_OUT];
 int h_nodeSet[MAX_NODE];
 
 // for argument parsing
-char short_options[] = "p::vto";
+char short_options[] = "f:p::c::vto";
 struct option long_options[] = {
+    {"file", required_argument, 0, 'f'},
     {"probability", optional_argument, 0, 'p'},
+    {"constfactory", optional_argument, 0, 'c'},
     {"verbose", no_argument, 0, 'v'},
     {"timeonly", no_argument, 0, 't'},
     {"output", no_argument, 0, 'o'}
@@ -144,11 +145,18 @@ struct option long_options[] = {
 
 int main(int argc, char** argv){
     // argument parsing
-    char ch;
+    char ch, filePath[256];
     bool verbose = false, timeonly = false;
     while((ch = getopt_long(argc, argv, short_options, long_options, NULL)) != -1){
         switch(ch){
+        case 'f':
+            strncpy(filePath, optarg, 256);
+            break;
         case 'p':
+            CONSTANT_PROBABILITY = atof(optarg);
+            CONSTANT_PROBABILITY = CONSTANT_PROBABILITY > 1 ? 1. : CONSTANT_PROBABILITY;
+            break;
+        case 'c':
             CONSTANT_PROBABILITY *= atoi(optarg);
             CONSTANT_PROBABILITY = CONSTANT_PROBABILITY > 1 ? 1. : CONSTANT_PROBABILITY;
             break;
@@ -166,7 +174,7 @@ int main(int argc, char** argv){
 
     // read graph from file
     int totalNodes = 0, maxOutDegree = 0;
-    int totalEdges = readGraph("../data/wiki.txt", h_adjCount, h_adjList, totalNodes, maxOutDegree);
+    int totalEdges = readGraph(filePath, h_adjCount, h_adjList, totalNodes, maxOutDegree);
     if(totalEdges < 0)
         return 0;
     if(!timeonly){
