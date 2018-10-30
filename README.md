@@ -54,4 +54,35 @@ This following chart shows GPU (2 x 2 blocks and 16 x 16 threads in each block) 
 
 Given a directed acyclic graph, assign nodes to threads manually and each thread will run a BFS starting from the given point.
 
-corresponding file: [file_name]
+corresponding file: `staticAssign.cu`
+To compile, use following command:
+
+```bash
+$ nvcc -lcurand staticAssign.cu -o staticAssign
+```
+
+#### Environment
+
+- Ubuntu 18.04.1  
+- Intel i7-6700HQ  
+- NVIDIA GTX 970M (Maxwell, 1280 CUDA cores)  
+- CUDA Toolkit 9.0
+
+#### Elapsed Time
+
+This following chart shows GPU (2 x 2 blocks and 16 x 16 threads in each block) elapsed time on the given graph in file `wiki.txt`, which contains 8297 nodes connected by 103689 edges.
+
+|const probability|elpsed time in average (ms)|
+|:-:|:-:|
+|0.05|473.16|
+|0.10|1076.48|
+|0.15|1407.81|
+|0.20|1637.57|
+|0.25|1756.09|
+|0.30|1819.21|
+|0.35|1874.19|
+|0.40|1901.97|
+|0.45|1926.92|
+|0.50|1944.23|
+
+#### Known Bugs
