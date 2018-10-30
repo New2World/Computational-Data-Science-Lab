@@ -18,7 +18,7 @@ Corresponding file: `dynamicAssign.cu`
 To compile, use following command:
 
 ```bash
-$ nvcc --std=c++11 -lcurand dynamicAssign.cu -o dynamicAssign
+$ nvcc -lcurand dynamicAssign.cu -o dynamicAssign
 ```
 
 #### Environment
@@ -34,8 +34,8 @@ This following chart shows GPU ($2 \times 2$ blocks and $16 \times 16$ threads i
 
 |const probability|elpsed time in average|
 |:-:|:-:|
-|0.01 (1%)|95.0 ms|
-|0.1 (10%)|3907.4 ms|
+|0.01 (1%)|68.3 ms|
+|0.1 (10%)|6080.9 ms|
 
 #### Known Bugs
 
