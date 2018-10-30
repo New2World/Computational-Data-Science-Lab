@@ -30,7 +30,7 @@ $ nvcc -lcurand dynamicAssign.cu -o dynamicAssign
 
 #### Elapsed Time
 
-This following chart shows GPU ($2 \times 2$ blocks and $16 \times 16$ threads in each block) elapsed time on the given graph in file `wiki.txt`, which contains 8297 nodes connected by 103689 edges.
+This following chart shows GPU (2 x 2 blocks and 16 x 16 threads in each block) elapsed time on the given graph in file `wiki.txt`, which contains 8297 nodes connected by 103689 edges.
 
 |const probability|elpsed time in average|
 |:-:|:-:|
