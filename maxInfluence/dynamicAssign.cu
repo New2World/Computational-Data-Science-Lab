@@ -208,11 +208,11 @@ int main(int argc, char** argv){
     // cuda memory allocation and initialization
     cudaMalloc((void**)&d_closed, sizeof(bool) * THREAD * totalNodes);
     cudaMalloc((void**)&d_queue, sizeof(int) * THREAD * QUE_LEN);    // compress?
-    cudaMalloc((void**)&d_nodeSet, sizeof(int) * totalNodes + 1);
+    cudaMalloc((void**)&d_nodeSet, sizeof(int) * (totalNodes + 1));
     cudaMalloc((void**)&d_adjList, sizeof(int) * totalEdges);
-    cudaMalloc((void**)&d_adjCount, sizeof(int) * (totalNodes + 1));
+    cudaMalloc((void**)&d_adjCount, sizeof(int) * (totalNodes + 1));    // sum of edges before current node
 
-    cudaMemset(d_nodeSet, 0, sizeof(int) * totalNodes + 1);
+    cudaMemset(d_nodeSet, 0, sizeof(int) * (totalNodes + 1));
     cudaMemset(d_closed, false, sizeof(bool) * THREAD * totalNodes);
     cudaMemcpy(d_adjList, h_adjList, sizeof(int) * totalEdges, cudaMemcpyHostToDevice);
     cudaMemcpy(d_adjCount,
@@ -245,7 +245,7 @@ int main(int argc, char** argv){
     if(verbose && !timeonly){
         cudaMemcpy(h_nodeSet,
                    d_nodeSet,
-                   sizeof(int) * totalNodes + 1,
+                   sizeof(int) * (totalNodes + 1),
                    cudaMemcpyDeviceToHost);
         for(int i = 0;i < totalNodes;i++)
             if(h_nodeSet[i] > 0)
