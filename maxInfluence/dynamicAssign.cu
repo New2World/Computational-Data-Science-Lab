@@ -13,7 +13,7 @@
 
 #define MAX_OUT 2000
 #define MAX_NODE 10000
-#define THREAD 1024
+#define THREAD (4 * 256)
 
 float CONSTANT_PROBABILITY = 0.01;
 int _adjMat[MAX_NODE][MAX_OUT];
@@ -166,7 +166,7 @@ int main(int argc, char** argv){
     cudaEvent_t start, stop;
 
     // define GPU thread layout
-    dim3 gridSize(1,1), blockSize(32,32);
+    dim3 gridSize(2,2), blockSize(16,16);
 
     // generate random numbers for each thread as random seeds
     curandGenerator_t curandGenerator;
