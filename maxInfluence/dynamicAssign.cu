@@ -55,11 +55,11 @@ __device__ int getIndex(){
 }
 
 // find next unused node
-__device__ int findVertice(int* nodeSet, int from, int nodes){
-    for(int i = from + 1;i < nodes;i++)
-        if(atomicCAS(&nodeSet[i], -1, 0) == -1)
-            return i;
-    return from;
+__device__ int findVertice(int* nodeSet, int nodes){
+    int nextNode = atomicAdd(&nodeSet[nodes], 1);
+    if(nextNode >= nodes)
+        return -1;
+    return nextNode;
 }
 
 // judge if node 'nd' is visited once
@@ -91,31 +91,30 @@ __global__ void bfs(int totalNodes,
     int index = getIndex();
     int count = 0, node = index;
     int que_h, que_t;
-    int next, prev = -1;
+    int adjNode, from;
     float randProb;
     curandState localState = state[index];
-    while(node != prev){
-        prev = node;
+    while((node = findVertice(nodeSet, totalNodes)) != -1){
+        from = node;
         que_init(que_h, que_t, index);
-        if(!que_enque(queue, que_h, que_t, prev, index));   // in case queue overflow
-        nd_setVisited(closed, prev, index);
+        if(!que_enque(queue, que_h, que_t, from, index));   // in case queue overflow
+        nd_setVisited(closed, from, index);
         while(!que_isEmpty(que_h, que_t, index)){
             node = que_deque(queue, que_h, que_t, index);
-            next = adjCount[node];
-            while(next < adjCount[node + 1]){
-                if(!nd_isVisited(closed, adjList[next], index)){
+            adjNode = adjCount[node];
+            while(adjNode < adjCount[node + 1]){
+                if(!nd_isVisited(closed, adjList[adjNode], index)){
                     randProb = curand_uniform(&localState);
                     if(randProb < constProb){
-                        if(!que_enque(queue, que_h, que_t, adjList[next], index));
-                        nd_setVisited(closed, adjList[next], index);
+                        if(!que_enque(queue, que_h, que_t, adjList[adjNode], index));
+                        nd_setVisited(closed, adjList[adjNode], index);
                         count++;
                     }
                 }
-                next++;
+                adjNode++;
             }
         }
-        if(atomicCAS(nodeSet + prev, 0, count) != 0);   // theoretically impossiable
-        node = findVertice(nodeSet, prev, totalNodes);
+        if(atomicCAS(nodeSet + from, 0, count) != 0);   // theoretically impossiable
     }
     state[index] = localState;
 }
@@ -127,7 +126,7 @@ int h_nodeSet[MAX_NODE];
 
 // for argument parsing
 char short_options[] = "p::o";
-struct option long_options[]{
+struct option long_options[] = {
     {"probability", optional_argument, 0, 'p'},
     {"output", no_argument, 0, 'o'}
 };
@@ -177,13 +176,14 @@ int main(int argc, char** argv){
     curandGenerateUniform(curandGenerator, d_randSeed, THREAD);
     setupRandGenerator<<<gridSize,blockSize>>>(d_randSeed, d_randState);
 
-    // cuda memory allocation
+    // cuda memory allocation and initialization
     cudaMalloc((void**)&d_closed, sizeof(bool) * THREAD * totalNodes);
     cudaMalloc((void**)&d_queue, sizeof(int) * THREAD * QUE_LEN);    // compress?
-    cudaMalloc((void**)&d_nodeSet, sizeof(int) * totalNodes);
+    cudaMalloc((void**)&d_nodeSet, sizeof(int) * totalNodes + 1);
     cudaMalloc((void**)&d_adjList, sizeof(int) * totalEdges);
     cudaMalloc((void**)&d_adjCount, sizeof(int) * (totalNodes + 1));
 
+    cudaMemset(d_nodeSet, 0, sizeof(int) * totalNodes + 1);
     cudaMemset(d_closed, false, sizeof(bool) * THREAD * totalNodes);
     cudaMemcpy(d_adjList, h_adjList, sizeof(int) * totalEdges, cudaMemcpyHostToDevice);
     cudaMemcpy(d_adjCount,
@@ -212,7 +212,7 @@ int main(int argc, char** argv){
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&gpu_runtime, start, stop);
 
-    cudaMemcpy(h_nodeSet, d_nodeSet, sizeof(int) * totalNodes, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_nodeSet, d_nodeSet, sizeof(int) * totalNodes + 1, cudaMemcpyDeviceToHost);
 
     // statistics
     for(int i = 0;i < totalNodes;i++)
