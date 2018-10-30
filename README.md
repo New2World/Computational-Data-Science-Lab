@@ -25,17 +25,25 @@ $ nvcc -lcurand dynamicAssign.cu -o dynamicAssign
 
 - Ubuntu 18.04.1  
 - Intel i7-6700HQ  
-- GTX 970M (Maxwell, 1280 CUDA cores)  
+- NVIDIA GTX 970M (Maxwell, 1280 CUDA cores)  
 - CUDA Toolkit 9.0
 
 #### Elapsed Time
 
 This following chart shows GPU (2 x 2 blocks and 16 x 16 threads in each block) elapsed time on the given graph in file `wiki.txt`, which contains 8297 nodes connected by 103689 edges.
 
-|const probability|elpsed time in average|
+|const probability|elpsed time in average (ms)|
 |:-:|:-:|
-|0.01 (1%)|68.3 ms|
-|0.1 (10%)|6080.9 ms|
+|0.05|474.34|
+|0.10|1066.60|
+|0.15|1420.07|
+|0.20|1629.75|
+|0.25|1747.10|
+|0.30|1828.43|
+|0.35|1876.59|
+|0.40|1899.53|
+|0.45|1933.67|
+|0.50|1953.73|
 
 #### Known Bugs
 
