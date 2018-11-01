@@ -42,11 +42,7 @@ $ nvcc -lcurand staticAssign.cu -o staticAssign
 
 ### Comparison
 
-This following charts shows GPU (2 x 2 blocks and 16 x 16 threads in each block) elapsed time on the given graph in file `wiki.txt`, which contains 8297 nodes connected by 103689 edges.
-
-Conclusion: In average, dynamic assignment is 100ms faster than static assignment.
-
-#### NVIDIA GTX 970M
+This following charts shows GPU (3 x 3 blocks and 32 x 32 threads in each block) elapsed time on the given graph in file `wiki.txt`, which contains 8297 nodes connected by 103689 edges.
 
 - Ubuntu 18.04.1  
 - Intel i7-6700HQ  
@@ -55,17 +51,13 @@ Conclusion: In average, dynamic assignment is 100ms faster than static assignmen
 
 |const probability|dynamic|static|
 |:-:|:-:|:-:|
-|0.05|473.45|599.15|
-|0.10|1081.77|1257.06|
-|0.15|1413.74|1620.48|
-|0.20|1639.06|1814.76|
-|0.25|1748.78|1922.30|
-|0.30|1823.14|1990.03|
-|0.35|1870.98|2036.42|
-|0.40|1901.19|2074.21|
-|0.45|1934.53|2090.98|
-|0.50|1959.94|2140.40|
-
-#### NVIDIA GTX 1070
-
-> TODO
+|0.05|191.03|196.13|
+|0.10|318.48|336.78|
+|0.15|378.01|386.64|
+|0.20|398.24|410.29|
+|0.25|406.88|414.17|
+|0.30|414.77|412.66|
+|0.35|411.43|414.74|
+|0.40|407.20|413.56|
+|0.45|407.44|410.52|
+|0.50|410.17|410.90|
