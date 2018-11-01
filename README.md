@@ -21,13 +21,6 @@ To compile, use following command:
 $ nvcc -lcurand dynamicAssign.cu -o dynamicAssign
 ```
 
-#### Environment
-
-- Ubuntu 18.04.1  
-- Intel i7-6700HQ  
-- NVIDIA GTX 970M (Maxwell, 1280 CUDA cores)  
-- CUDA Toolkit 9.0
-
 #### Known Bugs
 
 - [ ] recurrent queue has a fixed size, and if overflow the answer may be wrong, even the program may crash;  
@@ -43,22 +36,22 @@ To compile, use following command:
 $ nvcc -lcurand staticAssign.cu -o staticAssign
 ```
 
-#### Environment
-
-- Ubuntu 18.04.1  
-- Intel i7-6700HQ  
-- NVIDIA GTX 970M (Maxwell, 1280 CUDA cores)  
-- CUDA Toolkit 9.0
-
 #### Known Bugs
 
 - [ ] recurrent queue has a fixed size, and if overflow the answer may be wrong, even the program may crash;  
 
 ### Comparison
 
-This following chart shows GPU (2 x 2 blocks and 16 x 16 threads in each block) elapsed time on the given graph in file `wiki.txt`, which contains 8297 nodes connected by 103689 edges.
+This following charts shows GPU (2 x 2 blocks and 16 x 16 threads in each block) elapsed time on the given graph in file `wiki.txt`, which contains 8297 nodes connected by 103689 edges.
 
 Conclusion: In average, dynamic assignment is 100ms faster than static assignment.
+
+#### NVIDIA GTX 970M
+
+- Ubuntu 18.04.1  
+- Intel i7-6700HQ  
+- NVIDIA GTX 970M (Maxwell, 1280 CUDA cores)  
+- CUDA Toolkit 9.0
 
 |const probability|dynamic|static|
 |:-:|:-:|:-:|
@@ -72,3 +65,7 @@ Conclusion: In average, dynamic assignment is 100ms faster than static assignmen
 |0.40|1901.19|2074.21|
 |0.45|1934.53|2090.98|
 |0.50|1959.94|2140.40|
+
+#### NVIDIA GTX 1070
+
+> TODO
