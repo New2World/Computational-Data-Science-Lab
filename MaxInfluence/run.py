@@ -16,33 +16,41 @@ parser.add_argument("-f", "--file",
                     default="../data/wiki.txt",
                     help="load graph from file")
 parser.add_argument("-c", "--compile",
-                    default=False,
                     action="store_true",
                     help="whether need to compile")
 parser.add_argument("-p", "--probability",
                     type=float,
                     default=0.01,
                     help="specify probability of edges")
+parser.add_argument("-o", "--output",
+                    action="store_true",
+                    help="output the outcome to file")
+parser.set_defaults(compile=False)
+parser.set_defaults(output=False)
 
 def compile_src():
     subprocess.call(['nvcc','-lcurand',DYNAMIC_SRC,'-o',DYNAMIC_EXE])
     subprocess.call(['nvcc','-lcurand',STATIC_SRC,'-o',STATIC_EXE])
 
 def exec_prog(probability):
-    dynamic_results = subprocess.check_output([DYNAMIC_EXE,
-                                               "-f",DATA_FILE,
-                                               "-p"+str(probability),
-                                               "--thread"]).strip().split('\n')
-    static_results = subprocess.check_output([STATIC_EXE,
-                                              "-f",DATA_FILE,
-                                              "-p"+str(probability),
-                                              "--thread"]).strip().split('\n')
+    dynamic_raw = subprocess.check_output([DYNAMIC_EXE,
+                                          "-f",DATA_FILE,
+                                          "-p"+str(probability),
+                                          "--thread"])
+    dynamic_results = dynamic_raw.strip().split('\n')
+    static_raw = subprocess.check_output([STATIC_EXE,
+                                         "-f",DATA_FILE,
+                                         "-p"+str(probability),
+                                         "--thread"])
+    static_results = static_raw.strip().split('\n')
     dynamic_time = dynamic_results[-1]
     static_time = static_results[-1]
     return dynamic_results[:-1], \
            static_results[:-1], \
            float(dynamic_time), \
-           float(static_time)
+           float(static_time), \
+           dynamic_raw, \
+           static_raw
 
 def extract_info(results):
     node_count = [int(item.split()[1]) for item in results]
@@ -89,7 +97,9 @@ if __name__ == '__main__':
     dynamic_results, \
     static_results, \
     dynamic_time, \
-    static_time = exec_prog(PROBABILITY)
+    static_time, \
+    dynamic_raw, \
+    static_raw = exec_prog(PROBABILITY)
 
     dynamic_node_count, \
     dynamic_time_count = extract_info(dynamic_results)
@@ -100,6 +110,14 @@ if __name__ == '__main__':
     dynamic_time_std = anaylsis_std(dynamic_node_count, dynamic_time_count)
     static_node_std, \
     static_time_std = anaylsis_std(static_node_count, static_time_count)
+
+    if args.output:
+        with open("../res/elapsed_time_of_each_thread_dynamic.txt","w") as fd:
+            fd.write("thread nodes time\n")
+            fd.write(dynamic_raw)
+        with open("../res/elapsed_time_of_each_thread_static.txt","w") as fd:
+            fd.write("thread nodes time\n")
+            fd.write(static_raw)
 
     print "Total time:"
     print "  dynamic: %f ms" % dynamic_time
