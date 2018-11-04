@@ -31,7 +31,7 @@ Arguments:
 
 #### Known Bugs
 
-- [ ] If the graph is large enough, there will be some memory errors on GPU. I'm not so sure whether it is caused by the limitation of my VRAM, which only has 3GB space;  
+- [ ] If the graph is large enough, there will be some memory errors on GPU. I'm not so sure whether it is caused by the limitation of my VRAM, which only has 3GB space; (This problem starts from dataset `dblp.txt` and all other graphs larger than it.)  
 - [ ] ~~Recurrent queue has a fixed size, and if overflow the answer may be wrong, even the program may crash;~~ (temporarily ignore)  
 
 ### Comparison
@@ -43,15 +43,26 @@ This following charts shows GPU (3 x 3 blocks and 16 x 16 threads in each block)
 - NVIDIA GTX 970M (Maxwell, 1280 CUDA cores, 3GB VRAM)  
 - CUDA Toolkit 9.0
 
+
 |const probability|dynamic (ms)|static (ms)|
 |:-:|:-:|:-:|
-|0.05|???|???|
-|0.10|???|???|
-|0.15|???|???|
-|0.20|???|???|
-|0.25|???|???|
-|0.30|???|???|
-|0.35|???|???|
-|0.40|???|???|
-|0.45|???|???|
-|0.50|???|???|
+|0.05|283.61|379.33|
+|0.10|590.45|736.11|
+|0.15|739.09|898.09|
+|0.20|851.12|1006.92|
+|0.25|921.48|1088.50|
+|0.30|987.12|1158.25|
+|0.35|1036.52|1202.17|
+|0.40|1079.40|1259.86|
+|0.45|1115.17|1278.72|
+|0.50|1146.55|1315.31|
+
+Following graph shows elapsed time of each thread and nodes visited by each thread. Some details are listed:
+
+- dataset: `wiki.txt`;  
+- probability: 0.1
+- total running time:  
+    - dynamic: 602.86 ms  
+    - static: 726.94 ms  
+
+![](res/wiki.png)
