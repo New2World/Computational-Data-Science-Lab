@@ -61,7 +61,7 @@ Following graph shows elapsed time of each thread and nodes visited by each thre
 
 - dataset: `wiki.txt`;  
 - probability: 0.1;  
-- threads: 2306 (9 * 256);  
+- threads: 2304 (9 * 256);  
 - total running time:  
     - dynamic: 602.86 ms  
     - static: 726.94 ms  
