@@ -60,7 +60,8 @@ This following charts shows GPU (3 x 3 blocks and 16 x 16 threads in each block)
 Following graph shows elapsed time of each thread and nodes visited by each thread. Some details are listed:
 
 - dataset: `wiki.txt`;  
-- probability: 0.1
+- probability: 0.1;  
+- threads: 2306 (9 * 256);  
 - total running time:  
     - dynamic: 602.86 ms  
     - static: 726.94 ms  
