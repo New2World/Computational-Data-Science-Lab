@@ -1,50 +1,16 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
-#include <getopt.h>
 
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <curand_kernel.h>
 
 #include "cuqueue.cuh"
+#include "utils.h"
 
 #define RAND_FACTOR 1e9+7
 
-#define MAX_OUT 2000
-#define MAX_NODE 10000
-#define THREAD (9 * 1024)
-
-float CONSTANT_PROBABILITY = 0.05;
-int _adjMat[MAX_NODE][MAX_OUT];
-
-// read graph information from files and generate a adjacent list for representation
-int readGraph(const char* filePath,
-              int* adjCount,
-              int* adjList,
-              int& nodes,
-              int& outdegree){
-    int s, t, count = 0;
-    FILE* fd = fopen(filePath, "r");
-    if(fd == NULL)
-        return -1;
-    memset(adjCount, 0, sizeof(int) * MAX_NODE);
-    while(!feof(fd)){
-        fscanf(fd, "%d %d", &s, &t);
-        _adjMat[s - 1][adjCount[s]++] = t - 1;
-        count++;
-        nodes = nodes > s ? (nodes > t ? nodes : t) : (s > t ? s : t);
-    }
-    fclose(fd);
-    int ptr = 0;
-    for(int i = 0;i < nodes;i++){
-        memcpy(adjList + ptr, _adjMat[i], sizeof(int) * adjCount[i + 1]);
-        ptr += adjCount[i + 1];
-        outdegree = outdegree > adjCount[i + 1] ? outdegree : adjCount[i + 1];
-        adjCount[i + 1] += adjCount[i];
-    }
-    return count;
-}
+#define THREAD (9 * 256)
 
 // get thread index
 __device__ int getIndex(){
@@ -54,18 +20,26 @@ __device__ int getIndex(){
     return row * line + col;
 }
 
+// find next unused node
+__device__ LL findVertex(LL* nodeSet, LL totalNodes){
+    int nextNode = atomicAdd(&nodeSet[0], 1LL);
+    if(nextNode >= totalNodes)
+        return 0;
+    return nextNode;
+}
+
 // judge if node 'nd' is visited once
-__device__ bool nd_isVisited(bool* vis, int nd, int tot, int index){
-    return vis[index * tot + nd];
+__device__ bool nd_isVisited(bool* vis, LL nd, LL tot, int index){
+    return vis[index * tot + nd - 1];
 }
 
 // set node 'nd' visited
-__device__ void nd_setVisited(bool* vis, int nd, int tot, int index){
-    vis[index * tot + nd] = true;
+__device__ void nd_setVisited(bool* vis, LL nd, LL tot, int index){
+    vis[index * tot + nd - 1] = true;
 }
 
-__device__ void nd_resetVisited(bool* vis, int tot, int index){
-    int i = index * tot, end = index * tot + tot;
+__device__ void nd_resetVisited(bool* vis, LL tot, int index){
+    LL i = index * tot, end = index * tot + tot;
     for(;i < end;i++)
         vis[i] = false;
 }
@@ -78,68 +52,61 @@ __global__ void setupRandGenerator(float* randSeed, curandState* state){
 }
 
 // BFS kernel function in each thread
-__global__ void bfs(int totalNodes,
-                    int* adjCount,
-                    int* adjList,
-                    int* nodeSet,
-                    int* queue,
+__global__ void bfs(LL totalNodes,
+                    LL* adjCount,
+                    LL* adjList,
+                    LL* nodeSet,
+                    LL* queue,
                     bool* closed,
                     curandState* state,
-                    float constProb){
+                    float constProb,
+                    bool thread){
     int index = getIndex();
-    int count = 0, nodeRecord = index;
+    LL nodeCount = 0, node = index + 1;
     int que_h, que_t;
-    int adjNode, node;
+    LL adjNode, prevNode;
+    LL nodeSum = 0;
     float randProb;
     curandState localState = state[index];
-    while(nodeRecord < totalNodes){
-        count = 0;
-        node = nodeRecord;
+    int start, stop;
+    start = clock();
+    while((node = findVertex(nodeSet, totalNodes)) > 0){
+        nodeCount = 0;
+        prevNode = node;
         que_init(que_h, que_t, index);
         nd_resetVisited(closed, totalNodes, index);
-        if(!que_enque(queue, que_h, que_t, nodeRecord, index));   // in case queue overflow
-        nd_setVisited(closed, nodeRecord, totalNodes, index);
+        if(!que_enque(queue, que_h, que_t, prevNode, index));   // overflow
+        nd_setVisited(closed, prevNode, totalNodes, index);
         while(!que_isEmpty(que_h, que_t, index)){
             node = que_deque(queue, que_h, que_t, index);
-            adjNode = adjCount[node];
-            while(adjNode < adjCount[node + 1]){
+            adjNode = adjCount[node - 1];
+            while(adjNode < adjCount[node]){
                 if(!nd_isVisited(closed, adjList[adjNode], totalNodes, index)){
                     randProb = curand_uniform(&localState);
                     if(randProb < constProb){
                         if(!que_enque(queue, que_h, que_t, adjList[adjNode], index));
                         nd_setVisited(closed, adjList[adjNode], totalNodes, index);
-                        count++;
+                        nodeCount++;
                     }
                 }
                 adjNode++;
             }
         }
-        if(atomicCAS(nodeSet + nodeRecord, 0, count) != 0);   // theoretically impossiable
-        nodeRecord += THREAD;
+        if(atomicCAS(nodeSet + prevNode, 0, nodeCount) != 0);
+        nodeSum += nodeCount;
     }
+    stop = clock();
+    if(thread)
+        printf("%d %lld %f\n", index, nodeSum, 1.f*(stop-start)/CLOCKS_PER_SEC);
     state[index] = localState;
 }
 
-// global variables
-int h_adjCount[MAX_NODE];
-int h_adjList[MAX_NODE * MAX_OUT];
-int h_nodeSet[MAX_NODE];
-
-// for argument parsing
-char short_options[] = "f:p::c::vto";
-struct option long_options[] = {
-    {"file", required_argument, 0, 'f'},
-    {"probability", optional_argument, 0, 'p'},
-    {"constfactory", optional_argument, 0, 'c'},
-    {"verbose", no_argument, 0, 'v'},
-    {"timeonly", no_argument, 0, 't'},
-    {"output", no_argument, 0, 'o'}
-};
+float CONSTANT_PROBABILITY = 0.05;
 
 int main(int argc, char** argv){
     // argument parsing
     char ch, filePath[256];
-    bool verbose = false, timeonly = false;
+    bool thread = false;
     while((ch = getopt_long(argc, argv, short_options, long_options, NULL)) != -1){
         switch(ch){
         case 'f':
@@ -149,37 +116,28 @@ int main(int argc, char** argv){
             CONSTANT_PROBABILITY = atof(optarg);
             CONSTANT_PROBABILITY = CONSTANT_PROBABILITY > 1 ? 1. : CONSTANT_PROBABILITY;
             break;
-        case 'c':
-            CONSTANT_PROBABILITY *= atoi(optarg);
-            CONSTANT_PROBABILITY = CONSTANT_PROBABILITY > 1 ? 1. : CONSTANT_PROBABILITY;
-            break;
-        case 'v':
-            verbose = true;
-            break;
         case 't':
-            timeonly = true;
-            break;
-        case 'o':
-            freopen("../outputs/dynamicOutput.txt", "a", stdout);
+            thread = true;
             break;
         }
     }
 
     // read graph from file
-    int totalNodes = 0, maxOutDegree = 0;
-    int totalEdges = readGraph(filePath, h_adjCount, h_adjList, totalNodes, maxOutDegree);
-    if(totalEdges < 0)
-        return 0;
-    if(!timeonly){
+    LL totalNodes = 0, totalEdges = 0;
+    LL* h_adjCount = NULL, *h_adjList = NULL;
+    readGraph(filePath, h_adjList, h_adjCount, totalNodes, totalEdges);
+
+    if(!thread){
         printf("========= NEW RUN\n");
-        printf("This graph contains %d nodes connected by %d edges\n", totalNodes, totalEdges);
+        printf("This graph contains %lld nodes connected by %lld edges\n", totalNodes, totalEdges);
         printf("Set constant probability: %.2f\n", CONSTANT_PROBABILITY);
+        printf("Running on %d threads\n", THREAD);
     }
 
     // addresses for GPU memory addresses storage
     bool* d_closed;
-    int* d_queue, *d_nodeSet;
-    int* d_adjList, *d_adjCount;
+    LL* d_queue, *d_nodeSet;
+    LL* d_adjList, *d_adjCount;
     float* d_randSeed;
     float gpu_runtime;
 
@@ -187,7 +145,7 @@ int main(int argc, char** argv){
     cudaEvent_t start, stop;
 
     // define GPU thread layout
-    dim3 gridSize(3,3), blockSize(32,32);
+    dim3 gridSize(3,3), blockSize(16,16);
 
     // generate random numbers for each thread as random seeds
     curandGenerator_t curandGenerator;
@@ -200,17 +158,20 @@ int main(int argc, char** argv){
 
     // cuda memory allocation and initialization
     cudaMalloc((void**)&d_closed, sizeof(bool) * THREAD * totalNodes);
-    cudaMalloc((void**)&d_queue, sizeof(int) * THREAD * QUE_LEN);    // compress?
-    cudaMalloc((void**)&d_nodeSet, sizeof(int) * totalNodes);
-    cudaMalloc((void**)&d_adjList, sizeof(int) * totalEdges);
-    cudaMalloc((void**)&d_adjCount, sizeof(int) * (totalNodes + 1));
+    cudaMalloc((void**)&d_queue, sizeof(LL) * THREAD * QUE_LEN);    // compress?
+    cudaMalloc((void**)&d_nodeSet, sizeof(LL) * (totalNodes + 1));
+    cudaMalloc((void**)&d_adjList, sizeof(LL) * totalEdges);
+    cudaMalloc((void**)&d_adjCount, sizeof(LL) * (totalNodes + 1));    // sum of edges before current node
 
-    cudaMemset(d_nodeSet, 0, sizeof(int) * totalNodes);
+    cudaMemset(d_nodeSet, 0LL, sizeof(LL) * (totalNodes + 1));
     cudaMemset(d_closed, false, sizeof(bool) * THREAD * totalNodes);
-    cudaMemcpy(d_adjList, h_adjList, sizeof(int) * totalEdges, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_adjList,
+               h_adjList,
+               sizeof(LL) * totalEdges,
+               cudaMemcpyHostToDevice);
     cudaMemcpy(d_adjCount,
                h_adjCount,
-               sizeof(int) * (totalNodes + 1),
+               sizeof(LL) * (totalNodes + 1),
                cudaMemcpyHostToDevice);
 
     // elapsed time record
@@ -227,7 +188,8 @@ int main(int argc, char** argv){
                                 d_queue,
                                 d_closed,
                                 d_randState,
-                                CONSTANT_PROBABILITY);
+                                CONSTANT_PROBABILITY,
+                                thread);
 
     cudaEventRecord(stop, 0);
 
@@ -235,18 +197,20 @@ int main(int argc, char** argv){
     cudaEventElapsedTime(&gpu_runtime, start, stop);
 
     // statistics
-    if(verbose && !timeonly){
-        cudaMemcpy(h_nodeSet,
-                   d_nodeSet,
-                   sizeof(int) * totalNodes,
-                   cudaMemcpyDeviceToHost);
-        for(int i = 0;i < totalNodes;i++)
-            if(h_nodeSet[i] > 0)
-                printf("influence of node %d: %d\n", i, h_nodeSet[i]);
-    }
-    if(!timeonly)
+    if(!thread){
+        // LL* h_nodeSet = new LL[totalNodes + 1];
+        // cudaMemcpy(h_nodeSet,
+        //            d_nodeSet,
+        //            sizeof(LL) * (totalNodes + 1),
+        //            cudaMemcpyDeviceToHost);
+        // for(LL i = 1;i <= totalNodes;i++)
+        //     if(h_nodeSet[i] > 0)
+        //         printf("Node %lld influence %lld other nodes\n", i, h_nodeSet[i]);
+        // delete[] h_nodeSet;
         printf("========= GPU ELAPSED TIME: %f ms\n\n", gpu_runtime);
-    else
+    }
+
+    if(thread)
         printf("%f\n", gpu_runtime);
 
     // cuda memory free
@@ -259,6 +223,9 @@ int main(int argc, char** argv){
     cudaFree(d_nodeSet);
     cudaFree(d_adjList);
     cudaFree(d_adjCount);
+
+    delete[] h_adjList;
+    delete[] h_adjCount;
 
     return 0;
 }

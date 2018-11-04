@@ -1,6 +1,6 @@
 #pragma once
 
-#define QUE_LEN 1000
+#define QUE_LEN 10000
 #define QUE_ST(x) (x * QUE_LEN)
 #define QUE_ED(x) (x * QUE_LEN + QUE_LEN)
 
@@ -21,7 +21,8 @@ __device__ void que_init(int& que_h, int& que_t, int index){
 }
 
 // enqueue
-__device__ bool que_enque(int* queue, int que_h, int& que_t, int val, int index){
+template <typename _T>
+__device__ bool que_enque(_T* queue, int que_h, int& que_t, _T val, int index){
     if(que_isFull(que_h, que_t))
         return false;
     int tail = que_t - 1;
@@ -35,7 +36,8 @@ __device__ bool que_enque(int* queue, int que_h, int& que_t, int val, int index)
 }
 
 // dequeue
-__device__ int que_deque(int* queue, int& que_h, int que_t, int index){
+template <typename _T>
+__device__ _T que_deque(_T* queue, int& que_h, int que_t, int index){
     int val = -1;
     if(que_isEmpty(que_h, que_t, index))
         return val;
