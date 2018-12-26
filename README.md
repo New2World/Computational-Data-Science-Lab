@@ -2,11 +2,7 @@
 
 This is a repository for CISC Computational Data Science Lab
 
-## Task 1
-
-#### Files
-
-### Task 1: Dynamic Assignment vs Static Assignment
+## Task 1: Dynamic Assignment vs Static Assignment
 
 Given a directed acyclic graph, for each node in the graph run BFS on the whole graph and find out how many nodes can be reached. To do this parallel, each BFS process should be assigned to a thread in GPU. We are trying to find out which method is more efficient:
 
@@ -29,7 +25,7 @@ Arguments:
 - `--probability`: `-p<float>` (no space), probability of edges;  
 - `--thread`: `-t`, show elapsed time of each thread;
 
-#### Known Bugs
+### Known Bugs
 
 - [ ] If the graph is large enough, there will be some memory errors on GPU. I'm not so sure whether it is caused by the limitation of my VRAM, which only has 3GB space; (This problem starts from dataset `dblp.txt` and all other graphs larger than it.)  
 - [ ] ~~Recurrent queue has a fixed size, and if overflow the answer may be wrong, even the program may crash;~~ (temporarily ignore)  
@@ -67,3 +63,9 @@ Following graph shows elapsed time of each thread and nodes visited by each thre
     - static: 726.94 ms  
 
 ![](res/wiki.png)
+
+## Task 2: MpU Problem[^1]
+
+
+
+[^1]: Chlamtac, E.; Dinitz, M.; Konrad, C.; Kortsarz, G.; and Rabanca, G. 2018. The densest k-subhypergraph problem. _SIAM Journal on Discrete Mathematics 32(2):1458–1477_.

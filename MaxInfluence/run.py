@@ -5,9 +5,9 @@ import collections
 import numpy as np
 import matplotlib.pyplot as plt
 
-DYNAMIC_SRC = "src/dynamicAssign.cu"
+DYNAMIC_SRC = "./dynamicAssign.cu"
 DYNAMIC_EXE = "./dynamicAssign"
-STATIC_SRC = "src/staticAssign.cu"
+STATIC_SRC = "./staticAssign.cu"
 STATIC_EXE = "./staticAssign"
 
 parser = argparse.ArgumentParser()
