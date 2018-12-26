@@ -69,7 +69,7 @@ int main(int argc, char** argv){
     // argument parsing
     int source = 0;
     char ch, filePath[256];
-    LL p, q = -1, k = 1000;
+    LL p = -1, q = -1, k = 1000;
     while((ch = getopt_long(argc, argv, short_options, long_options, NULL)) != -1){
         switch(ch){
         case 's':
@@ -132,7 +132,9 @@ int main(int argc, char** argv){
 
     cout << hyperEdge.size() << " hyperedges are added" << endl;
     if(q < 0)
-        q = hyperEdge.size() - 1;
+        q = 2 * hyperEdge.size() / totalNodes;
+    if(p < 0)
+        p = hyperEdge.size() / 2;
 
     vector<_HyperEdge> E;
     set<LL> vertexSet;

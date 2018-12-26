@@ -17,11 +17,11 @@ typedef struct Edge{
     }
 }Edge;
 
-char short_options[] = "s:f:p:q::k::";
+char short_options[] = "s:f:p::q::k::";
 struct option long_options[] = {
     {"source", required_argument, 0, 's'},
     {"file", required_argument, 0, 'f'},
-    {"p", required_argument, 0, 'p'},
+    {"p", optional_argument, 0, 'p'},
     {"q", optional_argument, 0, 'q'},
     {"k", optional_argument, 0, 'k'}
 };
