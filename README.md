@@ -69,3 +69,22 @@ Following graph shows elapsed time of each thread and nodes visited by each thre
 
 
 [^1]: Chlamtac, E.; Dinitz, M.; Konrad, C.; Kortsarz, G.; and Rabanca, G. 2018. The densest k-subhypergraph problem. _SIAM Journal on Discrete Mathematics 32(2):1458–1477_.
+
+## Task 3: Reverse + MpU
+
+In this task, we will combine the reverse traversal and MpU to solve some problems.  
+Reverse traversal progress will generate several subsets of vertices, and these subsets are called hyperedges. Then these hyperedges will be the input of MpU problem to find a union of vertices included in hyperedges.
+
+### Compile
+
+- Compile  
+
+```bash
+$ g++ main.cpp -std=c++11 -o main
+```
+
+- Run  
+
+```bash
+$ main -f <path/to/your/data> -s <source node> -t <sink node> -p<p value, optional> -q<q value, optional> -k<iterations to run, optional, default=1000>
+```

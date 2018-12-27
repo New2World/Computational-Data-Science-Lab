@@ -6,7 +6,7 @@
 #include <algorithm>
 
 #define MAX_EDGE 100000000
-#define LL unsigned long long
+#define LL long long
 
 typedef struct Edge{
     LL from, to;
@@ -17,9 +17,10 @@ typedef struct Edge{
     }
 }Edge;
 
-char short_options[] = "s:f:p::q::k::";
+char short_options[] = "s:t:f:p::q::k::";
 struct option long_options[] = {
     {"source", required_argument, 0, 's'},
+    {"sink", required_argument, 0, 't'},
     {"file", required_argument, 0, 'f'},
     {"p", optional_argument, 0, 'p'},
     {"q", optional_argument, 0, 'q'},

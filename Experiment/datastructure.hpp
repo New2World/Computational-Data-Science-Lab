@@ -7,10 +7,10 @@
 #include <queue>
 #include <set>
 
-#define LL unsigned long long
+#define LL long long
 #define MAXVERTEX 5000000
 #define MAXEDGE 50000000
-#define inf (1 << 31)
+#define INF (1 << 30)
 
 typedef struct _HyperEdge{
     std::set<LL> vertex;
@@ -25,7 +25,7 @@ public:
         LL from, to, cap, next;
     } _FlowEdge;
 
-    LL* adjHead, *dis, *dep, *gap;
+    LL* adjHead, *dis, *pre, *gap;
     LL edgeCount, vertexCount;
     LL tolHyperEdge, tolVertex;
     LL superSrc, superSink;
@@ -36,7 +36,6 @@ public:
     void clearAll();
     void buildFlowGraph(LL, std::set<LL>, std::vector<_HyperEdge>, LL);
     void addFlowEdge(LL, LL, LL);
-    void _bfs(LL, LL);
     void maxFlow();
     std::set<LL> miniCut();
 };
@@ -44,7 +43,7 @@ public:
 DSH::DSH(){
     adjHead = new LL[MAXVERTEX];
     dis = new LL[MAXVERTEX];
-    dep = new LL[MAXVERTEX];
+    pre = new LL[MAXVERTEX];
     gap = new LL[MAXVERTEX];
     flowEdge = new _FlowEdge[MAXEDGE];
 }
@@ -52,7 +51,7 @@ DSH::DSH(){
 DSH::~DSH(){
     delete [] adjHead;
     delete [] dis;
-    delete [] dep;
+    delete [] pre;
     delete [] gap;
     delete [] flowEdge;
 }
@@ -65,7 +64,7 @@ void DSH::clearAll(){
     superSrc = superSink = 0;
     memset(adjHead, -1, sizeof(LL) * MAXVERTEX);
     memset(dis, 0, sizeof(LL) * MAXVERTEX);
-    memset(dep, -1, sizeof(LL) * MAXVERTEX);
+    memset(pre, -1, sizeof(LL) * MAXVERTEX);
     memset(gap, 0, sizeof(LL) * MAXVERTEX);
     memset(flowEdge, 0, sizeof(_FlowEdge) * MAXEDGE);
 }
@@ -85,7 +84,7 @@ void DSH::buildFlowGraph(LL V, std::set<LL> edgeSet, std::vector<_HyperEdge> hyp
     cur = 1;
     for(iter = edgeSet.begin();iter != edgeSet.end();iter++, cur++)
         for(auto i = hyperEdge[*iter - 1].vertex.begin();i != hyperEdge[*iter - 1].vertex.end();i++)
-            addFlowEdge(cur, *i + tolHyperEdge, inf);
+            addFlowEdge(cur, *i + tolHyperEdge, INF);
     cur += V;
     // add super sink node, connecting to all vertices
     superSink = cur;
@@ -101,78 +100,53 @@ void DSH::addFlowEdge(LL u, LL v, LL cap){
     adjHead[v] = edgeCount++;
 }
 
-void DSH::_bfs(LL st, LL ed){
-    LL u, v;
-    gap[0] = 1;
-    std::queue<LL> que;
-    que.push(ed);
-    while(!que.empty()){
-        u = que.front();
-        que.pop();
-        for(LL i = adjHead[u];i != -1;i = flowEdge[i].next){
-            v = flowEdge[i].to;
-            if(dep[v] != -1)
-                continue;
-            que.push(v);
-            dep[v] = dep[u] + 1;
-            gap[dep[v]]++;
-        }
-    }
-}
-
 void DSH::maxFlow(){
-    LL maxflow = 0, top = 0;
-    _bfs(superSrc, superSink);
-    LL u = superSrc, i;
-    LL* head = new LL[MAXVERTEX], *S = new LL[MAXEDGE];
-    memcpy(head, adjHead, sizeof(LL) * MAXVERTEX);
-    while(dep[superSrc] < vertexCount){
-        if(u == superSink){
-            LL temp = inf;
-            LL inser;
-            for(i = 0;i < top;i++){
-                if(temp > flowEdge[S[i]].cap){
-                    temp = flowEdge[S[i]].cap;
-                    inser = i;
+    LL flow = 0, aug = INF;
+    LL u, v;
+    bool flag;
+    gap[0] = tolVertex;
+    u = pre[0] = 0;
+    LL *cur = new LL[MAXVERTEX];
+    memcpy(cur, adjHead, sizeof(LL) * MAXVERTEX);
+    while(dis[0] < tolVertex){
+        flag = false;
+        for(LL j = cur[u];j != -1;j = flowEdge[j].next){
+            v = flowEdge[j].to;
+            if(flowEdge[j].cap > 0 && dis[u] == dis[v] + 1){
+                flag = true;
+                if(flowEdge[j].cap < aug)
+                    aug = flowEdge[j].cap;
+                pre[v] = u;
+                u = v;
+                if(u == tolVertex - 1){
+                    flow += aug;
+                    while(u != 0){
+                        u = pre[u];
+                        flowEdge[cur[u]].cap -= aug;
+                        flowEdge[cur[u] ^ 1].cap += aug;
+                    }
+                    aug = INF;
                 }
-            }
-            for(i = 0;i < top;i++){
-                flowEdge[S[i]].cap -= temp;
-                flowEdge[S[i] ^ 1].cap += temp;
-            }
-            maxflow += temp;
-            top = inser;
-            u = flowEdge[S[top]].from;
-        }
-        else if(gap[dep[u] - 1] == 0)
-            break;
-        for(i = head[u];i != -1;i = flowEdge[i].next)
-            if(flowEdge[i].cap != 0 && dep[u] == dep[flowEdge[i].to] + 1)
                 break;
-        if(i != -1){
-            head[u] = i;
-            S[top++] = i;
-            u = flowEdge[i].to;
-        }
-        else{
-            LL min = vertexCount;
-            for(LL i = adjHead[u];i != -1;i = flowEdge[i].next){
-                if(flowEdge[i].cap == 0)
-                    continue;
-                if(min > dep[flowEdge[i].to]){
-                    min = dep[flowEdge[i].to];
-                    head[u] = i;
-                }
             }
-            gap[dep[u]]--;
-            dep[u] = min + 1;
-            gap[dep[u]]++;
-            if(u != superSrc)
-                u = flowEdge[S[--top]].from;
         }
+        if(flag)
+            continue;
+        LL mindis = tolVertex;
+        for(LL j = adjHead[u];j != -1;j = flowEdge[j].next){
+            v = flowEdge[j].to;
+            if(flowEdge[j].cap > 0 && dis[v] < mindis){
+                mindis = dis[v];
+                cur[u] = j;
+            }
+        }
+        if((--gap[dis[u]]) == 0)
+            break;
+        gap[dis[u] = mindis + 1]++;
+        u = pre[u];
     }
-    delete [] head;
-    delete [] S;
+
+    delete [] cur;
 }
 
 std::set<LL> DSH::miniCut(){

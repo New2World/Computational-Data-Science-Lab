@@ -53,7 +53,7 @@ vector<_HyperEdge> mpu(LL n_nodes, LL n_hedges, LL p, LL q, vector<_HyperEdge> h
     for(iter = E.begin();iter != E.end();iter++)
         cardinality.push_back(hyperEdge[*iter - 1]);
     sort(cardinality.begin(), cardinality.end());
-    for(LL i = 0;cardinality.size() && i < p - E_dash.size();i++)
+    for(LL i = 0;cardinality.size() && i < cardinality.size() && i < p - E_dsize;i++)
         result.push_back(cardinality[i]);
     for(iter = E_dash.begin();iter != E_dash.end();iter++)
         result.push_back(hyperEdge[*iter - 1]);
@@ -67,13 +67,16 @@ vector<_HyperEdge> mpu(LL n_nodes, LL n_hedges, LL p, LL q, vector<_HyperEdge> h
 
 int main(int argc, char** argv){
     // argument parsing
-    int source = 0;
+    LL source = 0, sink = 0;
     char ch, filePath[256];
     LL p = -1, q = -1, k = 1000;
     while((ch = getopt_long(argc, argv, short_options, long_options, NULL)) != -1){
         switch(ch){
         case 's':
-            source = atoi(optarg);
+            source = atoll(optarg);
+            break;
+        case 't':
+            sink = atoll(optarg);
             break;
         case 'f':
             strncpy(filePath, optarg, 256);
@@ -114,7 +117,7 @@ int main(int argc, char** argv){
             probability = 1. * rand() / RAND_MAX * (outdegree + 1);
             nextNode = floor(probability);
             nextNode += h_adjCount[startNode - 1];
-            if(nextNode >= h_adjCount[startNode])
+            if(nextNode >= h_adjCount[startNode] || h_adjList[nextNode] == sink)
                 break;
             nodeCount++;
             startNode = h_adjList[nextNode];
@@ -139,8 +142,10 @@ int main(int argc, char** argv){
     vector<_HyperEdge> E;
     set<LL> vertexSet;
     vertexSet.clear();
-    if(hyperEdge.size() > 0)
+    if(hyperEdge.size() > 0){
+        cout << "p: " << p << endl;
         E = mpu(totalNodes, hyperEdge.size(), p, q, hyperEdge);
+    }
 
     printf("========= FINISH\n");
 
