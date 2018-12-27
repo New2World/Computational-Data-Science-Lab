@@ -59,7 +59,7 @@ vector<_HyperEdge> mpu(LL n_nodes, LL n_hedges, LL p, LL q, vector<_HyperEdge> h
         result.push_back(hyperEdge[*iter - 1]);
 
     #ifdef DEBUG
-    cout << "MpU size: " << result.size() << endl;
+    cout << "MpU find " << result.size() << " hyperedges" << endl;
     #endif
 
     return result;
@@ -133,7 +133,6 @@ int main(int argc, char** argv){
     delete[] h_adjList;
     delete[] h_adjCount;
 
-    cout << hyperEdge.size() << " hyperedges are added" << endl;
     if(q < 0)
         q = 2 * hyperEdge.size() / totalNodes;
     if(p < 0)
@@ -142,19 +141,18 @@ int main(int argc, char** argv){
     vector<_HyperEdge> E;
     set<LL> vertexSet;
     vertexSet.clear();
-    if(hyperEdge.size() > 0){
-        cout << "p: " << p << endl;
+    if(hyperEdge.size() > 0)
         E = mpu(totalNodes, hyperEdge.size(), p, q, hyperEdge);
-    }
-
-    printf("========= FINISH\n");
 
     for(int i = 0;i < E.size();i++)
         vertexSet.insert(E[i].vertex.begin(), E[i].vertex.end());
 
+    printf("\nVertex Union:\n");
     for(auto i = vertexSet.begin();i != vertexSet.end();i++)
         printf("%lld ", *i);
     putchar('\n');
+
+    printf("\n========= FINISH\n");
 
     return 0;
 }
