@@ -68,8 +68,8 @@ vector<_HyperEdge> mpu(LL n_nodes, LL n_hedges, LL p, LL q, vector<_HyperEdge> h
 }
 
 void newOutput(LL counter, char* outputFile){
-    char str[20] = "output/";
-    sprintf(str + 7, "%lld_%lld.txt", counter / 5, counter % 5);
+    char str[20] = "wiki_output_";
+    sprintf(str + 11, "%lld.txt", counter);
     strcpy(outputFile, str);
 }
 
@@ -103,11 +103,10 @@ int main(int argc, char** argv){
 
     // read graph from file
     char outputFile[20];
-    long startTime;
     LL totalNodes = 0, totalEdges = 0;
     LL* h_adjCount = NULL, *h_adjList = NULL;
     int startFlag = readGraph(filePath, h_adjList, h_adjCount, totalNodes, totalEdges, true);
-    FILE* fd = fopen("wiki_input_3.txt", "r");
+    FILE* fd = fopen("wiki_input.txt", "r");
 
     // for(int i = h_adjCount[4123];i < h_adjCount[4124];i++)
     //     printf("%lld ", h_adjList[i]);
@@ -125,11 +124,9 @@ int main(int argc, char** argv){
     set<LL> nodeSet;
     vector<_HyperEdge> E;
     while(~fscanf(fd, "s %lld t %lld alpha %f L %lld pmax %f beta %f\n", &sink, &source, &alpha, &k, &pmax, &beta)){
-        newOutput(counter, outputFile);
         counter++;
-        printf("Processing line %lld", counter);
+        newOutput(counter, outputFile);
         FILE* wfd = fopen(outputFile, "w");
-        startTime = clock();
         hyperEdge.clear();
         for(LL i = 0;i < k;i++){
             startNode = source + 1 - startFlag;
@@ -182,9 +179,6 @@ int main(int argc, char** argv){
 
         for(int i = 0;i < E.size();i++)
             nodeSet.insert(E[i].vertex.begin(), E[i].vertex.end());
-
-        startTime = clock() - startTime;
-        printf(", time: %ld s %ld ms;\n", startTime / CLOCKS_PER_SEC, startTime % CLOCKS_PER_SEC / 1000);
 
         // printf("Vertex Union:\n");
         for(auto i = nodeSet.begin();i != nodeSet.end();i++)
