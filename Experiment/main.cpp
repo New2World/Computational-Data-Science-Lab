@@ -26,7 +26,7 @@ vector<_HyperEdge> mpu(LL n_nodes, LL n_hedges, LL p, LL q, vector<_HyperEdge> h
     E_dash.clear();
     E_ddash.clear();
     vector<LL> overlap;
-    for(int i = 0;i <= n_hedges;i++)
+    for(int i = 0;i < n_hedges;i++)
         E.insert((LL)i + 1);
 
     while(E_dsize < threshold){
@@ -34,21 +34,15 @@ vector<_HyperEdge> mpu(LL n_nodes, LL n_hedges, LL p, LL q, vector<_HyperEdge> h
         dsh.buildFlowGraph(n_nodes, E, hyperEdge, q);
         E_ddash = dsh.miniCut();
         E_ddsize = E_ddash.size();
-        printf("get %lld minicut, %ld remain in E,  %lld / %lld\n", E_ddsize, E.size(), E_dsize, threshold);
+        // printf("get %lld minicut, %ld remain in E,  %lld / %lld\n", E_ddsize, E.size(), E_dsize, threshold);
         set_intersection(E_ddash.begin(), E_ddash.end(), E_dash.begin(), E_dash.end(), back_inserter(overlap));
-        if(!overlap.empty())
-            cout << "NONE EMPTY: " << overlap.size() << endl;
         if(E_dsize + E_ddsize <= p){
             E_dash.insert(E_ddash.begin(), E_ddash.end());
-            for(LL i = 0;i < E_ddsize;i++){
-                cout << "ERASE: " << E_ddash[i] << " : " << !(E.find(E_ddash[i]) == E.end()) << endl;
+            for(LL i = 0;i < E_ddsize;i++)
                 E.erase(E_ddash[i]);
-            }
         }
         else{
-            cout << ">>> " << p - E_dsize << endl;
             for(int i = 0;i < p - E_dsize;i++){
-                // a better way to select an arbitrary edge from E_ddash?
                 rnd = (LL)rand() % E_ddsize;
                 E_dash.insert(E_ddash[rnd]);
                 E.erase(E_ddash[rnd]);
@@ -71,6 +65,12 @@ vector<_HyperEdge> mpu(LL n_nodes, LL n_hedges, LL p, LL q, vector<_HyperEdge> h
         result.push_back(hyperEdge[*iter - 1]);
 
     return result;
+}
+
+void newOutput(LL counter, char* outputFile){
+    char str[20] = "wiki_output_";
+    sprintf(str + 11, "%lld.txt", counter);
+    strcpy(outputFile, str);
 }
 
 int main(int argc, char** argv){
@@ -102,6 +102,7 @@ int main(int argc, char** argv){
     }
 
     // read graph from file
+    char outputFile[20];
     LL totalNodes = 0, totalEdges = 0;
     LL* h_adjCount = NULL, *h_adjList = NULL;
     int startFlag = readGraph(filePath, h_adjList, h_adjCount, totalNodes, totalEdges, true);
@@ -111,19 +112,21 @@ int main(int argc, char** argv){
     //     printf("%lld ", h_adjList[i]);
     // putchar('\n');
 
-    // outputAdjInfo(h_adjList, h_adjCount, totalNodes, totalEdges);
-    // return 0;
     printf("========= NEW RUN\n");
-    printf("This graph contains %lld nodes connected by %lld edges\n", totalNodes, totalEdges);
+    printf("This graph contains %lld nodes connected by %lld edges\n\n", totalNodes, totalEdges);
 
     float alpha, probability, beta, pmax;
     LL startNode = source + 1 - startFlag, outdegree, nextNode;
+    LL counter = 0;
     bool flag = true;
     srand(time(NULL));
     vector<_HyperEdge> hyperEdge;
     set<LL> nodeSet;
     vector<_HyperEdge> E;
     while(~fscanf(fd, "s %lld t %lld alpha %f L %lld pmax %f beta %f\n", &sink, &source, &alpha, &k, &pmax, &beta)){
+        counter++;
+        newOutput(counter, outputFile);
+        FILE* wfd = fopen(outputFile, "w");
         hyperEdge.clear();
         for(LL i = 0;i < k;i++){
             startNode = source + 1 - startFlag;
@@ -153,34 +156,23 @@ int main(int argc, char** argv){
                 startNode = h_adjList[nextNode];
                 if(nodeSet.find(startNode) != nodeSet.end()){
                     nodeSet.clear();
-                    // cout << "Stop at: " << startNode;
                     break;
                 }
                 nodeSet.insert(startNode);
-                // printf("%lld ", startNode);
             }
-            // putchar('\n');
             if(nodeSet.size() == 0)
                 continue;
-            // cout << ">>> " << nodeSet.size() << " nodes in the hyperedge" << endl;
-
-
-            // if(nodeSet.size() >= 10){
-            //     for(auto iter = nodeSet.begin();iter != nodeSet.end();iter ++)
-            //         cout << *iter << endl;
-            // }
-
-
 
             hyperEdge.push_back(_HyperEdge{nodeSet});
         }
 
         if(q < 0)
-            q = 2. * hyperEdge.size() / totalNodes;
+            q = 50. * hyperEdge.size() / totalNodes;
         if(p < 0)
-            p = (int)(beta * k);
+            p = (int)(beta * hyperEdge.size());
 
-        printf("s: %lld, t: %lld, p: %lld, hyperedge: %ld\n", source, sink, p, hyperEdge.size());
+        // printf("----------\n");
+        // printf("s: %lld, t: %lld, hyperedge: %ld\n", sink, source, hyperEdge.size());
         nodeSet.clear();
         if(hyperEdge.size() > 0)
             E = mpu(totalNodes, hyperEdge.size(), p, q, hyperEdge);
@@ -188,11 +180,15 @@ int main(int argc, char** argv){
         for(int i = 0;i < E.size();i++)
             nodeSet.insert(E[i].vertex.begin(), E[i].vertex.end());
 
-        printf("Vertex Union:\n");
+        // printf("Vertex Union:\n");
         for(auto i = nodeSet.begin();i != nodeSet.end();i++)
-            printf("%lld ", *i);
-        printf("----------\n");
-        getchar();
+            fprintf(wfd, "%lld ", *i);
+        fprintf(wfd, "\n");
+        // printf("\n----------\n");
+        // getchar();
+        fclose(wfd);
+        if(counter >= 5)
+            break;
     }
 
     fclose(fd);

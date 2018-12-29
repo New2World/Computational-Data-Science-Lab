@@ -79,7 +79,7 @@ void DSH::buildFlowGraph(LL V, std::set<LL> edgeSet, std::vector<_HyperEdge> hyp
     // add super source node(index 0) connecting to all hyperedges
     for(iter = edgeSet.begin();iter != edgeSet.end();iter++, cur++){
         temp += hyperEdge[*iter - 1].vertex.size();
-        addFlowEdge(0, cur, 1, *iter - 1);
+        addFlowEdge(0, cur, 1, *iter);
     }
     // from index 1, connect all hyperedges with vertices contained
     cur = 1;
