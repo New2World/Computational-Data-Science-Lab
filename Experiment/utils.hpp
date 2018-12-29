@@ -17,7 +17,7 @@ typedef struct Edge{
     }
 }Edge;
 
-char short_options[] = "s:t:f:p::q::k::";
+char short_options[] = "f:s::t::p::q::k::";
 struct option long_options[] = {
     {"source", required_argument, 0, 's'},
     {"sink", required_argument, 0, 't'},
@@ -67,4 +67,5 @@ void outputAdjInfo(LL* adjList, LL* adjCount, LL nodes, LL edges){
     for(LL i = 0;i < edges;i++)
         printf("%lld ", adjList[i]);
     putchar('\n');
+    printf("total nodes: %lld\ntotal edges: %lld\n", nodes, edges);
 }
