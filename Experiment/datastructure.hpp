@@ -8,13 +8,13 @@
 #include <set>
 
 #define LL long long
-#define MAXVERTEX 5000000
-#define MAXEDGE 50000000
-#define INF (1 << 30)
+#define MAXVERTEX 15000000
+#define MAXEDGE 30000000
+#define INF 0x3f3f3f3f
 
 typedef struct _HyperEdge{
     std::set<LL> vertex;
-    inline bool operator < (const struct _HyperEdge& e){
+    inline bool operator < (const struct _HyperEdge& e) const {
         return vertex.size() < e.vertex.size();
     }
 } _HyperEdge;
@@ -50,11 +50,11 @@ DSH::DSH(){
 }
 
 DSH::~DSH(){
-    delete [] adjHead;
-    delete [] dis;
-    delete [] pre;
-    delete [] gap;
-    delete [] flowEdge;
+    try{delete [] adjHead;}catch(...){printf("dsh free adjHead error\n");}
+    try{delete [] dis;}catch(...){printf("dsh free dis error\n");}
+    try{delete [] pre;}catch(...){printf("dsh free pre error\n");}
+    try{delete [] gap;}catch(...){printf("dsh free gap error\n");}
+    try{delete [] flowEdge;}catch(...){printf("dsh free flowEdge error\n");}
 }
 
 void DSH::clearAll(){
@@ -87,6 +87,7 @@ void DSH::buildFlowGraph(LL V, std::set<LL> edgeSet, std::vector<_HyperEdge> hyp
         for(auto i = hyperEdge[*iter - 1].vertex.begin();i != hyperEdge[*iter - 1].vertex.end();i++)
             addFlowEdge(cur, *i + tolHyperEdge, INF, 0);
     cur += V;
+    // std::cout << ">>>>>>>> " << edgeCount + V * 2 << " - " << std::endl;
     // add super sink node, connecting to all vertices
     superSink = cur;
     vertexCount = superSink + 1;
@@ -151,18 +152,21 @@ void DSH::maxFlow(){
         u = pre[u];
     }
 
-    delete [] cur;
+    try{
+        delete [] cur;
+    }
+    catch(...){
+        printf("maxflow free error\n");
+        exit(1);
+    }
 }
 
 std::vector<LL> DSH::miniCut(){
     maxFlow();
     std::vector<LL> mincut;
     mincut.clear();
-    for(LL i = 0;flowEdge[i].from == 0;i += 2){
-        if(flowEdge[i].cap <= 0){
-            // printf("%lld -- %lld --> %lld\n", flowEdge[i].from, flowEdge[i].cap, flowEdge[i].index);
+    for(LL i = 0;flowEdge[i].from == 0;i += 2)
+        if(flowEdge[i].cap <= 0)
             mincut.push_back(flowEdge[i].index);
-        }
-    }
     return mincut;
 }

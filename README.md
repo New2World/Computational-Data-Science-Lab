@@ -64,13 +64,11 @@ Following graph shows elapsed time of each thread and nodes visited by each thre
 
 ![](res/wiki.png)
 
-## Task 2: MpU Problem[^1]
+## Task 2: MpU Problem
 
+> please turn to the first paper in reference
 
-
-[^1]: Chlamtac, E.; Dinitz, M.; Konrad, C.; Kortsarz, G.; and Rabanca, G. 2018. The densest k-subhypergraph problem. _SIAM Journal on Discrete Mathematics 32(2):1458–1477_.
-
-## Task 3: Reverse + MpU
+## Task 3: Experiment (Reverse + MpU)
 
 In this task, we will combine the reverse traversal and MpU to solve some problems.  
 Reverse traversal progress will generate several subsets of vertices, and these subsets are called hyperedges. Then these hyperedges will be the input of MpU problem to find a union of vertices included in hyperedges.
@@ -80,11 +78,25 @@ Reverse traversal progress will generate several subsets of vertices, and these 
 - Compile  
 
 ```bash
-$ g++ main.cpp -std=c++11 -o main
+$ g++ main.cpp -std=c++11 -O3 -o main
 ```
 
 - Run  
 
 ```bash
-$ main -f <path/to/your/data> -s <source node> -t <sink node> -p<p value, optional> -q<q value, optional> -k<iterations to run, optional, default=1000>
+$ ./main
 ```
+
+after the program start, please input path to your dataset and the input file and # of cases you want (input 0 will output all cases listed in input file).  
+The format of input file should be like this
+
+```
+s 1051 t 3825 alpha 0.200 L 7398809 pmax 0.024 beta 0.110
+```
+
+where `s` and `t` refer to source node and sink node, `alpha` is not used in this program, `L` is # of iterations of reverse traversal, `L * beta` is the value of `p` ,and to check the result, # of hyperedges the program outputs should be close to `L * pmax`.
+
+---
+### Reference
+
+- Chlamtac, E.; Dinitz, M.; Konrad, C.; Kortsarz, G.; and Rabanca, G. 2018. The densest k-subhypergraph problem. _SIAM Journal on Discrete Mathematics 32(2):1458–1477_.
