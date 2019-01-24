@@ -10,7 +10,7 @@
 
 #define RAND_FACTOR 1e9+7
 
-#define THREAD (9 * 256)
+#define THREAD (16 * 1024)
 
 // get thread index
 __device__ int getIndex(){
@@ -145,7 +145,7 @@ int main(int argc, char** argv){
     cudaEvent_t start, stop;
 
     // define GPU thread layout
-    dim3 gridSize(3,3), blockSize(16,16);
+    dim3 gridSize(4,4), blockSize(32,32);
 
     // generate random numbers for each thread as random seeds
     curandGenerator_t curandGenerator;
