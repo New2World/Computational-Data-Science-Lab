@@ -11,10 +11,7 @@
 #include <set>
 #include <map>
 
-#include "datastructure.hpp"
 #include "utils.hpp"
-
-#define DEBUG
 
 using namespace std;
 
@@ -30,15 +27,12 @@ vector<_HyperEdge> mpu(LL n_nodes, LL n_hedges, LL p, LL q, vector<_HyperEdge> h
 	E.clear();
 	E_dash.clear();
 	E_ddash.clear();
-	vector<LL> overlap;
 	for (int i = 0; i < n_hedges; i++)
 		E.insert((LL)i + 1);
 	while (E_dsize < threshold) {
-		overlap.clear();
 		dsh.buildFlowGraph(n_nodes, E, hyperEdge, q);
 		E_ddash = dsh.miniCut();
 		E_ddsize = E_ddash.size();
-		set_intersection(E_ddash.begin(), E_ddash.end(), E_dash.begin(), E_dash.end(), back_inserter(overlap));
 		if (E_dsize + E_ddsize <= p) {
 			E_dash.insert(E_ddash.begin(), E_ddash.end());
 			for (LL i = 0; i < E_ddsize; i++)
@@ -115,10 +109,11 @@ int main(int argc, char** argv) {
 	set<LL> nodeSet;
 	vector<_HyperEdge> E;
     FILE* wfd = fopen("output.txt", "w");
+    printf("   ln     %%diff         time\n");
     while (~fscanf(fd, "s %lld t %lld alpha %f L %lld pmax %f beta %f\n", &sink, &source, &alpha, &k, &pmax, &beta)) {
 		// newOutput(counter, outputFile);
 		counter++;
-		printf("Line # %lld: ", counter);
+		printf("#%4lld - ", counter);
         fflush(stdout);
         kmax = k * pmax;
 
@@ -170,7 +165,7 @@ int main(int argc, char** argv) {
 
         dif = kmax - hyperEdge.size();
         if(dif < 0) dif = -dif;
-        printf("%f%% - %ld - ", dif / kmax * 100, hyperEdge.size());
+        printf("%.4f%% - ", dif / kmax * 100);
         fflush(stdout);
 
 		nodeSet.clear();
@@ -182,7 +177,7 @@ int main(int argc, char** argv) {
 			nodeSet.insert(E[i].vertex.begin(), E[i].vertex.end());
 
 		startTime = clock() - startTime;
-        printf("%ld s %ld ms;\n", startTime / CLOCKS_PER_SEC, startTime % CLOCKS_PER_SEC / 1000);
+        printf("%ld s %3ld ms;\n", startTime / CLOCKS_PER_SEC, startTime % CLOCKS_PER_SEC / 1000);
 
 		for (auto i = nodeSet.begin(); i != nodeSet.end(); i++)
 			fprintf(wfd, "%lld ", rmp[*i]);

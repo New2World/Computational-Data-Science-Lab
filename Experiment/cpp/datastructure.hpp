@@ -12,6 +12,15 @@
 #define MAXEDGE 30000000
 #define INF 0x3f3f3f3f
 
+typedef struct _Edge{
+    LL from, to;
+    bool operator < (const struct _Edge& e) const {
+        if(from == e.from)
+            return to < e.to;
+        return from < e.from;
+    }
+} _Edge;
+
 typedef struct _HyperEdge{
     std::set<LL> vertex;
     inline bool operator < (const struct _HyperEdge& e) const {
@@ -67,7 +76,6 @@ void DSH::clearAll(){
     memset(dis, 0, sizeof(LL) * MAXVERTEX);
     memset(pre, -1, sizeof(LL) * MAXVERTEX);
     memset(gap, 0, sizeof(LL) * MAXVERTEX);
-    memset(flowEdge, 0, sizeof(_FlowEdge) * MAXEDGE);
 }
 
 void DSH::buildFlowGraph(LL V, std::set<LL> edgeSet, std::vector<_HyperEdge> hyperEdge, LL q){
