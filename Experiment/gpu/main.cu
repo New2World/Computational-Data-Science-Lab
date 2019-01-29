@@ -28,9 +28,7 @@ using namespace std;
 map<LL,LL> mp, rmp;
 
 vector<_HyperEdge> mpu(LL n_nodes, LL n_hedges, LL p, LL q, vector<_HyperEdge> hyperEdge) {
-    // printf("allocate DSH\n");
     DSH dsh = DSH();
-    // printf("finish allocation\n");
 	LL threshold = (LL)(p - sqrt((double)n_hedges)), E_dsize = 0, E_ddsize, rnd = 0;
     LL sizeRecord = -1;
     vector<LL> E_ddash;
@@ -39,17 +37,12 @@ vector<_HyperEdge> mpu(LL n_nodes, LL n_hedges, LL p, LL q, vector<_HyperEdge> h
 	E.clear();
 	E_dash.clear();
 	E_ddash.clear();
-	vector<LL> overlap;
 	for (int i = 0; i < n_hedges; i++)
 		E.insert((LL)i + 1);
 	while (E_dsize < threshold) {
-		overlap.clear();
-        // printf("  building graph\n");
 		dsh.buildFlowGraph(n_nodes, E, hyperEdge, q);
-        // printf("  graph built\n");
 		E_ddash = dsh.miniCut();
 		E_ddsize = E_ddash.size();
-		set_intersection(E_ddash.begin(), E_ddash.end(), E_dash.begin(), E_dash.end(), back_inserter(overlap));
 		if (E_dsize + E_ddsize <= p) {
 			E_dash.insert(E_ddash.begin(), E_ddash.end());
 			for (LL i = 0; i < E_ddsize; i++)
