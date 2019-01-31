@@ -186,6 +186,7 @@ int main(int argc, char** argv) {
 			break;
 	}
 
+    fflush(wfd);
     fclose(wfd);
 	fclose(fd);
 	delete[] h_adjCount;
