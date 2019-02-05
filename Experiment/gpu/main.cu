@@ -215,7 +215,7 @@ int main(int argc, char** argv) {
 
 	float alpha, beta, pmax;
     float kmax, dif;
-	LL counter = 0, iters;
+	LL counter = 0, loop, iters;
 	srand(time(NULL));
 	vector<_HyperEdge> hyperEdge;
 	set<LL> nodeSet;
@@ -245,7 +245,7 @@ int main(int argc, char** argv) {
     cudaMemcpy(d_adjCount, h_adjCount, sizeof(LL)*(totalNodes+1),cudaMemcpyHostToDevice);
 
     FILE* wfd = fopen("output.txt", "w");
-    printf("   ln     %%diff         time\n");
+    printf("   ln     %%diff         time     per loop\n");
     while (~fscanf(fd, "s %lld t %lld alpha %f L %lld pmax %f beta %f\n", &sink, &source, &alpha, &k, &pmax, &beta)) {
 		// newOutput(counter, outputFile);
 		counter++;
@@ -262,7 +262,9 @@ int main(int argc, char** argv) {
         iters = 0;
         cudaMemset(d_k, iters, sizeof(LL));
         h_nodeSet = new LL[THREAD * NODESETSIZE];
+        loop = 0;
         while(iters < k){
+            loop++;
             cudaMemset(d_visit, false, sizeof(bool) * THREAD * totalNodes);
             cudaMemset(d_nodeSet, 0LL, sizeof(LL) * THREAD * NODESETSIZE);
             reverseInfluence<<<gridSize, blockSize>>>(  totalNodes, totalEdges, k,
@@ -310,7 +312,11 @@ int main(int argc, char** argv) {
 			nodeSet.insert(E[i].vertex, E[i].vertex + E[i].v_size);
 
 		startTime = clock() - startTime;
-        printf("%ld s %3ld ms;\n", startTime / CLOCKS_PER_SEC, startTime % CLOCKS_PER_SEC / 1000);
+        printf("%ld s %3ld ms - %lld s %3lld ms\n",
+                startTime / CLOCKS_PER_SEC,
+                startTime % CLOCKS_PER_SEC / 1000,
+                startTime / loop / CLOCKS_PER_SEC,
+                startTime / loop % CLOCKS_PER_SEC / 1000);
 
 		for (auto i = nodeSet.begin(); i != nodeSet.end(); i++)
 			fprintf(wfd, "%lld ", rmp[*i]);
