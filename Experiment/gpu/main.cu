@@ -27,6 +27,8 @@ using namespace std;
 
 map<LL,LL> mp, rmp;
 
+// Index start from 1 in mapped nodes
+
 vector<_HyperEdge> mpu(LL n_nodes, LL n_hedges, LL p, LL q, vector<_HyperEdge> hyperEdge) {
     DSH dsh = DSH();
 	LL threshold = (LL)(p - sqrt((double)n_hedges)), E_dsize = 0, E_ddsize, rnd = 0;
@@ -92,35 +94,55 @@ __device__ int getIndex(){
     return row * line + col;
 }
 
-__device__ bool nd_isVisited(bool* vis, LL nd, LL tot, int index){
-    return vis[index * tot + nd - 1];
-}
+// __device__ void nd_clearVisit(bool *vis, LL tot, int index){
+//     memset(vis + index * tot, false, sizeof(bool) * tot);
+// }
+//
+// __device__ bool nd_isVisited(bool* vis, LL nd, LL tot, int index){
+//     return vis[index * tot + nd - 1];
+// }
+//
+// __device__ bool nd_setVisited(bool* vis, LL nd, LL tot, int index){
+//     bool oldState = vis[index * tot + nd - 1];
+//     vis[index * tot + nd - 1] = true;
+//     return oldState;
+// }
 
-__device__ bool nd_setVisited(bool* vis, LL nd, LL tot, int index){
-    bool oldState = vis[index * tot + nd - 1];
-    vis[index * tot + nd - 1] = true;
-    return oldState;
-}
-
-__device__ void ndset_clear(LL* nodeSet, int index){
+__device__ void ndset_clear_global(LL *nodeSet, LL *nodeCount, int index){
     nodeSet[index * NODESETSIZE] = 0;
+    nodeCount[index] = 0;
 }
 
-__device__ void ndset_insert(LL* nodeSet, LL value, int index){
+__device__ void ndset_clear(LL* nodeSet, LL *nodeCount, int index){
+    nodeSet[index * NODESETSIZE] = nodeCount[index];
+}
+
+__device__ bool ndset_insert(LL* nodeSet, LL value, int index){
     LL cnt = ++nodeSet[index * NODESETSIZE];
-    if(cnt >= NODESETSIZE){
-        printf("\n>>> overflow <<<\n");
-    }
+    if(cnt >= NODESETSIZE)
+        return false;
     nodeSet[index * NODESETSIZE + cnt] = value;
+    return true;
 }
 
-__device__ int ndset_size(LL* nodeSet, int index){
+__device__ int ndset_size_global(LL *nodeSet, int index){
     return nodeSet[index * NODESETSIZE];
 }
 
-__device__ void ndset_erase(LL* nodeSet, int index){
-    if(ndset_size(nodeSet, index) > 0)
+__device__ int ndset_size(LL* nodeSet, LL *nodeCount, int index){
+    return nodeSet[index * NODESETSIZE] - nodeCount[index];
+}
+
+__device__ void ndset_erase(LL* nodeSet, LL *nodeCount, int index){
+    if(ndset_size(nodeSet, nodeCount, index) > 0)
         nodeSet[index * NODESETSIZE]--;
+}
+
+__device__ bool ndset_new(LL *nodeSet, LL *nodeCount, int index){
+    if(!ndset_insert(nodeSet, 0, index))
+        return false;
+    nodeCount[index] = ndset_size_global(nodeSet, index);
+    return true;
 }
 
 __global__ void setupRandGenerator(float* randSeed, curandState* state){
@@ -131,60 +153,77 @@ __global__ void setupRandGenerator(float* randSeed, curandState* state){
 
 __global__ void reverseInfluence(LL totalNodes,
                                  LL totalEdges,
-                                 LL iters,
+                                 LL iter_left,
                                  LL* d_k,
                                  LL* d_adjCount,
                                  LL* d_adjList,
                                  LL* d_nodeSet,
-                                 bool* d_visit,
+                                 LL* d_nodeCount,
                                  LL source, LL sink,
                                  curandState *state){
     int index = getIndex();
     LL startNode, outdegree, nextNode;
+    LL cur_k;
     float probability;
-    bool flag = true;
+    bool neighbor = false, overflow = false;
     curandState localState = state[index];
-    // while(true){
-        flag = true;
+    ndset_clear_global(d_nodeSet, d_nodeCount, index);
+    bool vis[10000];
+    while(!overflow){
+        neighbor = false;
         startNode = source;
-        ndset_clear(d_nodeSet, index);
+        memset(vis, false, sizeof(vis));
         ndset_insert(d_nodeSet, startNode, index);
+        vis[startNode] = true;
         while (true) {
             outdegree = d_adjCount[startNode] - d_adjCount[startNode - 1];
             probability = curand_uniform(&localState) * outdegree;
             nextNode = floor(probability);
             nextNode += d_adjCount[startNode - 1];
             if (nextNode >= d_adjCount[startNode]) {
-                ndset_clear(d_nodeSet, index);
+                // printf("%lld >= %lld - choose no point - terminate\n", nextNode, d_adjCount[startNode]);
+                ndset_clear(d_nodeSet, d_nodeCount, index);
                 break;
             }
+            // printf("%lld < %lld - choose point\n", nextNode, d_adjCount[startNode]);
 
             for (LL j = d_adjCount[startNode - 1]; j < d_adjCount[startNode]; j++) {
                 if (d_adjList[j] == sink) {
-                    ndset_erase(d_nodeSet, index);
-                    flag = false;
+                    // printf("reach sink neighbor - terminate\n");
+                    ndset_erase(d_nodeSet, d_nodeCount, index);
+                    neighbor = true;
                     break;
                 }
             }
-            if (!flag)
+            if (neighbor)
                 break;
 
             startNode = d_adjList[nextNode];
-            if (nd_isVisited(d_visit, startNode, totalNodes, index)){
-                ndset_clear(d_nodeSet, index);
+            if(vis[startNode]){
+                // printf("visited - terminate\n");
+                ndset_clear(d_nodeSet, d_nodeCount, index);
                 break;
             }
-            nd_setVisited(d_visit, startNode, totalNodes, index);
-            ndset_insert(d_nodeSet, startNode, index);
+            vis[startNode] = true;
+            if(!ndset_insert(d_nodeSet, startNode, index)){
+                // printf("overflow - terminate\n");
+                overflow = true;
+                break;
+            }
         }
-        if(iters <= atomicAdd((unsigned long long*)d_k, 1ULL)){
-            ndset_clear(d_nodeSet, index);
-            // break;
-        }
-    //     if (ndset_size(d_nodeSet, index) != 0)
-    //         break;
-    // }
+        cur_k = atomicAdd((unsigned long long*)d_k, 1ULL);
 
+        if(overflow || iter_left <= cur_k){
+            ndset_clear(d_nodeSet, d_nodeCount, index);
+            if(iter_left <= cur_k)
+                atomicSub((unsigned int*)d_k, 1U);
+            break;
+        }
+        if(ndset_size(d_nodeSet, d_nodeCount, index) == 0)
+            continue;
+        if(!ndset_new(d_nodeSet, d_nodeCount, index))
+            break;
+    }
     state[index] = localState;
 }
 
@@ -199,15 +238,18 @@ int main(int argc, char** argv) {
 	LL* h_adjCount = NULL, *h_adjList = NULL, *h_nodeSet = NULL;
 	cout << "Choose dataset: ";
 	cout.flush();
-	cin >> filePath;
+	// cin >> filePath;
+    filePath = "../../data/wiki/wiki.txt";
 	rmp = readGraph(filePath.c_str(), h_adjList, h_adjCount, totalNodes, totalEdges, mp, true);
 	cout << "Choose input file: ";
 	cout.flush();
-	cin >> filePath;
+	// cin >> filePath;
+    filePath = "../../data/wiki/input.txt";
 	FILE* fd = fopen(filePath.c_str(), "r");
 	cout << "How many lines: ";
 	cout.flush();
-	cin >> lines;
+	// cin >> lines;
+    lines = 1;
 
 	printf("========= NEW RUN\n");
 	printf("This graph contains %lld nodes connected by %lld edges\n", totalNodes, totalEdges);
@@ -215,7 +257,7 @@ int main(int argc, char** argv) {
 
 	float alpha, beta, pmax;
     float kmax, dif;
-	LL counter = 0, loop, iters;
+	LL counter = 0, loop, iters, iter_left;
 	srand(time(NULL));
 	vector<_HyperEdge> hyperEdge;
 	set<LL> nodeSet;
@@ -233,12 +275,12 @@ int main(int argc, char** argv) {
     curandGenerateUniform(curandGenerator, d_randSeed, THREAD);
     setupRandGenerator<<<gridSize, blockSize>>>(d_randSeed, d_randState);
 
-    bool *d_visit = NULL;
     LL* d_adjCount = NULL, *d_adjList = NULL, *d_nodeSet = NULL, *d_k = NULL;
-    cudaMalloc((void**)&d_visit, sizeof(bool) * THREAD * totalNodes);
+    LL *d_nodeCount = NULL;
     cudaMalloc((void**)&d_nodeSet, sizeof(LL) * THREAD * NODESETSIZE);
     cudaMalloc((void**)&d_adjCount, sizeof(LL) * (totalNodes + 1));
     cudaMalloc((void**)&d_adjList, sizeof(LL) * totalEdges);
+    cudaMalloc((void**)&d_nodeCount, sizeof(LL) * THREAD);
     cudaMalloc((void**)&d_k, sizeof(LL));
 
     cudaMemcpy(d_adjList, h_adjList, sizeof(LL)*totalEdges, cudaMemcpyHostToDevice);
@@ -247,66 +289,74 @@ int main(int argc, char** argv) {
     FILE* wfd = fopen("output.txt", "w");
     printf("   ln     %%diff         time     per loop\n");
     while (~fscanf(fd, "s %lld t %lld alpha %f L %lld pmax %f beta %f\n", &sink, &source, &alpha, &k, &pmax, &beta)) {
-		// newOutput(counter, outputFile);
 		counter++;
 		printf("#%4lld - ", counter);
         fflush(stdout);
         kmax = k * pmax;
 
-		// FILE* wfd = fopen(outputFile, "w");
         hyperEdge.clear();
         sink = mp[sink];
         source = mp[source];
 		startTime = clock();
 
-        iters = 0;
-        cudaMemset(d_k, iters, sizeof(LL));
+        iter_left = k;
+        cudaMemset(d_k, 0LL, sizeof(LL));
         h_nodeSet = new LL[THREAD * NODESETSIZE];
         loop = 0;
-        while(iters < k){
-            loop++;
-            cudaMemset(d_visit, false, sizeof(bool) * THREAD * totalNodes);
-            cudaMemset(d_nodeSet, 0LL, sizeof(LL) * THREAD * NODESETSIZE);
-            reverseInfluence<<<gridSize, blockSize>>>(  totalNodes, totalEdges, k,
+        LL nodes = 0;
+        while(iter_left > 0){
+            reverseInfluence<<<gridSize, blockSize>>>(  totalNodes, totalEdges, iter_left,
                                                         d_k,
                                                         d_adjCount,
                                                         d_adjList,
                                                         d_nodeSet,
-                                                        d_visit,
+                                                        d_nodeCount,
                                                         source, sink,
                                                         d_randState );
 
             cudaMemcpy(h_nodeSet, d_nodeSet, sizeof(LL)*THREAD*NODESETSIZE, cudaMemcpyDeviceToHost);
             cudaMemcpy(&iters, d_k, sizeof(LL), cudaMemcpyDeviceToHost);
+            loop++;
+            LL setSize;
+            iter_left = k - iters;
             for(LL i = 0;i < THREAD;i++){
-                LL setSize = h_nodeSet[i * NODESETSIZE];
-                if(setSize <= 0)
-                    continue;
-                _HyperEdge item;
-                item.v_size = setSize;
-                memcpy(item.vertex, h_nodeSet + i * NODESETSIZE + 1, sizeof(LL) * setSize);
-                hyperEdge.push_back(item);
+                setSize = h_nodeSet[i * NODESETSIZE];
+                for(LL j = 1;j <= setSize;j++){
+                    _HyperEdge item;
+                    item.v_size = 0;
+                    if(h_nodeSet[j] == 0){
+                        if(h_nodeSet[j-1] != 0){
+                            if(item.v_size > 0)
+                                hyperEdge.push_back(item);
+                            nodes += item.v_size;
+                        }
+                        continue;
+                    }
+                    item.vertex[item.v_size++] = h_nodeSet[j];
+                    if(j == setSize && h_nodeSet[j] != 0){
+                        if(item.v_size > 0)
+                            hyperEdge.push_back(item);
+                        nodes += item.v_size;
+                    }
+                }
             }
-            // printf("%lld / %lld - %ld\n", iters, k, hyperEdge.size());
         }
         delete[] h_nodeSet;
 
-        // printf("End GPU, get %ld hyperedges\n", hyperEdge.size());
 		q = ((hyperEdge.size() / totalNodes) + hyperEdge.size()) / 2;
 		p = (LL)(beta * hyperEdge.size());
 
         dif = kmax - hyperEdge.size();
         if(dif < 0) dif = -dif;
-        printf("%.4f%% - ", dif / kmax * 100);
+        printf("%.4f%% - %.3f\n", dif / kmax * 100, 1. * nodes / hyperEdge.size());
         fflush(stdout);
+        break;
 
 		nodeSet.clear();
         E.clear();
 
-        // printf("Start MpU\n");
 		if (hyperEdge.size() > 0)
 			E = mpu(totalNodes, (LL)hyperEdge.size(), p, q, hyperEdge);
-        // printf("End MpU\n");
 
 		for (LL i = 0; i < E.size(); i++)
 			nodeSet.insert(E[i].vertex, E[i].vertex + E[i].v_size);
@@ -331,10 +381,10 @@ int main(int argc, char** argv) {
 
     cudaFree(d_randSeed);
     cudaFree(d_randState);
-    cudaFree(d_visit);
     cudaFree(d_nodeSet);
     cudaFree(d_adjCount);
     cudaFree(d_adjList);
+    cudaFree(d_nodeCount);
     cudaFree(d_k);
 
 	delete[] h_adjCount;

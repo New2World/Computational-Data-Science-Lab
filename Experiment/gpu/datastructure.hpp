@@ -9,9 +9,10 @@
 
 #define MAXVERTEX 1500000
 #define MAXEDGE 3000000
-#define NODESETSIZE 5000
 // #define MAXVERTEX 15000000
 // #define MAXEDGE 30000000
+#define NODESETSIZE 10000
+// #define NODESETSIZE 285000
 
 #define LL long long
 #define INF 0x3f3f3f3f
@@ -27,7 +28,7 @@ typedef struct _Edge{
 
 typedef struct _HyperEdge{
     LL v_size;
-    LL vertex[NODESETSIZE];
+    LL vertex[NODESETSIZE / 4];
     _HyperEdge(){
         v_size = 0;
     }
