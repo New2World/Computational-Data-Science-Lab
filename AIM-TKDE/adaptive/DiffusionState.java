@@ -10,7 +10,7 @@ public class DiffusionState {
 	public boolean[] state;
 	public ArrayList<Integer> newActive;
 	public int round_left, budget_left;
-	public boolean round_limit=true;;
+	public boolean round_limit=true;
 	//public HashMap<Key, Boolean> edge_record=new HashMap<Key, Boolean>();
 	public int aNum;
 	

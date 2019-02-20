@@ -19,7 +19,8 @@
 #include "utils.hpp"
 
 #define RAND_FACTOR 1e9+7
-#define THREAD (9 * 256)
+// #define THREAD (9 * 256)
+#define THREAD 25
 
 #define DEBUG
 
@@ -170,6 +171,11 @@ __global__ void reverseInfluence(LL totalNodes,
     ndset_clear_global(d_nodeSet, d_nodeCount, index);
     bool vis[10000];
     while(!overflow){
+        cur_k = atomicAdd((unsigned long long*)d_k, 1ULL);
+        if(iter_left <= cur_k){
+            atomicSub((unsigned int*)d_k, 1U);
+            break;
+        }
         neighbor = false;
         startNode = source;
         memset(vis, false, sizeof(vis));
@@ -211,12 +217,9 @@ __global__ void reverseInfluence(LL totalNodes,
                 break;
             }
         }
-        cur_k = atomicAdd((unsigned long long*)d_k, 1ULL);
 
-        if(overflow || iter_left <= cur_k){
+        if(overflow){
             ndset_clear(d_nodeSet, d_nodeCount, index);
-            if(iter_left <= cur_k)
-                atomicSub((unsigned int*)d_k, 1U);
             break;
         }
         if(ndset_size(d_nodeSet, d_nodeCount, index) == 0)
@@ -264,6 +267,7 @@ int main(int argc, char** argv) {
 	vector<_HyperEdge> E;
 
     dim3 gridSize(3,3), blockSize(16,16);
+    dim3 testBlock(5,5);
 
     float *d_randSeed;
     curandState *d_randState;
@@ -273,7 +277,8 @@ int main(int argc, char** argv) {
     curandCreateGenerator(&curandGenerator, CURAND_RNG_PSEUDO_DEFAULT);
     curandSetPseudoRandomGeneratorSeed(curandGenerator, time(NULL));
     curandGenerateUniform(curandGenerator, d_randSeed, THREAD);
-    setupRandGenerator<<<gridSize, blockSize>>>(d_randSeed, d_randState);
+    // setupRandGenerator<<<gridSize,blockSize>>>(d_randSeed, d_randState);
+    setupRandGenerator<<<1,testBlock>>>(d_randSeed, d_randState);
 
     LL* d_adjCount = NULL, *d_adjList = NULL, *d_nodeSet = NULL, *d_k = NULL;
     LL *d_nodeCount = NULL;
@@ -287,11 +292,11 @@ int main(int argc, char** argv) {
     cudaMemcpy(d_adjCount, h_adjCount, sizeof(LL)*(totalNodes+1),cudaMemcpyHostToDevice);
 
     FILE* wfd = fopen("output.txt", "w");
-    printf("   ln     %%diff         time     per loop\n");
+    // printf("   ln     %%diff         time     per loop\n");
     while (~fscanf(fd, "s %lld t %lld alpha %f L %lld pmax %f beta %f\n", &sink, &source, &alpha, &k, &pmax, &beta)) {
 		counter++;
-		printf("#%4lld - ", counter);
-        fflush(stdout);
+		// printf("#%4lld - ", counter);
+        // fflush(stdout);
         kmax = k * pmax;
 
         hyperEdge.clear();
@@ -303,9 +308,9 @@ int main(int argc, char** argv) {
         cudaMemset(d_k, 0LL, sizeof(LL));
         h_nodeSet = new LL[THREAD * NODESETSIZE];
         loop = 0;
-        LL nodes = 0;
         while(iter_left > 0){
-            reverseInfluence<<<gridSize, blockSize>>>(  totalNodes, totalEdges, iter_left,
+            // reverseInfluence<<<gridSize,blockSize>>>(  totalNodes, totalEdges, k,
+            reverseInfluence<<<1,testBlock>>>(  totalNodes, totalEdges, k,
                                                         d_k,
                                                         d_adjCount,
                                                         d_adjList,
@@ -317,29 +322,29 @@ int main(int argc, char** argv) {
             cudaMemcpy(h_nodeSet, d_nodeSet, sizeof(LL)*THREAD*NODESETSIZE, cudaMemcpyDeviceToHost);
             cudaMemcpy(&iters, d_k, sizeof(LL), cudaMemcpyDeviceToHost);
             loop++;
-            LL setSize;
             iter_left = k - iters;
-            for(LL i = 0;i < THREAD;i++){
-                setSize = h_nodeSet[i * NODESETSIZE];
-                for(LL j = 1;j <= setSize;j++){
-                    _HyperEdge item;
-                    item.v_size = 0;
-                    if(h_nodeSet[j] == 0){
-                        if(h_nodeSet[j-1] != 0){
-                            if(item.v_size > 0)
-                                hyperEdge.push_back(item);
-                            nodes += item.v_size;
-                        }
+            _HyperEdge item;
+            for(int i = 0;i < THREAD;i++){
+                item.v_size = 0;
+                LL offset = i * NODESETSIZE;
+                for(LL j = 1;j <= h_nodeSet[offset];j++){
+                    if(h_nodeSet[offset + j] == 0){
+                        hyperEdge.push_back(item);
+                        item.v_size = 0;
                         continue;
                     }
-                    item.vertex[item.v_size++] = h_nodeSet[j];
-                    if(j == setSize && h_nodeSet[j] != 0){
-                        if(item.v_size > 0)
-                            hyperEdge.push_back(item);
-                        nodes += item.v_size;
+                    item.vertex[item.v_size++] = h_nodeSet[offset + j];
+                    if(j == h_nodeSet[offset] && h_nodeSet[offset + j] != 0){
+                        hyperEdge.push_back(item);
+                        item.v_size = 0;
                     }
+                    // printf("%lld / %lld, hyperedge size: %ld\n", iter_left, k, hyperEdge.size());
+                    // printf("%lld ", h_nodeSet[offset + j]);
                 }
+                // printf("\n");
             }
+            printf("%lld round(%lld left), %ld hyperedges\n", iters, iter_left, hyperEdge.size());
+            // iter_left = 0;
         }
         delete[] h_nodeSet;
 
@@ -348,7 +353,7 @@ int main(int argc, char** argv) {
 
         dif = kmax - hyperEdge.size();
         if(dif < 0) dif = -dif;
-        printf("%.4f%% - %.3f\n", dif / kmax * 100, 1. * nodes / hyperEdge.size());
+        printf("%.4f%% - \n", dif / kmax * 100);
         fflush(stdout);
         break;
 
