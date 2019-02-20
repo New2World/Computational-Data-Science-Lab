@@ -4,10 +4,22 @@ package adaptive;
 import java.util.ArrayList;
 
 import adaptive.Policy.Command;
+import java.util.concurrent.Callable;
 
-public class SeedingProcess_new {
+public class SeedingProcess_new implements Callable<Double> {
 
-	
+    private Network network;
+    private Command command;
+    private int round;
+    private int budget;
+
+    public SeedingProcess_new(Network network, Command command, int round, int budget){
+        this.network = network;
+        this.command = command;
+        this.round = round;
+        this.budget = budget;
+    }
+
 	public static void MultiGo(Network network, Command command, int simutimes, int round, int budget)
 	{
 		//ArrayList<Double> c_result=new ArrayList<Double>();
@@ -21,7 +33,7 @@ public class SeedingProcess_new {
 		}
 		System.out.println(result/simutimes);
 	}
-	
+
 	public static double Go(Network network, Command command, int round, int budget)
 	{
 		//System.out.println("Go");
@@ -39,25 +51,28 @@ public class SeedingProcess_new {
 		}
 		//System.out.println();
 		return influence;
-		
+
 	}
 
-	
+    public Double call(){
+        return Go(this.network, this.command, this.round, this.budget);
+    }
+
 	/*
-	private static void spreadOneRound(Network network, DiffusionState diffusionState) 
+	private static void spreadOneRound(Network network, DiffusionState diffusionState)
 	{
 		// TODO Auto-generated method stub
 		ArrayList<Integer> newActiveTemp=new ArrayList<Integer>();
 		ArrayList<ArrayList<Integer>> relationship=network.neighbor;
 		ArrayList<Integer> newActive=diffusionState.newActive;
 		boolean[] state=diffusionState.state;
-		
+
 		//System.out.println("spreadOneRound");
 		//int a=0;
 		//System.out.println(newActive.size());
 		for(int i=0;i<newActive.size();i++)
 		{
-			
+
 			int cseed=newActive.get(i);
 
 			ArrayList<Integer> cseed_neighbor=relationship.get(cseed);
@@ -65,13 +80,13 @@ public class SeedingProcess_new {
 			for(int j=0;j<cseed_neighbor.size();j++)
 			{
 				//a++;
-				
+
 				int cseede=cseed_neighbor.get(j);
 				//diffusionState.edge_record.replace(new Key(cseed,cseede), false, true);
 				double probability=network.get_prob(cseed,cseede);
 				//System.out.println(probability);
 				if(network.isSuccess(probability))
-				{  
+				{
 					if(!state[cseede])
 					{
 						state[cseede]=true;
@@ -83,22 +98,22 @@ public class SeedingProcess_new {
 		}
 		//System.out.println("a             "+a);
 		newActive.clear();
-		for(int i=0;i<newActiveTemp.size();i++)   
+		for(int i=0;i<newActiveTemp.size();i++)
 		{
 			newActive.add(newActiveTemp.get(i));
 		}
-		
+
 	}*/
 
 
-	
-	
+
+
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		
 
-	   
+
+
 
 	}
 
