@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 
 public class Policy{
-	public static int rrsets_size=100000;
+	public static int rrsets_size=1000;
 	public static int simurest_times=100;		// not need in policy_kd
 
 	public static String simumethod;

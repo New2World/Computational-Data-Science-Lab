@@ -61,7 +61,7 @@ public class Start {
         System.out.println("---");
 		System.out.println(SeedingProcess_kd.regret_ratio);
 		Tools.printdoublelistln(record);
-        System.out.printf("time elapsed: %02d:%02d:%02d.%03d\n", runningTime/3600000, runningTime/60000%60, runningTime/1000%60, runningTime%1000);
+        System.out.printf("Elapsed Time: %02d:%02d:%02d.%03d\n", runningTime/3600000, runningTime/60000%60, runningTime/1000%60, runningTime%1000);
 
         pool.shutdown();
 	}

@@ -181,9 +181,9 @@ public class DiffusionState {
 
 
 		temp=new DiffusionState(this);
-		double value21=temp.exp_influence_complete(network, 1000);
+		double value21=temp.exp_influence_complete(network, 100);     // 1000
 		temp.seed(seedset);
-		double value22=temp.exp_influence_complete(network, 1000);
+		double value22=temp.exp_influence_complete(network, 100);     // 1000
 
 		double value2=value22-value21;
 

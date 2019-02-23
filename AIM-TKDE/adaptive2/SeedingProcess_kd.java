@@ -77,14 +77,12 @@ public class SeedingProcess_kd implements Callable<Double> {
 
 		}
 		//System.out.println();
-		influence=diffusionState.exp_influence_complete(network, 1000);
+		influence=diffusionState.exp_influence_complete(network, 100);   // 1000
 		return influence;
 
 	}
 
     public Double call(){
-        long threadId = Thread.currentThread().getId();
-        System.out.printf("Current running thread #%03d\n", threadId);
         return Go(this.network, this.command, this.k, this.d, this.record);
     }
 
