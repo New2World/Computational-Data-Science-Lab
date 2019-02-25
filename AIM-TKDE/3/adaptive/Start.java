@@ -31,9 +31,10 @@ public class Start{
 		System.out.println("rrsets_size "+Policy.rrsets_size);
 
 		ArrayList<Double> record;
-        SeedingProcess_kd.createThreadPool();
+        	SeedingProcess_kd.createThreadPool();
 
 		SeedingProcess_kd.sign_regret_ratio=true;
+		System.out.println("---");
 		System.out.println("greedy");
 		record=new ArrayList<Double>();
 		SeedingProcess_kd.MultiGo(network, new Policy.Greedy_policy_kd(), simutimes, k, d, record);
@@ -41,19 +42,20 @@ public class Start{
 		Tools.printdoublelistln(record, (k+1)*(d+1)+10);
 
 		SeedingProcess_kd.sign_regret_ratio=false;
+		System.out.println("---");
 		System.out.println("degree");
 		record=new ArrayList<Double>();
 		network.sort_by_degree();
 		SeedingProcess_kd.MultiGo(network, new Policy.Degree_policy_kd(), simutimes, k, d, record);
 		Tools.printdoublelistln(record, (k+1)*(d+1)+10);
 
-
+		System.out.println("---");
 		System.out.println("random");
 		record=new ArrayList<Double>();
 		SeedingProcess_kd.MultiGo(network, new Policy.Random_policy_kd(), simutimes, k, d, record);
 		Tools.printdoublelistln(record, (k+1)*(d+1)+10);
 
-        SeedingProcess_kd.shutdownThreadPool();
+        	SeedingProcess_kd.shutdownThreadPool();
 		System.out.println("------------------------------------------------------");
 	}
 
