@@ -102,7 +102,6 @@ public class SeedingProcess_kd implements Callable<Double> {
             }
         }
 
-        System.out.println("---");
         for(int i = 0;i < network.vertexNum;i++){
             for(ArrayList<Double> arr: recordList){
                 record.set(i, record.get(i)+arr.get(i));
