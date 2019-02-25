@@ -70,13 +70,15 @@ public class Start{
 
 		String name="wiki";
 		int vnum=8300;
+        long startTime = System.currentTimeMillis();
 		for(int i=0;i<5;i++)
 		{
 			d=2*i;
 			Start.run(name, simutimes, k, d, rrset_size, vnum);
 		}
-
-
+        long runningTime = System.currentTimeMillis() - startTime;
+        System.out.println("---");
+        System.out.printf("Elapsed Time: %02d:%02d:%02d.%03d\n", runningTime/3600000, runningTime/60000%60, runningTime/1000%60, runningTime%1000);
 	}
 
 }
