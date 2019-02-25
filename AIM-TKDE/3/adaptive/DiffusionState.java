@@ -240,7 +240,7 @@ public class DiffusionState {
 		ArrayList<Integer> set=new ArrayList<Integer>();
 		set=command.compute_seed_set(network, temp,1);
 
-        int times = 100;     // 100000
+        int times = 100000;     // 100000
 
 		temp.seed(set);
 		//temp.diffuse(network, network.vertexNum);
