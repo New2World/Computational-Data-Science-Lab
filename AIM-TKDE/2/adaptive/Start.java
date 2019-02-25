@@ -12,7 +12,7 @@ public class Start {
 
 	public static void main(String[] args){
 		// TODO Auto-generated method stub
-		String wiki="../wiki_test_data/wiki.txt";
+		String wiki="../../wiki_test_data/wiki.txt";
 
 		int d=3;
 		int k=3;
