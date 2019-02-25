@@ -56,7 +56,7 @@ public class SeedingProcess_kd implements Callable<Double> {
     }
 
     public static void createThreadPool(){
-        pool = Executors.newFixedThreadPool(4);
+        pool = Executors.newFixedThreadPool(35);
     }
 
     public static void shutdownThreadPool(){
