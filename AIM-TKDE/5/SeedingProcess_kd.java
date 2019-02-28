@@ -11,11 +11,13 @@ import java.util.concurrent.Future;
 
 import adaptive.Policy.Command_k;
 
-public class SeedingProcess_kd implements Callable<Double> {
+public class SeedingProcess_kd implements Callable<Doubld> {
 
 	static double regret_ratio=Double.MIN_VALUE;
 	static boolean sign_regret_ratio=false;
 	static int round;
+	static int ratio_times;
+
     private static Network network;
     private static Command_k command;
     private static int k;
@@ -56,7 +58,7 @@ public class SeedingProcess_kd implements Callable<Double> {
     }
 
     public static void createThreadPool(){
-        pool = Executors.newFixedThreadPool(35);
+        pool = Executors.newFixedThreadPool(36);
     }
 
     public static void shutdownThreadPool(){
@@ -66,7 +68,7 @@ public class SeedingProcess_kd implements Callable<Double> {
     public static void MultiGo(Network network, Command_k command, int simutimes, int k, int d, ArrayList<Double> record){
         double result = 0.;
         long startTime = System.currentTimeMillis();
-        long runningTime = startTime;
+        long elapsedTime = startTime;
         for(int i = 0;i < network.vertexNum;i++){
             record.add(0.);
         }
@@ -90,8 +92,8 @@ public class SeedingProcess_kd implements Callable<Double> {
         for(Future<Double> future: results){
             try{
                 result += future.get();
-                runningTime = System.currentTimeMillis() - startTime;
-                // System.out.printf("[*] Time: %02d:%02d:%02d.%03d\n", runningTime/3600000, runningTime/60000%60, runningTime/1000%60, runningTime%1000);
+                elapsedTime = System.currentTimeMillis() - startTime;
+                // System.out.printf("[*] Time: %02d:%02d:%02d.%03d\n", elapsedTime/3600000, elapsedTime/60000%60, elapsedTime/1000%60, elapsedTime%1000);
             }
             catch(InterruptedException e){
                 System.out.println("Interrupted");
@@ -108,8 +110,8 @@ public class SeedingProcess_kd implements Callable<Double> {
             }
             record.set(i, record.get(i)/simutimes);
         }
-        runningTime = System.currentTimeMillis() - startTime;
-        System.out.printf("Elapsed Time: %02d:%02d:%02d.%03d\n", runningTime/3600000, runningTime/60000%60, runningTime/1000%60, runningTime%1000);
+        elapsedTime = System.currentTimeMillis() - startTime;
+        System.out.printf("> elapsed Time: %02d:%02d:%02d.%03d\n", elapsedTime/3600000, elapsedTime/60000%60, elapsedTime/1000%60, elapsedTime%1000);
     }
 
 	public static double Go(Network network, Command_k command, int k, int d, ArrayList<Double> record, int round)
@@ -125,16 +127,6 @@ public class SeedingProcess_kd implements Callable<Double> {
 
 				ArrayList<Integer> seed_set=new ArrayList<Integer>();
 				seed_set=command.compute_seed_set(network, diffusionState,k);
-				if(sign_regret_ratio && d>0)
-				{
-					//------------
-					double c_ratio=diffusionState.estimate_regret_ratio(network, seed_set, command);
-					if(c_ratio>regret_ratio)
-					{
-						regret_ratio=c_ratio;
-					}
-					//
-				}
 				diffusionState.seed(seed_set);
 			}
 			if( d>0 && i % d==0 && diffusionState.budget_left>0)
@@ -143,10 +135,10 @@ public class SeedingProcess_kd implements Callable<Double> {
 				seed_set=command.compute_seed_set(network, diffusionState,1);
 				//Tools.printlistln(seed_set);
 				//System.out.println("seeding done ");
-				if(sign_regret_ratio && d>0)
+				if(sign_regret_ratio && d>0 && i>0)
 				{
 					//------------
-					double c_ratio=diffusionState.estimate_regret_ratio(network, seed_set, command);
+					double c_ratio=diffusionState.estimate_regret_ratio(network, seed_set, command, ratio_times);
 					if(c_ratio>regret_ratio)
 					{
 						regret_ratio=c_ratio;

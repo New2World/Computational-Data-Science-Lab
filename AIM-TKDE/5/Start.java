@@ -10,25 +10,18 @@ import java.util.concurrent.Future;
 
 public class Start{
 
-	public static void run(String name, int simutimes, int k, int d, int rrestsize, int vnum)
+	public static void run(String name, int simutimes, int k, int d, int rrestsize, int vnum, Network network, int ratio_times)
 	{
-		String wiki="../../wiki_test_data/"+name+".txt";
-
-		//int d=1;
-		//int k=5;
-		//int simutimes=1000;
-		Network network=new Network(wiki, "WC" , vnum);
-		network.set_ic_prob(0.1);
-
-
 
 		SeedingProcess_kd.round=(k+1)*(d+1)+10;
+		SeedingProcess_kd.ratio_times=ratio_times;
 		Policy.rrsets_size=rrestsize;
 		//SeedingProcess_kd.sign_regret_ratio=true;
 
 		System.out.println("k d "+k+" "+d);
 		System.out.println("simutimes "+simutimes);
 		System.out.println("rrsets_size "+Policy.rrsets_size);
+		System.out.println("ratio_times "+ratio_times);
 
 		ArrayList<Double> record;
         SeedingProcess_kd.createThreadPool();
@@ -48,7 +41,7 @@ public class Start{
 		Tools.printdoublelistln(record, (k+1)*(d+1)+10);
 
 
-		System.out.println("random");
+		System.out.println("radnom");
 		record=new ArrayList<Double>();
 		SeedingProcess_kd.MultiGo(network, new Policy.Random_policy_kd(), simutimes, k, d, record);
 		Tools.printdoublelistln(record, (k+1)*(d+1)+10);
@@ -59,26 +52,52 @@ public class Start{
 
 	public static void main(String[] args){
 		// TODO Auto-generated method stub
-		int d=0;
+		double d=0.5;
 		int k=5;
-		int simutimes=100;
+		// int simutimes=500;
 		int rrset_size=100000;
-
+		// int ratio_times=100;
 
 		//SeedingProcess_kd.round=(k+1)*d;
 
 
-		String name="wiki";
-		int vnum=8300;        // 35000
+		//String name="wiki";
+		//int vnum=8300;
+		//String type="WC";
+
+		String name=args[0];          // higgs
+        String type=args[1];          // VIC
+		int vnum=Integer.parseInt(args[2]);             // 10000
+        int simutimes = Integer.parseInt(args[3]);      // 500
+        int ratio_times = Integer.parseInt(args[4]);    // 100
+
+		//String name="hepph";
+		//int vnum=35000;
+		//String type="WC";
+
+		//String name="hepth";
+		//int vnum=27770;
+		//String type="WC";
+
+		//String name="youtube";
+		//int vnum=1157900;
+
+
+		String path="data/"+name+".txt";
+		Network network=new Network(path, type , vnum);
+		network.set_ic_prob(0.1);
+
         long startTime = System.currentTimeMillis();
+
+		Start.run(name, simutimes, k, 0, rrset_size, vnum, network, ratio_times);
 		for(int i=0;i<5;i++)
 		{
-			d=2*i;
-			Start.run(name, simutimes, k, d, rrset_size, vnum);
+			d=Math.pow(2, i);
+			Start.run(name, simutimes, k, (int)d, rrset_size, vnum, network, ratio_times);
 		}
-        long runningTime = System.currentTimeMillis() - startTime;
-        System.out.println("---");
-        System.out.printf("Elapsed Time: %02d:%02d:%02d.%03d\n", runningTime/3600000, runningTime/60000%60, runningTime/1000%60, runningTime%1000);
+
+        long elapsedTime = System.currentTimeMillis() - startTime;
+        System.out.printf("Elapsed Time: %02d:%02d:%02d.%03d\n", elapsedTime/3600000, elapsedTime/60000%60, elapsedTime/1000%60, elapsedTime%1000);
 	}
 
 }
