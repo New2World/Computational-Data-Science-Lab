@@ -26,7 +26,7 @@ public class Start{
 		ArrayList<Double> record;
         SeedingProcess_kd.createThreadPool();
 
-		SeedingProcess_kd.sign_regret_ratio=true;
+		SeedingProcess_kd.sign_regret_ratio=false;
 		System.out.println("greedy");
 		record=new ArrayList<Double>();
 		SeedingProcess_kd.MultiGo(network, new Policy.Greedy_policy_kd(), simutimes, k, d, record);
@@ -52,8 +52,8 @@ public class Start{
 
 	public static void main(String[] args){
 		// TODO Auto-generated method stub
-		double d=0.5;
-		int k=5;
+		// double d=0.5;
+		// int k=5;
 		// int simutimes=500;
 		int rrset_size=100000;
 		// int ratio_times=100;
@@ -70,6 +70,8 @@ public class Start{
 		int vnum=Integer.parseInt(args[2]);             // 10000
         int simutimes = Integer.parseInt(args[3]);      // 500
         int ratio_times = Integer.parseInt(args[4]);    // 100
+        int d = Integer.parseInt(args[5]);
+        int k = Integer.parseInt(args[6]);
 
 		//String name="hepph";
 		//int vnum=35000;

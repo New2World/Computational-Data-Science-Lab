@@ -111,7 +111,7 @@ public class SeedingProcess_kd implements Callable<Doubld> {
             record.set(i, record.get(i)/simutimes);
         }
         elapsedTime = System.currentTimeMillis() - startTime;
-        System.out.printf("> elapsed Time: %02d:%02d:%02d.%03d\n", elapsedTime/3600000, elapsedTime/60000%60, elapsedTime/1000%60, elapsedTime%1000);
+        System.out.printf("> elapsed time: %02d:%02d:%02d.%03d\n", elapsedTime/3600000, elapsedTime/60000%60, elapsedTime/1000%60, elapsedTime%1000);
     }
 
 	public static double Go(Network network, Command_k command, int k, int d, ArrayList<Double> record, int round)
