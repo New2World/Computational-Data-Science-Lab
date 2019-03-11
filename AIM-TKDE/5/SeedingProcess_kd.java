@@ -69,7 +69,7 @@ public class SeedingProcess_kd implements Callable<Doubld> {
         double result = 0.;
         long startTime = System.currentTimeMillis();
         long elapsedTime = startTime;
-        for(int i = 0;i < network.vertexNum;i++){
+        for(int i = 0;i < round;i++){
             record.add(0.);
         }
         SeedingProcess_kd.network = network;
@@ -81,7 +81,7 @@ public class SeedingProcess_kd implements Callable<Doubld> {
         // TODO
         for(int i = 0;i < simutimes;i++){
             ArrayList<Double> tempRecord = new ArrayList<Double>();
-            for(int j = 0;j < network.vertexNum;j++){
+            for(int j = 0;j < round;j++){
                 tempRecord.add(0.);
             }
             recordList.add(tempRecord);
@@ -104,7 +104,7 @@ public class SeedingProcess_kd implements Callable<Doubld> {
             }
         }
 
-        for(int i = 0;i < network.vertexNum;i++){
+        for(int i = 0;i < round;i++){
             for(ArrayList<Double> arr: recordList){
                 record.set(i, record.get(i)+arr.get(i));
             }
