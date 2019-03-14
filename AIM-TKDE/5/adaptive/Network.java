@@ -6,10 +6,16 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.HashMap;
+import java.util.Comparator;
+import java.util.Collections;
 
 public class Network {
-	
+
 	public int vertexNum;
 	int edgeNum;
 	public ArrayList<ArrayList<Integer>> neighbor;
@@ -23,23 +29,23 @@ public class Network {
 	//public double[] intrinsic;
 	//public double price;
 	//public double coupon;
-	//private String randoms_0_1; 
-	public double[] threshold; 
-	public double[] c_threshold; 
-	public double[] s_contri; 
+	//private String randoms_0_1;
+	public double[] threshold;
+	public double[] c_threshold;
+	public double[] s_contri;
 	public String type;
 	public String path;
 	public double IC_prob;
-	
+
 	public int[] s_contri_order;
 	public String s_contri_path;
 	public boolean is_s_contri=false;;
-	
+
 	public Network()
 	{
 		neighbor=new ArrayList<ArrayList<Integer>>();
 	}
-	
+
 	public Network(String path, String type , int vertexNum)
 	{
 		System.out.println("importing "+ path+" "+type);
@@ -58,8 +64,8 @@ public class Network {
 		//probability_reverse=new ArrayList<ArrayList<Double>>();
 		//Set_intrinsic(price,coupon,randoms_0_1);
 		ImportRelation(path);
-		
-		
+
+
 		switch(type)
 		{
 			case "IC":
@@ -76,29 +82,45 @@ public class Network {
 			default:
 				System.out.print("Invalid model");
 		}
-		
+
 	}
-	
+
 	public void set_ic_prob(double prob)
 	{
 		this.IC_prob=prob;
 	}
-	
-	public void sort_by_degree()
-	{
-		MySortedMap map=new MySortedMap();
-		for(int i=0;i<vertexNum;i++)
-		{
-			map.insert(i, outDegree[i]);
-		}
-		
-		for(int i=0;i<vertexNum;i++)
-		{
-			sort_by_degree.add(map.node_order.get(i));
-		}
-		
-	}
-	
+
+	// public void sort_by_degree()
+	// {
+	// 	MySortedMap map=new MySortedMap();
+	// 	for(int i=0;i<vertexNum;i++)
+	// 	{
+	// 		map.insert(i, outDegree[i]);
+	// 	}
+    //
+	// 	for(int i=0;i<vertexNum;i++)
+	// 	{
+	// 		sort_by_degree.add(map.node_order.get(i));
+	// 	}
+    //
+	// }
+
+    public void sort_by_degree(){
+        Map<Integer,Integer> vertex_degree_map = new HashMap<>();
+        for(int i = 0;i < vertexNum;i++){
+            vertex_degree_map.put(i, outDegree[i]);
+        }
+        List<Map.Entry<Integer,Integer>> map_entries = new ArrayList<Map.Entry<Integer,Integer>>(vertex_degree_map.entrySet());
+        Collections.sort(map_entries, new Comparator<Map.Entry<Integer,Integer>>(){
+            public int compare(Entry<Integer,Integer> o1, Entry<Integer,Integer> o2){
+                return o1.getValue().compareTo(o2.getValue());
+            }
+        });
+        for(Map.Entry<Integer,Integer> entry: map_entries){
+            sort_by_degree.add(entry.getKey());
+        }
+    }
+
 	public void set_s_contri(String path)
 	{
 		s_contri=new double[this.vertexNum];
@@ -119,8 +141,8 @@ public class Network {
             	//System.out.println(inString);
             	String[] tempString = null;
     			tempString=inString.split(" ");
-    			int node=Integer.parseInt(tempString[0]); 
-    			double value=Double.parseDouble(tempString[1]); 
+    			int node=Integer.parseInt(tempString[0]);
+    			double value=Double.parseDouble(tempString[1]);
     			s_contri[node]=value;
     			s_contri_order[index]=node;
     			index++;
@@ -134,10 +156,10 @@ public class Network {
             System.out.println(path+" The path of data is incorrect.");
         } catch (IOException ex) {
             System.out.println("Error in reading data.");
-        }	
+        }
 	}
-	
-	
+
+
 	public void ImportRelation(String path)
 	{
 		//System.out.println("Fix "+prob);
@@ -154,7 +176,7 @@ public class Network {
 			probability.add(tempp);
 			//probability_reverse.add(tempp_reverse);
 		}
-		
+
 		File singleFile=new File(path);
 		String inString = "";
 		int node_1, node_2;
@@ -168,10 +190,10 @@ public class Network {
     			switch(type)
     			{
     				case "VIC":
-    					node_1=Integer.parseInt(tempString[0]); 
-    	    			node_2=Integer.parseInt(tempString[1]); 
+    					node_1=Integer.parseInt(tempString[0]);
+    	    			node_2=Integer.parseInt(tempString[1]);
     	    			double prob=Double.parseDouble(tempString[2]);
-    	    			
+
     	    			neighbor.get(node_1).add(node_2);
     	    			neighbor_reverse.get(node_2).add(node_1);
     	    			probability.get(node_1).add(prob);
@@ -181,14 +203,14 @@ public class Network {
     					break;
 
     				default:
-    					node_1=Integer.parseInt(tempString[0]); 
-    	    			node_2=Integer.parseInt(tempString[1]); 
+    					node_1=Integer.parseInt(tempString[0]);
+    	    			node_2=Integer.parseInt(tempString[1]);
     	    			neighbor.get(node_1).add(node_2);
     	    			neighbor_reverse.get(node_2).add(node_1);
     	    			inDegree[node_2]++;
     	    			outDegree[node_1]++;
     			}
-    			
+
     			//probability.get(node_1).add(prob);
     			//probability_reverse.get(node_2).add(prob);
             }
@@ -197,22 +219,22 @@ public class Network {
             System.out.println(path+" The path of data is incorrect.");
         } catch (IOException ex) {
             System.out.println("Error in reading data.");
-        }	
+        }
 	}
 	//GET RRSETS FROM RANDOM NODE.
 	public void get_rrsets(ArrayList<ArrayList<Integer>> rrsets,int size)
 	{
 		//ArrayList<ArrayList<Integer>> re_neighbor;
-		
+
 		for(int i=0;i<size;i++)
 		{
 			ArrayList<Integer> rrset=new ArrayList<Integer>();
 			//long startTime = System.currentTimeMillis();
-		    
+
 			get_rrset(this.neighbor_reverse,rrset);
 			//seed.add((int) Math.round(Math.random()*network.vertexNum));
 			//network.spread(seed, 1);
-			
+
 			//long endTime = System.currentTimeMillis();
 			//long searchTime = endTime - startTime;
 			//System.out.println("time "+searchTime*0.001);
@@ -221,10 +243,10 @@ public class Network {
 			{
 				//System.out.println(i);
 			}
-			
+
 		}
 		//System.out.println(size+ " rrsets generated.");
-		
+
 	}
 	public void get_rrset(ArrayList<ArrayList<Integer>> re_neighbor,ArrayList<Integer> rrset)
 	{
@@ -249,15 +271,15 @@ public class Network {
 			default:
 				System.out.print("Invalid model");
 		}
-		
-		
+
+
 	}
-	
-	
-	
-	
-	
-	
+
+
+
+
+
+
 	public void re_spreadOnceLT(ArrayList<ArrayList<Integer>> re_neighbor,int cindex, ArrayList<Integer> rrset)
 	{
 		rrset.add(cindex);
@@ -270,7 +292,7 @@ public class Network {
 			cindex=re_neighbor.get(cindex).get((int) Math.floor(Math.random()*re_neighbor.get(cindex).size()));
 			if(!rrset.contains((Integer)cindex))
 			{
-				
+
 				rrset.add(cindex);
 
 			}
@@ -278,10 +300,10 @@ public class Network {
 			{
 				return;
 			}
-			
+
 		}
 	}
-	
+
 	public void re_spreadOnce(ArrayList<ArrayList<Integer>> re_neighbor,int cindex, ArrayList<Integer> rrset)
 	{
 		ArrayList<Boolean> state =new ArrayList<Boolean>();
@@ -290,7 +312,7 @@ public class Network {
 			state.add(false);
 		}
 		ArrayList<Integer> newActive =new ArrayList<Integer>();
-		
+
 
 		state.set(cindex,true);
 		rrset.add(cindex);
@@ -299,12 +321,12 @@ public class Network {
 		while(newActive.size()>0)
 		{
 			re_spreadOneRound(re_neighbor, newActive, state,rrset);
-			
+
 		}
 
-		
+
 	}
-	
+
 	public void re_spreadOneRound(ArrayList<ArrayList<Integer>> re_neighbor, ArrayList<Integer> newActive, ArrayList<Boolean> state,ArrayList<Integer> rrset)
 	 {
 		 	ArrayList<Integer> newActiveTemp=new ArrayList<Integer>();
@@ -313,7 +335,7 @@ public class Network {
 			//System.out.println(newActive.size());
 			for(int i=0;i<newActive.size();i++)
 			{
-				
+
 				int cseed=newActive.get(i);
 				ArrayList<Integer> cseed_neighbor=re_neighbor.get(cseed);
 				//System.out.println(i+" "+cseed_neighbor.size());
@@ -321,13 +343,13 @@ public class Network {
 				{
 					//a++;
 					int cseede=cseed_neighbor.get(j);
-					
+
 					double prob=get_prob(cseede,cseed);
 					//System.out.println(prob);
 					//System.out.println(prob);
 					//System.out.println(cseed+" "+ prob+" "+cseed_neighbor.size());
 					if(isSuccess(prob) && !state.get(cseede))
-					{  
+					{
 						rrset.add(cseede);
 						state.set(cseede,true);
 						//System.out.println("state.set(cseede, -cState); "+ -cState);
@@ -335,7 +357,7 @@ public class Network {
 					}
 				}
 
-				
+
 			}
 			//System.out.println("a             "+a);
 			newActive.clear();
@@ -350,8 +372,8 @@ public class Network {
 		switch(this.type)
 		{
 		case "VIC":
-			
-			return probability_reverse.get(cseed),cseede);	
+
+			return probability_reverse.get(cseed),cseede);
 		case "IC":
 				return IC_prob;
 			case "WC":
@@ -375,7 +397,7 @@ public class Network {
 		}
 		return result/times;
 	}
-		
+
 	public double spreadOnce(ArrayList<Integer> seedSet)
 	{
 		//System.out.println("spreadonce");
@@ -393,17 +415,17 @@ public class Network {
 			state.add(false);
 		}
 		ArrayList<Integer> newActive =new ArrayList<Integer>();
-		
+
 		for(int j=0;j<seedSet.size();j++)
 		{
-			state.set(seedSet.get(j),true);	
+			state.set(seedSet.get(j),true);
 			//if(intrinsic[seedSet.get(j)] >= price)
 			newActive.add(seedSet.get(j));
 		}
 
 		while(newActive.size()>0)
 		{
-			
+
 			switch(type)
 			{
 				case "IC":
@@ -421,7 +443,7 @@ public class Network {
 				default:
 					System.out.print("Invalid model");
 			}
-			
+
 		}
 		double result=0;
 		for(int i=0;i<this.vertexNum;i++)
@@ -433,13 +455,13 @@ public class Network {
 		}
 		return result;
 	}
-	
+
 	public void spreadOneRoundLT(ArrayList<ArrayList<Integer>> relationship, ArrayList<Integer> newActive, ArrayList<Boolean> state)
 	{
 		ArrayList<Integer> newActiveTemp=new ArrayList<Integer>();
 		for(int i=0;i<newActive.size();i++)
 		{
-			
+
 			int cseed=newActive.get(i);
 
 			ArrayList<Integer> cseed_neighbor=relationship.get(cseed);
@@ -451,7 +473,7 @@ public class Network {
 				{
 					c_threshold[cseede]=c_threshold[cseede]+1/(double) inDegree[cseede];
 					if(c_threshold[cseede]>threshold[cseede])
-					{  
+					{
 							state.set(cseede, true);
 							newActiveTemp.add(cseede);
 					}
@@ -464,7 +486,7 @@ public class Network {
 			newActive.add(newActiveTemp.get(i));
 		}
 	}
-	
+
 	public void spreadOneRound(ArrayList<ArrayList<Integer>> relationship, ArrayList<Integer> newActive, ArrayList<Boolean> state)
 	{
 		ArrayList<Integer> newActiveTemp=new ArrayList<Integer>();
@@ -473,7 +495,7 @@ public class Network {
 		//System.out.println(newActive.size());
 		for(int i=0;i<newActive.size();i++)
 		{
-			
+
 			int cseed=newActive.get(i);
 
 			ArrayList<Integer> cseed_neighbor=relationship.get(cseed);
@@ -485,7 +507,7 @@ public class Network {
 				double probability=get_prob(cseed,cseede);
 				//System.out.println(probability);
 				if(isSuccess(probability))
-				{  
+				{
 					if(!state.get(cseede))
 					{
 						state.set(cseede, true);
@@ -496,12 +518,12 @@ public class Network {
 		}
 		//System.out.println("a             "+a);
 		newActive.clear();
-		for(int i=0;i<newActiveTemp.size();i++)   
+		for(int i=0;i<newActiveTemp.size();i++)
 		{
 			newActive.add(newActiveTemp.get(i));
 		}
 	}
-	
+
 	public double get_prob(int cseed,int cseede)
 	{
 		switch(this.type)
@@ -512,7 +534,7 @@ public class Network {
 				int index=neighbor.get(cseed).indexOf(cseede);
 				if(index==-1)
 				{
-					throw new ArithmeticException("get_prob "+cseed+" "+cseede); 
+					throw new ArithmeticException("get_prob "+cseed+" "+cseede);
 				}
 				return probability.get(cseed).get(index);
 			case "WC":
@@ -524,7 +546,7 @@ public class Network {
 				return 0.0;
 		}
 	}
-	
+
 	public double get_prob_by_index(int cseed,int cseede)
 	{
 		switch(this.type)
@@ -535,7 +557,7 @@ public class Network {
 				int index=neighbor.get(cseed).indexOf(cseede);
 				if(index==-1)
 				{
-					throw new ArithmeticException("get_prob "+cseed+" "+cseede); 
+					throw new ArithmeticException("get_prob "+cseed+" "+cseede);
 				}
 				return probability.get(cseed).get(index);
 			case "WC":
@@ -547,7 +569,7 @@ public class Network {
 				return 0.0;
 		}
 	}
-	
+
 	public void chanageToRelization()
 	{
 		for(int i=0;i<neighbor.size();i++)
@@ -561,12 +583,12 @@ public class Network {
 				{
 					temp.add(cseede);
 				}
-				
+
 			}
 			for(int j=0;j<temp.size();j++)
 			{
 				neighbor.get(i).remove((Integer)temp.get(j));
-				
+
 			}
 		}
 		neighbor_reverse.clear();
@@ -581,10 +603,10 @@ public class Network {
 		{
 			return false;
 		}
-		
+
 	}
-	
-	 
+
+
 	public void ShowData()
 	{
 		int edgenum=0;
@@ -598,23 +620,23 @@ public class Network {
 		}
 		System.out.print(edgenum);
 	}
-	
+
 	public void show_s_contri()
 	{
 		for(int i=0;i<vertexNum;i++)
-		{			
+		{
 			System.out.println(i+" "+s_contri[i]);
 		}
 	}
 	//public double averageDegree()
 	//{
-	//	
+	//
 	//}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		
-		
-		
+
+
+
 	}
-	
+
 }
