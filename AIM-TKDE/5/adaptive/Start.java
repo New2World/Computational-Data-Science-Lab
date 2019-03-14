@@ -36,12 +36,12 @@ public class Start{
 		SeedingProcess_kd.sign_regret_ratio=false;
 		System.out.println("degree");
 		record=new ArrayList<Double>();
-		network.sort_by_degree();
+		// network.sort_by_degree();
 		SeedingProcess_kd.MultiGo(network, new Policy.Degree_policy_kd(), simutimes, k, d, record);
 		Tools.printdoublelistln(record, (k+1)*(d+1)+10);
 
 
-		System.out.println("radnom");
+		System.out.println("random");
 		record=new ArrayList<Double>();
 		SeedingProcess_kd.MultiGo(network, new Policy.Random_policy_kd(), simutimes, k, d, record);
 		Tools.printdoublelistln(record, (k+1)*(d+1)+10);
@@ -86,19 +86,26 @@ public class Start{
 
 
 		String path="data/"+name+".txt";
-		Network network=new Network(path, type , vnum);
+		Network network=new Network(path, type, vnum);
+        long startTime = System.currentTimeMillis();
+        network.sort_by_degree();
+        long elapsedTime = System.currentTimeMillis() - startTime;
+        System.out.printf("sort time: %02d:%02d:%02d.%03d\n", elapsedTime/3600000, elapsedTime/60000%60, elapsedTime/1000%60, elapsedTime%1000);
 		network.set_ic_prob(0.1);
 
-        long startTime = System.currentTimeMillis();
+        startTime = System.currentTimeMillis();
 
-		Start.run(name, simutimes, k, 0, rrset_size, vnum, network, ratio_times);
-		for(int i=0;i<5;i++)
+		if(d <= 0){
+            Start.run(name, simutimes, k, 0, rrset_size, vnum, network, ratio_times);
+            d = 1;
+        }
+		for(;d<16;)
 		{
-			d=Math.pow(2, i);
-			Start.run(name, simutimes, k, (int)d, rrset_size, vnum, network, ratio_times);
+			Start.run(name, simutimes, k, d, rrset_size, vnum, network, ratio_times);
+            d*=2;
 		}
 
-        long elapsedTime = System.currentTimeMillis() - startTime;
+        elapsedTime = System.currentTimeMillis() - startTime;
         System.out.printf("Elapsed Time: %02d:%02d:%02d.%03d\n", elapsedTime/3600000, elapsedTime/60000%60, elapsedTime/1000%60, elapsedTime%1000);
 	}
 

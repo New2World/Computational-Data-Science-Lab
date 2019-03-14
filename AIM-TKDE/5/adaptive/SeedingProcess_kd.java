@@ -8,15 +8,16 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.locks.ReentrantLock;
 
 import adaptive.Policy.Command_k;
 
-public class SeedingProcess_kd implements Callable<Doubld> {
+public class SeedingProcess_kd implements Callable<Double> {
 
 	static double regret_ratio=Double.MIN_VALUE;
 	static boolean sign_regret_ratio=false;
 	static int round;
-	static int ratio_times;
+    static int ratio_times;
 
     private static Network network;
     private static Command_k command;
@@ -24,6 +25,7 @@ public class SeedingProcess_kd implements Callable<Doubld> {
     private static int d;
     private ArrayList<Double> _record;
     private static ExecutorService pool = null;
+    private static ReentrantLock lock = new ReentrantLock();
     private static ArrayList<Future<Double>> results = new ArrayList<Future<Double>>();
 
 	// public static void MultiGo(Network network, Command_k command, int simutimes, int k, int d, ArrayList<Double> record)
@@ -76,16 +78,16 @@ public class SeedingProcess_kd implements Callable<Doubld> {
         SeedingProcess_kd.command = command;
         SeedingProcess_kd.k = k;
         SeedingProcess_kd.d = d;
-        ArrayList<ArrayList<Double>> recordList = new ArrayList<ArrayList<Double>>();
+        // ArrayList<ArrayList<Double>> recordList = new ArrayList<ArrayList<Double>>();
 
-        // TODO
         for(int i = 0;i < simutimes;i++){
-            ArrayList<Double> tempRecord = new ArrayList<Double>();
-            for(int j = 0;j < round;j++){
-                tempRecord.add(0.);
-            }
-            recordList.add(tempRecord);
-            Callable<Double> process = new SeedingProcess_kd(recordList.get(i));
+            // ArrayList<Double> tempRecord = new ArrayList<Double>();
+            // for(int j = 0;j < round;j++){
+            //     tempRecord.add(0.);
+            // }
+            // recordList.add(tempRecord);
+            // Callable<Double> process = new SeedingProcess_kd(recordList.get(i));
+            Callable<Double> process = new SeedingProcess_kd(record);
             results.add(pool.submit(process));
         }
 
@@ -105,9 +107,9 @@ public class SeedingProcess_kd implements Callable<Doubld> {
         }
 
         for(int i = 0;i < round;i++){
-            for(ArrayList<Double> arr: recordList){
-                record.set(i, record.get(i)+arr.get(i));
-            }
+            // for(ArrayList<Double> arr: recordList){
+            //     record.set(i, record.get(i)+arr.get(i));
+            // }
             record.set(i, record.get(i)/simutimes);
         }
         elapsedTime = System.currentTimeMillis() - startTime;
@@ -119,6 +121,7 @@ public class SeedingProcess_kd implements Callable<Doubld> {
 		//System.out.println("Go");
 		DiffusionState diffusionState=new DiffusionState(network, network.vertexNum, k);
 		double influence=0;
+        ArrayList<Double> tempList = new ArrayList<Double>();
 		for(int i=0; i<round; i++)
 		{
 			if(d==0 && diffusionState.budget_left>0)
@@ -150,11 +153,26 @@ public class SeedingProcess_kd implements Callable<Doubld> {
 			}
 			influence=diffusionState.diffuse(network, 1);
 			//System.out.println(i+" "+diffusionState.aNum);
-			record.set(i, record.get(i)+diffusionState.aNum);
+            /*
+            lock.lock();
+            try{
+			    record.set(i, record.get(i)+diffusionState.aNum);
+            } finally {
+                lock.unlock();
+            }
+            */
+            tempList.add((double)diffusionState.aNum);
 		}
-
+        lock.lock();
+        try{
+            for(int i = 0;i < round;i++){
+                record.set(i, record.get(i)+tempList.get(i));
+            }
+        }
+        finally{
+            lock.unlock();
+        }
 		return influence;
-
 	}
 
     public Double call(){
