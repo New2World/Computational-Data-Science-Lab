@@ -69,14 +69,12 @@ public class SeedingProcess_time{
 		{
 			//System.out.println("Round "+i+"-"+round);
 			ArrayList<Integer> seed_set=new ArrayList<Integer>();
-            if(i == 0){
-                startTime = System.currentTimeMillis();
-            }
+            startTime = System.currentTimeMillis();
+
 			seed_set=command.compute_seed_set(network, diffusionState,0);
-            if(i == 0){
-                endTime = System.currentTimeMillis();
-                Tools.printElapsedTime(startTime, endTime, "compute_seed_set in dynamic");
-            }
+
+            endTime = System.currentTimeMillis();
+            Tools.printElapsedTime(startTime, endTime, "compute_seed_set in dynamic");
 			//Tools.printlistln(seed_set);
 			//System.out.println("seed set size "+seed_set.size());
 			diffusionState.seed(seed_set);
