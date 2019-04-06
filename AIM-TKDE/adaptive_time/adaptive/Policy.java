@@ -226,9 +226,7 @@ public class Policy{
 	public static double reverse_greedy_k_lazy(Network network, DiffusionState diffusionState, ArrayList<Integer> result, int k)
     {
     	//System.out.println("reverse_greedy_k_lazy starts");
-        long startTime = 0, endTime = 0;
     	double profit=0;
-		startTime = System.currentTimeMillis();
     	//int rr_size=100000;
     	ArrayList<ArrayList<Integer>> rrsets=new ArrayList<ArrayList<Integer>>();
     	get_rrsets(network, rrsets, rrsets_size, diffusionState);
@@ -305,10 +303,7 @@ public class Policy{
     					j--;
     				}
     			}
-                // startTime = System.currentTimeMillis();
     			int t_bound=mymap.update(c_seed, c_seed_cover.size());
-                // endTime = System.currentTimeMillis();
-                // Tools.printElapsedTime(startTime, endTime, "mymap update");
     			if(t_bound==0)
     			{
     				result.add(c_seed);
@@ -339,8 +334,6 @@ public class Policy{
     			throw new ArithmeticException("greedy lazy: no node selected");
     		}
     	}
-		endTime = System.currentTimeMillis();
-        Tools.printElapsedTime(startTime, endTime, "reverse_greedy_k_lazy");
     	//System.out.println("reverse_greedy_k_lazy ends");
     	//System.out.println();
     	return profit*(network.vertexNum-diffusionState.aNum)/rrsets_size;
