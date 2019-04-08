@@ -56,29 +56,31 @@ public class SeedingProcess_time{
             records_budget.add(new ArrayList<Integer>());
             ArrayList<Double> _record = records.get(i);
             ArrayList<Integer> _record_budget = records_budget.get(i);
+            Callable<Double> callObj = null;
 			switch(type)
 			{
 				case "dynamic":
-                    results.add(pool.submit(()->{
+                    callObj = ()->{
                         return Go_dynamic(network, command, round, budget, _record, _record_budget);
-                    }));
+                    };
 					// result=result+Go_dynamic(network, command, round, budget,record,record_budget);
 					break;
 				case "static":
-                    results.add(pool.submit(()->{
+                    callObj = ()->{
                         return Go_static(network, command, round, budget, _record, _record_budget);
-                    }));
+                    };
 					// result=result+Go_static(network, command, round, budget,record,record_budget);
 					break;
 				case "uniform":
-                    results.add(pool.submit(()->{
+                    callObj = ()->{
                         return Go_uniform_d(network, command, round, d, budget, _record, _record_budget);
-                    }));
+                    };
 					// result=result+Go_uniform_d(network, command, round, d, budget,record, record_budget);
 					break;
 				default:
 					System.out.print("Invalid model");
 			}
+            results.add(pool.submit(callObj));
 		}
 
         for(Future<Double> future: results){
