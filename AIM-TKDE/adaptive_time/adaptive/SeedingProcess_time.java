@@ -79,10 +79,6 @@ public class SeedingProcess_time{
 				default:
 					System.out.print("Invalid model");
 			}
-
-			results.add(pool.submit(()->{
-                return Go_dynamic(network, command, round, budget,_record, _record_budget);
-            }));
 		}
 
         for(Future<Double> future: results){
