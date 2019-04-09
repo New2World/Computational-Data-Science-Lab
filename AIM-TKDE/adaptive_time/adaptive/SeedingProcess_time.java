@@ -15,7 +15,7 @@ public class SeedingProcess_time{
 
 	public static int round=-1;
     private static ExecutorService pool = null;
-    private static ArrayList<Future<Double>> results = new ArrayList<>();
+    private static ArrayList<Future<Double>> results = new ArrayList<Future<Double>>();
 
     public static void createThreadPool(){
         pool = Executors.newFixedThreadPool(36);
@@ -52,28 +52,41 @@ public class SeedingProcess_time{
 		{
 			//c_result.clear();
 			System.out.println("Simulation number "+i);
-            records.add(new ArrayList<Double>());
-            records_budget.add(new ArrayList<Integer>());
-            ArrayList<Double> _record = records.get(i);
-            ArrayList<Integer> _record_budget = records_budget.get(i);
+            ArrayList<Double> _record = new ArrayList<Double>();
+            ArrayList<Integer> _record_budget = new ArrayList<Integer>();
+            for(int j = 0;j < round;j++){
+                _record.add(0.0);
+                _record_budget.add(0);
+            }
+            records.add(_record);
+            records_budget.add(_record_budget);
             Callable<Double> callObj = null;
 			switch(type)
 			{
 				case "dynamic":
-                    callObj = ()->{
-                        return Go_dynamic(network, command, round, budget, _record, _record_budget);
+                    callObj = new Callable<Double>(){
+                        @Override
+                        public Double call(){
+                            return Go_dynamic(network, command, round, budget, _record, _record_budget);
+                        }
                     };
 					// result=result+Go_dynamic(network, command, round, budget,record,record_budget);
 					break;
 				case "static":
-                    callObj = ()->{
-                        return Go_static(network, command, round, budget, _record, _record_budget);
+                    callObj = new Callable<Double>(){
+                        @Override
+                        public Double call(){
+                            return Go_static(network, command, round, budget, _record, _record_budget);
+                        }
                     };
 					// result=result+Go_static(network, command, round, budget,record,record_budget);
 					break;
 				case "uniform":
-                    callObj = ()->{
-                        return Go_uniform_d(network, command, round, d, budget, _record, _record_budget);
+                    callObj = new Callable<Double>(){
+                        @Override
+                        public Double call(){
+                            return Go_uniform_d(network, command, round, d, budget, _record, _record_budget);
+                        }
                     };
 					// result=result+Go_uniform_d(network, command, round, d, budget,record, record_budget);
 					break;
