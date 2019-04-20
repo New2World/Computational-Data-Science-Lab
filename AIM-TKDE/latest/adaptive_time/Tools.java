@@ -1,4 +1,4 @@
-package adaptive;
+package adaptive_time;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -15,6 +15,7 @@ public class Tools {
         }
         System.out.println();
     }
+
 
     public static void printdoublelistln(ArrayList<Double> list)
     {
@@ -67,7 +68,7 @@ public class Tools {
 
             if(i<list.size())
             {
-                System.out.print(formatter.format(list.get(i))+" ");
+                System.out.print(list.get(i)+" ");
             }
 
 

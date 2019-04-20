@@ -1,16 +1,16 @@
-package adaptive;
-
+package adaptive_time;
 
 import java.util.ArrayList;
 import java.util.Random;
 
-import adaptive.Policy.Command;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReentrantLock;
+
+import adaptive_time.Policy.Command;
 
 public class SeedingProcess_time{
 
@@ -32,13 +32,13 @@ public class SeedingProcess_time{
             int simutimes,
             int budget,
             ArrayList<Double> record,
-            ArrayList<Integer> record_budget, String type, int d){
-
+            ArrayList<Integer> record_budget, String type, int d)
+    {
         //ArrayList<Double> c_result=new ArrayList<Double>();
         System.out.println("MultiGo");
         if(round==-1)
         {
-            throw new ArithmeticException("round = -1");
+            throw new ArithmeticException("round = -1 ");
         }
         for(int i=0; i<round; i++)
         {
@@ -66,7 +66,6 @@ public class SeedingProcess_time{
                             return Go_dynamic(network, command, round, budget, _record, _record_budget);
                         }
                     };
-                    // result=result+Go_dynamic(network, command, round, budget,record,record_budget);
                     break;
                 case "static":
                     callObj = new Callable<Double>(){
@@ -75,7 +74,6 @@ public class SeedingProcess_time{
                             return Go_static(network, command, round, budget, _record, _record_budget);
                         }
                     };
-                    // result=result+Go_static(network, command, round, budget,record,record_budget);
                     break;
                 case "uniform":
                     callObj = new Callable<Double>(){
@@ -84,7 +82,14 @@ public class SeedingProcess_time{
                             return Go_uniform_d(network, command, round, d, budget, _record, _record_budget);
                         }
                     };
-                    // result=result+Go_uniform_d(network, command, round, d, budget,record, record_budget);
+                    break;
+                case "full":
+                    callObj = new Callable<Double>(){
+                        @Override
+                        public Double call(){
+                            return Go_full(network, command, round, budget, _record, _record_budget);
+                        }
+                    };
                     break;
                 default:
                     System.out.print("Invalid model");
@@ -122,26 +127,21 @@ public class SeedingProcess_time{
     public static double Go_dynamic(Network network, Command command, int round, int budget, ArrayList<Double> record, ArrayList<Integer> record_budget)
     {
         //System.out.println("Go");
-        // long startTime, endTime;
-        // startTime = System.currentTimeMillis();
-        Random rand_gen = new Random();
+        Random rand = new Random();
         DiffusionState diffusionState=new DiffusionState(network, round, budget);
         double influence=0;
         for(int i=0; i<round; i++)
         {
             //System.out.println("Round "+i+"-"+round);
             ArrayList<Integer> seed_set=new ArrayList<Integer>();
-            seed_set=command.compute_seed_set(network, diffusionState,0, rand_gen);
+            seed_set=command.compute_seed_set(network, diffusionState,0, rand);
             //Tools.printlistln(seed_set);
             //System.out.println("seed set size "+seed_set.size());
             diffusionState.seed(seed_set);
-            influence=diffusionState.diffuse(network, 1);
+            influence=diffusionState.diffuse(network, 1, rand);
             record.set(i, record.get(i)+diffusionState.aNum);
             record_budget.set(i, record_budget.get(i)+seed_set.size());
         }
-        // endTime = System.currentTimeMillis();
-        // System.out.println("Start from: "+startTime%1000000);
-        // Tools.printElapsedTime(startTime, endTime, "Go_dynamic");
         //System.out.println();
         return influence;
 
@@ -149,17 +149,24 @@ public class SeedingProcess_time{
 
     public static double Go_uniform_d(Network network, Command command, int round, int d, int budget, ArrayList<Double> record,ArrayList<Integer> record_budget)
     {
-        //System.out.println("Go");
-        Random rand_gen = new Random();
+        // System.out.println("Go uniform");
+        Random rand = new Random();
         DiffusionState diffusionState=new DiffusionState(network, round, budget);
         double influence=0;
         for(int i=0; i<round; i++)
         {
             //System.out.println("Round "+i+"-"+round);
             ArrayList<Integer> seed_set=new ArrayList<Integer>();
-            if(i % d==0 && diffusionState.budget_left>0)
+            if(i==round-1 && diffusionState.budget_left>0)
             {
-                seed_set=command.compute_seed_set(network, diffusionState, Math.min(budget/(round/d), diffusionState.budget_left), rand_gen);
+
+                seed_set=command.compute_seed_set(network, diffusionState,  diffusionState.budget_left, rand);
+                diffusionState.seed(seed_set);
+            }
+            else if(i % d==0 && diffusionState.budget_left>0)
+            {
+
+                seed_set=command.compute_seed_set(network, diffusionState, Math.min(budget/(round/d), diffusionState.budget_left), rand);
                 diffusionState.seed(seed_set);
             }
 
@@ -168,9 +175,10 @@ public class SeedingProcess_time{
             //Tools.printlistln(seed_set);
             //System.out.println("seed set size "+seed_set.size());
 
-            influence=diffusionState.diffuse(network, 1);
+            influence=diffusionState.diffuse(network, 1, rand);
             record.set(i, record.get(i)+diffusionState.aNum);
             record_budget.set(i, record_budget.get(i)+seed_set.size());
+            //System.out.println("record_budget.get(i) "+record_budget.get(i));
         }
         //System.out.println();
         return influence;
@@ -180,7 +188,7 @@ public class SeedingProcess_time{
     public static double Go_static(Network network, Command command, int round, int budget, ArrayList<Double> record,ArrayList<Integer> record_budget)
     {
         //System.out.println("Go");
-        Random rand_gen = new Random();
+        Random rand = new Random();
         DiffusionState diffusionState=new DiffusionState(network, round, budget);
         double influence=0;
         for(int i=0; i<round; i++)
@@ -189,12 +197,43 @@ public class SeedingProcess_time{
             ArrayList<Integer> seed_set=new ArrayList<Integer>();
             if(i==0)
             {
-                seed_set=command.compute_seed_set(network, diffusionState, budget, rand_gen);
+                seed_set=command.compute_seed_set(network, diffusionState, budget, rand);
                 diffusionState.seed(seed_set);
             }
 
 
-            influence=diffusionState.diffuse(network, 1);
+            influence=diffusionState.diffuse(network, 1, rand);
+            record.set(i, record.get(i)+diffusionState.aNum);
+            record_budget.set(i, record_budget.get(i)+seed_set.size());
+        }
+        //System.out.println();
+        return influence;
+
+    }
+
+    public static double Go_full(Network network, Command command, int round, int budget, ArrayList<Double> record,ArrayList<Integer> record_budget)
+    {
+        //System.out.println("Go");
+        Random rand = new Random();
+        DiffusionState diffusionState=new DiffusionState(network, round, budget);
+        double influence=0;
+        for(int i=0; i<round; i++)
+        {
+
+            ArrayList<Integer> seed_set=new ArrayList<Integer>();
+            if(i==round-1 && diffusionState.budget_left>0)
+            {
+                seed_set=command.compute_seed_set(network, diffusionState, diffusionState.budget_left, rand);
+                diffusionState.seed(seed_set);
+            }
+            if(i<round-1 && diffusionState.newActive.size()==0)
+            {
+                seed_set=command.compute_seed_set(network, diffusionState, 1, rand);
+                diffusionState.seed(seed_set);
+            }
+
+
+            influence=diffusionState.diffuse(network, 1, rand);
             record.set(i, record.get(i)+diffusionState.aNum);
             record_budget.set(i, record_budget.get(i)+seed_set.size());
         }

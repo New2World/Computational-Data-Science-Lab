@@ -1,4 +1,4 @@
-package adaptive;
+package adaptive_time;
 
 import java.util.ArrayList;
 
@@ -73,13 +73,13 @@ public class Start_time{
         System.out.println("-------------------------------------------");
         System.out.println("-------------------------------------------");
 
-        System.out.println("uniform 5");
+        System.out.println("full");
         record=new ArrayList<Double>();
         record_budget=new ArrayList<Integer>();
         startTime = System.currentTimeMillis();
-        SeedingProcess_time.MultiGo(network, new Policy.Greedy_policy_kd(), simutimes, k, record,record_budget,"uniform",5);
+        SeedingProcess_time.MultiGo(network, new Policy.Greedy_policy_kd(), simutimes, k, record,record_budget,"full",-1);
         endTime = System.currentTimeMillis();
-        Tools.printElapsedTime(startTime, endTime, "uniform 5");
+        Tools.printElapsedTime(startTime, endTime, "full");
         Tools.printdoublelistln(record, SeedingProcess_time.round);
         Tools.printintlistln(record_budget, SeedingProcess_time.round);
         System.out.println("-------------------------------------------");
@@ -97,7 +97,7 @@ public class Start_time{
 
 
         SeedingProcess_time.round=5;
-        Policy.simurest_times=100;         // 100
+        Policy.simurest_times=100;
         Policy.rrsets_size=100000;
         //int ratio_times=100;
 
@@ -106,10 +106,10 @@ public class Start_time{
         String name=args[0];
         String type=args[1];
         int vnum=Integer.parseInt(args[2]);
-        int simutimes = Integer.parseInt(args[3]);                  // 100
-        SeedingProcess_time.round = Integer.parseInt(args[4]);      // 5
-        Policy.simurest_times = Integer.parseInt(args[5]);          // 100
-        int k = Integer.parseInt(args[6]);                          // 20
+        int simutimes=Integer.parseInt(args[3]);
+        SeedingProcess_time.round=Integer.parseInt(args[4]);
+        Policy.simurest_times=Integer.parseInt(args[5]);
+        int k=Integer.parseInt(args[6]);
 
         // String name="wiki";
         // int vnum=8300;

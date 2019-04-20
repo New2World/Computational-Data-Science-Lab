@@ -1,10 +1,11 @@
-package adaptive;
+package adaptive_time;
 
 
 import java.util.ArrayList;
 import java.util.Random;
 
-import adaptive.Policy.Command;
+import adaptive_time.Policy.Command;
+
 
 public class DiffusionState {
 
@@ -64,11 +65,11 @@ public class DiffusionState {
         // TODO Auto-generated constructor stub
     }
 
-    public double diffuse(Network network, int round)
+    public double diffuse(Network network, int round, Random rand)
     {
         for(int i=0;i<round;i++)
         {
-            diffuse_one_round(network);
+            diffuse_one_round(network, rand);
             if(newActive.size()==0)
             {
                 break;
@@ -77,13 +78,13 @@ public class DiffusionState {
         return aNum;
     }
 
-    public int diffuse(Network network, int round, ArrayList<Double> record, int bound)
+    public int diffuse(Network network, int round, ArrayList<Double> record, int bound, Random rand)
     {
         double last=record.get(record.size()-1);
         for(int i=0;i<round;i++)
         {
 
-            diffuse_one_round(network);
+            diffuse_one_round(network, rand);
 
             if(i<record.size())
             {
@@ -106,11 +107,10 @@ public class DiffusionState {
     }
 
 
-    private void diffuse_one_round(Network network)
+    private void diffuse_one_round(Network network, Random rand)
     {
         ArrayList<Integer> newActiveTemp=new ArrayList<Integer>();
         ArrayList<ArrayList<Integer>> relationship=network.neighbor;
-        Random rand=new Random();
         //double result=0;
 
         for(int i=0;i<newActive.size();i++)
@@ -175,32 +175,32 @@ public class DiffusionState {
 
     }
 
-    public double exp_influence_complete(Network network, int times)
+    public double exp_influence_complete(Network network, int times, Random rand)
     {
         double result=0;
         for(int i=0; i<times; i++)
         {
             DiffusionState temp=new DiffusionState(this);
-            result=result+temp.diffuse(network, network.vertexNum);
+            result=result+temp.diffuse(network, network.vertexNum, rand);
 
         }
         return result/times;
     }
 
-    public double exp_influence_complete_reverse(Network network, int rrset_size, Random rand_gen)
+    public double exp_influence_complete_reverse(Network network, int rrset_size, Random rand)
     {
         //double result=0;
         ArrayList<ArrayList<Integer>> rrsets=new ArrayList<ArrayList<Integer>>();
-        Policy.get_rrsets(network, rrsets, rrset_size, this, rand_gen);
+        Policy.get_rrsets(network, rrsets, rrset_size, this, rand);
         double influence=(network.vertexNum-aNum)*(rrset_size-rrsets.size())/rrset_size;
         return influence+aNum;
     }
 
-    public double exp_marginal_influence_complete_reverse(Network network, int rrset_size, int node, Random rand_gen)
+    public double exp_marginal_influence_complete_reverse(Network network, int rrset_size, int node, Random rand)
     {
         //double result=0;
         ArrayList<ArrayList<Integer>> rrsets=new ArrayList<ArrayList<Integer>>();
-        Policy.get_rrsets(network, rrsets, rrset_size, this, rand_gen);
+        Policy.get_rrsets(network, rrsets, rrset_size, this, rand);
         int count=0;
         for(int i=0;i<rrsets.size();i++)
         {
@@ -213,7 +213,7 @@ public class DiffusionState {
         return influence;
     }
 
-    public double exp_influence_complete(Network network, int times, ArrayList<Double> record)
+    public double exp_influence_complete(Network network, int times, ArrayList<Double> record, Random rand)
     {
         double result=0;
         int bound=0;
@@ -227,7 +227,7 @@ public class DiffusionState {
         {
             DiffusionState temp=new DiffusionState(this);
             //ArrayList<Double> temp_record=new ArrayList<Double>();
-            temp.diffuse(network, network.vertexNum, record, bound);
+            temp.diffuse(network, network.vertexNum, record, bound, rand);
             //for()
             //if(bound>temp_record.size())
             //{
@@ -246,7 +246,7 @@ public class DiffusionState {
         return result/times;
     }
 
-    public double estimate_regret_ratio(Network network, ArrayList<Integer> seedset, Command command, int times, Random rand_gen)
+    public double estimate_regret_ratio(Network network, ArrayList<Integer> seedset, Command command, int times, Random rand)
     {
         DiffusionState temp;
 
@@ -256,12 +256,12 @@ public class DiffusionState {
         for(int i=0;i<times;i++)
         {
             temp=new DiffusionState(this);
-            temp.diffuse(network, network.vertexNum);
+            temp.diffuse(network, network.vertexNum, rand);
             //temp.newActive.clear();
             //double value11=temp.aNum;
             ArrayList<Integer> set=new ArrayList<Integer>();
-            set=command.compute_seed_set(network, temp, 1, rand_gen);
-            value1=value1+temp.exp_marginal_influence_complete_reverse(network, 100000, set.get(0), rand_gen);
+            set=command.compute_seed_set(network, temp, 1, rand);
+            value1=value1+temp.exp_marginal_influence_complete_reverse(network, 100000, set.get(0), rand);
             //System.out.println("****"+(temp.exp_marginal_influence_complete_reverse(network, 100000, set.get(0))));
             //temp.seed(set);
             //value1=value1+temp.exp_influence_complete_reverse(network, 100000)-temp.aNum;
@@ -287,7 +287,7 @@ public class DiffusionState {
 
 
         temp=new DiffusionState(this);
-        double value2=temp.exp_marginal_influence_complete_reverse(network, 100000,seedset.get(0), rand_gen);
+        double value2=temp.exp_marginal_influence_complete_reverse(network, 100000,seedset.get(0), rand);
         //temp.seed(seedset);
         //double value22=temp.exp_influence_complete_reverse(network, 100000);
 

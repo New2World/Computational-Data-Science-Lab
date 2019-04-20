@@ -1,4 +1,4 @@
-package adaptive;
+package adaptive_time;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -6,9 +6,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
 import java.util.stream.Collectors;
-
+import java.util.Random;
 
 public class Policy{
     public static int rrsets_size;
@@ -18,21 +17,21 @@ public class Policy{
 
     public interface Command
     {
-        public ArrayList<Integer> compute_seed_set(Network network, DiffusionState diffusionState, int k, Random rand_gen);
-        //public ArrayList<Integer> compute_seed_set(Network network, DiffusionState diffusionState, int k, Random rand_gen);
+        public ArrayList<Integer> compute_seed_set(Network network, DiffusionState diffusionState, int k, Random rand);
+        //public ArrayList<Integer> compute_seed_set(Network network, DiffusionState diffusionState, int k, Random rand);
     }
 
     //public interface Command_k
     //{
-    //    public ArrayList<Integer> compute_seed_set(Network network, DiffusionState diffusionState, int k, Random rand_gen);
+    //    public ArrayList<Integer> compute_seed_set(Network network, DiffusionState diffusionState, int k, Random rand);
     //}
 
     public static class Greedy_policy_kd implements Command
     {
-        public ArrayList<Integer> compute_seed_set(Network network, DiffusionState diffusionState, int k, Random rand_gen)
+        public ArrayList<Integer> compute_seed_set(Network network, DiffusionState diffusionState, int k, Random rand)
         {
             ArrayList<Integer> result=new ArrayList<Integer>();
-            reverse_greedy_k_lazy(network, diffusionState, result, k, rand_gen);
+            reverse_greedy_k_lazy(network, diffusionState, result, k, rand);
             //simu_greedy_1(network, diffusionState, result);
             return result;
         }
@@ -40,10 +39,10 @@ public class Policy{
 
     public static class Greedy_time implements Command
     {
-        public ArrayList<Integer> compute_seed_set(Network network, DiffusionState diffusionState, int k, Random rand_gen)
+        public ArrayList<Integer> compute_seed_set(Network network, DiffusionState diffusionState, int k, Random rand)
         {
             ArrayList<Integer> result=new ArrayList<Integer>();
-            reverse_greedy_k_lazy_time(network, diffusionState, result, k, rand_gen);
+            reverse_greedy_k_lazy_time(network, diffusionState, result, k, rand);
             //simu_greedy_1(network, diffusionState, result);
             return result;
         }
@@ -51,10 +50,10 @@ public class Policy{
 
     public static class Localgreedy_policy_kd implements Command
     {
-        public ArrayList<Integer> compute_seed_set(Network network, DiffusionState diffusionState, int k, Random rand_gen)
+        public ArrayList<Integer> compute_seed_set(Network network, DiffusionState diffusionState, int k, Random rand)
         {
             ArrayList<Integer> result=new ArrayList<Integer>();
-            reverse_greedy_k_lazy(network, diffusionState, result, k, rand_gen);
+            reverse_greedy_k_lazy(network, diffusionState, result, k, rand);
             //simu_greedy_1(network, diffusionState, result);
             return result;
         }
@@ -62,12 +61,12 @@ public class Policy{
 
     public static class Random_policy_kd implements Command
     {
-        public ArrayList<Integer> compute_seed_set(Network network, DiffusionState diffusionState, int k, Random rand_gen)
+        public ArrayList<Integer> compute_seed_set(Network network, DiffusionState diffusionState, int k, Random rand)
         {
             ArrayList<Integer> result=new ArrayList<Integer>();
             while(result.size()<k)
             {
-                int index=(int) (rand_gen.nextFloat()*network.vertexNum);
+                int index=(int) (rand.nextFloat()*network.vertexNum);
                 if(!diffusionState.state[index] && !result.contains(index))
                 {
                     result.add(index);
@@ -79,7 +78,7 @@ public class Policy{
 
     public static class Degree_policy_kd implements Command
     {
-        public ArrayList<Integer> compute_seed_set(Network network, DiffusionState diffusionState, int k, Random rand_gen)
+        public ArrayList<Integer> compute_seed_set(Network network, DiffusionState diffusionState, int k, Random rand)
         {
             ArrayList<Integer> result=new ArrayList<Integer>();
             for(int i=0;i<network.vertexNum;i++)
@@ -99,10 +98,10 @@ public class Policy{
         }
     }
 
-    // time consuming
+
     public static class Greedy_policy_dynamic implements Command
     {
-        public ArrayList<Integer> compute_seed_set(Network network, DiffusionState diffusionState, int nothing, Random rand_gen)
+        public ArrayList<Integer> compute_seed_set(Network network, DiffusionState diffusionState, int nothing, Random rand)
         {
             //System.out.println("Greedy_policy");
             ArrayList<Integer> result=new ArrayList<Integer>();
@@ -113,13 +112,13 @@ public class Policy{
 
             if(!diffusionState.round_limit)
             {
-                select_k(network, diffusionState, result, 1, rand_gen);
+                select_k(network, diffusionState, result, 1, rand);
                 return result;
             }
 
             if(diffusionState.round_left==1)
             {
-                select_k(network, diffusionState, result, diffusionState.budget_left, rand_gen);
+                select_k(network, diffusionState, result, diffusionState.budget_left, rand);
                 return result;
             }
 
@@ -130,7 +129,7 @@ public class Policy{
 
                 ArrayList<Integer> temp_result=new ArrayList<Integer>();
 
-                double temp=select_k(network, diffusionState, temp_result, k, rand_gen);
+                double temp=select_k(network, diffusionState, temp_result, k, rand);
                 //System.out.println(temp+" "+k);
                 if(temp>profit)
                 {
@@ -144,9 +143,9 @@ public class Policy{
         }
 
 
-        private double select_k(Network network, DiffusionState diffusionState, ArrayList<Integer> result, int k, Random rand_gen)
+        private double select_k(Network network, DiffusionState diffusionState, ArrayList<Integer> result, int k, Random rand)
         {
-            reverse_greedy_k_lazy(network, diffusionState, result, k, rand_gen);
+            reverse_greedy_k_lazy(network, diffusionState, result, k, rand);
             //System.out.println(diffusionState.aNum);
             double influence=0;
             //int simureset_times=10000;
@@ -157,12 +156,12 @@ public class Policy{
                 //System.out.print(diffusionState.aNum+" ");
                 //System.out.println(temp.state[result.get(0)]);
                 temp.seed(result);
-                temp.diffuse(network, 1);
+                temp.diffuse(network, 1, rand);
                 //System.out.print(temp.aNum+" ");
                 ArrayList<Integer> tempseed=new ArrayList<Integer>();
-                reverse_greedy_k_lazy(network, temp, tempseed, temp.budget_left, rand_gen);
+                reverse_greedy_k_lazy(network, temp, tempseed, temp.budget_left, rand);
                 temp.seed(tempseed);
-                temp.diffuse(network, temp.round_left);
+                temp.diffuse(network, temp.round_left, rand);
                 influence=influence+temp.aNum;
                 //influence=influence+ reverse_greedy_k(network, temp, tempseed, temp.budget_left);
             }
@@ -173,7 +172,7 @@ public class Policy{
 
 
 
-    public static double get_rrsets(Network network, ArrayList<ArrayList<Integer>> rrsets, double size, DiffusionState diffusionState, Random rand_gen)
+    public static double get_rrsets(Network network, ArrayList<ArrayList<Integer>> rrsets, double size, DiffusionState diffusionState, Random rand)
     {
         //ArrayList<ArrayList<Integer>> re_neighbor;
         double t_set=0;
@@ -183,13 +182,13 @@ public class Policy{
             //long startTime = System.currentTimeMillis();
 
             //t_set=t_set+
-            //seed.add((int) Math.round(rand_gen.nextFloat()*network.vertexNum));
+            //seed.add((int) Math.round(Math.random()*network.vertexNum));
             //network.spread(seed, 1);
 
             //long endTime = System.currentTimeMillis();
             //long searchTime = endTime - startTime;
             //System.out.println("time "+searchTime*0.001);
-            if(get_rrset(network,rrset,diffusionState, rand_gen)==0)
+            if(get_rrset(network,rrset,diffusionState, rand)==0)
                 rrsets.add(rrset);
             if(i % 100000 ==0)
             {
@@ -201,7 +200,7 @@ public class Policy{
         //System.out.println(size+ " rrsets generated.");
     }
 
-    public static void simu_greedy_1(Network network, DiffusionState diffusionState, ArrayList<Integer> result)
+    public static void simu_greedy_1(Network network, DiffusionState diffusionState, ArrayList<Integer> result, Random rand)
     {
         int c_index=-1;
         double c_profit=Double.MIN_VALUE;
@@ -215,7 +214,7 @@ public class Policy{
             ArrayList<Integer> seedset=new ArrayList<Integer>();
             seedset.add(i);
             temp.seed(seedset);
-            double t_profit=temp.exp_influence_complete(network, 1000);
+            double t_profit=temp.exp_influence_complete(network, 1000, rand);
             if(t_profit>c_profit)
             {
                 t_profit=c_profit;
@@ -224,13 +223,13 @@ public class Policy{
         }
         result.add(c_index);
     }
-    public static double reverse_greedy_k_lazy(Network network, DiffusionState diffusionState, ArrayList<Integer> result, int k, Random rand_gen)
+    public static double reverse_greedy_k_lazy(Network network, DiffusionState diffusionState, ArrayList<Integer> result, int k, Random rand)
     {
         //System.out.println("reverse_greedy_k_lazy starts");
         double profit=0;
         //int rr_size=100000;
         ArrayList<ArrayList<Integer>> rrsets=new ArrayList<ArrayList<Integer>>();
-        get_rrsets(network, rrsets, rrsets_size, diffusionState, rand_gen);
+        get_rrsets(network, rrsets, rrsets_size, diffusionState, rand);
         //greedy rest
         //greedy_k(network, diffusionState, result, k);
         HashMap<Integer, ArrayList<Integer>> nodes_cover_sets = new HashMap<Integer, ArrayList<Integer>>();
@@ -340,13 +339,13 @@ public class Policy{
         return profit*(network.vertexNum-diffusionState.aNum)/rrsets_size;
     }
 
-    public static double reverse_greedy_k_lazy_time(Network network, DiffusionState diffusionState, ArrayList<Integer> result, int k, Random rand_gen)
+    public static double reverse_greedy_k_lazy_time(Network network, DiffusionState diffusionState, ArrayList<Integer> result, int k, Random rand)
     {
         //System.out.println("reverse_greedy_k_lazy starts");
         double profit=0;
         //int rr_size=100000;
         ArrayList<ArrayList<Integer>> rrsets=new ArrayList<ArrayList<Integer>>();
-        get_rrsets(network, rrsets, rrsets_size, diffusionState, rand_gen);
+        get_rrsets(network, rrsets, rrsets_size, diffusionState, rand);
         //greedy rest
         //greedy_k(network, diffusionState, result, k);
         HashMap<Integer, ArrayList<Integer>> nodes_cover_sets = new HashMap<Integer, ArrayList<Integer>>();
@@ -387,6 +386,8 @@ public class Policy{
             mymap.push_back(entry.getKey(), entry.getValue());
             //System.out.println(entry.getKey()+" "+entry.getValue().size());
         }
+
+
 
         for(int i=0;i<k;i++)
         {
@@ -441,14 +442,14 @@ public class Policy{
         return profit*(network.vertexNum-diffusionState.aNum)/rrsets_size;
     }
 
-    public static double get_rrset(Network network ,ArrayList<Integer> rrset, DiffusionState diffusionState, Random rand_gen)
+    public static double get_rrset(Network network ,ArrayList<Integer> rrset, DiffusionState diffusionState, Random rand)
     {
 
         int centerIndex;
 
         while(true)
         {
-            centerIndex = (int)(Math.floor(rand_gen.nextFloat()*network.vertexNum));
+            centerIndex = (int)(Math.floor(rand.nextFloat()*network.vertexNum));
             if(!diffusionState.state[centerIndex])
             {
                 break;
@@ -460,11 +461,11 @@ public class Policy{
         switch(network.type)
         {
             case "IC":
-                return re_spreadOnce(network,centerIndex,rrset,diffusionState, rand_gen);
+                return re_spreadOnce(network,centerIndex,rrset,diffusionState, rand);
             case "VIC":
-                return re_spreadOnce(network,centerIndex,rrset,diffusionState, rand_gen);
+                return re_spreadOnce(network,centerIndex,rrset,diffusionState, rand);
             case "WC":
-                return re_spreadOnce(network,centerIndex,rrset,diffusionState, rand_gen);
+                return re_spreadOnce(network,centerIndex,rrset,diffusionState, rand);
             case "LT":
                 //re_spreadOnceLT(re_neighbor,centerIndex,rrset);
                 return 0;
@@ -476,7 +477,7 @@ public class Policy{
 
     }
 
-    public static int re_spreadOnce(Network network,int cindex, ArrayList<Integer> rrset, DiffusionState diffusionState, Random rand_gen)
+    public static int re_spreadOnce(Network network,int cindex, ArrayList<Integer> rrset, DiffusionState diffusionState, Random rand)
     {
 
         boolean[] state =diffusionState.state.clone();
@@ -491,7 +492,7 @@ public class Policy{
         int round=0;
         while(newActive.size()>0 && round<diffusionState.round_left)
         {
-            if(re_spreadOneRound(network, newActive, state, rrset, diffusionState, rand_gen)==1)
+            if(re_spreadOneRound(network, newActive, state, rrset, diffusionState, rand)==1)
             {
                 return 1;
             }
@@ -500,7 +501,7 @@ public class Policy{
         return 0;
     }
 
-    public static int re_spreadOneRound(Network network, ArrayList<Integer> newActive, boolean[] state, ArrayList<Integer> rrset, DiffusionState diffusionState, Random rand_gen)
+    public static int re_spreadOneRound(Network network, ArrayList<Integer> newActive, boolean[] state, ArrayList<Integer> rrset, DiffusionState diffusionState, Random rand)
      {
              ArrayList<Integer> newActiveTemp=new ArrayList<Integer>();
              ArrayList<ArrayList<Integer>> re_neighbor=network.neighbor_reverse;
@@ -518,7 +519,7 @@ public class Policy{
 
                     double prob=network.get_prob(cseede,cseed);
 
-                    if(network.isSuccess(prob, rand_gen))
+                    if(network.isSuccess(prob, rand))
                     {
                         newActiveTemp.add(cseede);
                     }
@@ -566,3 +567,4 @@ public class Policy{
 
     }
 }
+

@@ -1,4 +1,4 @@
-package adaptive;
+package adaptive_time;
 
 
 import java.util.HashMap;
@@ -171,21 +171,21 @@ public class MySortedMap {
 
     }
 
-    public static void main(String[] args) {
-        // TODO Auto-generated method stub
-        MySortedMap map=new MySortedMap();
-        for(int i=0;i<10;i++)
-        {
-            double temp=Math.random();
-            System.out.println(i+" "+temp);
-            System.out.println();
-            map.insert(i, temp);
-            for(int j=0;j<=i;j++)
-            {
-                System.out.println(map.get(j)+" "+map.getvalue(map.get(j)));
-            }
-            System.out.println("---------------------------");
-        }
-    }
+    // public static void main(String[] args) {
+    //     // TODO Auto-generated method stub
+    //     MySortedMap map=new MySortedMap();
+    //     for(int i=0;i<10;i++)
+    //     {
+    //         double temp=Math.random();
+    //         System.out.println(i+" "+temp);
+    //         System.out.println();
+    //         map.insert(i, temp);
+    //         for(int j=0;j<=i;j++)
+    //         {
+    //             System.out.println(map.get(j)+" "+map.getvalue(map.get(j)));
+    //         }
+    //         System.out.println("---------------------------");
+    //     }
+    // }
 
 }

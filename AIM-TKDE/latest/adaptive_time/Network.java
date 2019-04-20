@@ -1,5 +1,5 @@
 //hashmap, load the relationship in memory
-package adaptive;
+package adaptive_time;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,8 +12,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
 import java.util.stream.Collectors;
+import java.util.Random;
 
 public class Network {
 
@@ -228,7 +228,7 @@ public class Network {
         }
     }
     //GET RRSETS FROM RANDOM NODE.
-    public void get_rrsets(ArrayList<ArrayList<Integer>> rrsets,int size, Random rand_gen)
+    public void get_rrsets(ArrayList<ArrayList<Integer>> rrsets,int size, Random rand)
     {
         //ArrayList<ArrayList<Integer>> re_neighbor;
 
@@ -237,7 +237,7 @@ public class Network {
             ArrayList<Integer> rrset=new ArrayList<Integer>();
             //long startTime = System.currentTimeMillis();
 
-            get_rrset(this.neighbor_reverse,rrset, rand_gen);
+            get_rrset(this.neighbor_reverse,rrset, rand);
             //seed.add((int) Math.round(Math.random()*network.vertexNum));
             //network.spread(seed, 1);
 
@@ -254,24 +254,24 @@ public class Network {
         //System.out.println(size+ " rrsets generated.");
 
     }
-    public void get_rrset(ArrayList<ArrayList<Integer>> re_neighbor,ArrayList<Integer> rrset, Random rand_gen)
+    public void get_rrset(ArrayList<ArrayList<Integer>> re_neighbor,ArrayList<Integer> rrset, Random rand)
     {
-        int centerIndex = (int)(Math.floor(rand_gen.nextFloat()*vertexNum));
+        int centerIndex = (int)(Math.floor(rand.nextFloat()*vertexNum));
         //long startTime = System.currentTimeMillis();
         //System.out.println("centerIndex "+centerIndex);
         switch(type)
         {
             case "IC":
-                re_spreadOnce(re_neighbor,centerIndex,rrset, rand_gen);
+                re_spreadOnce(re_neighbor,centerIndex,rrset,rand);
                 break;
             case "VIC":
-                re_spreadOnce(re_neighbor,centerIndex,rrset, rand_gen);
+                re_spreadOnce(re_neighbor,centerIndex,rrset,rand);
                 break;
             case "WC":
-                re_spreadOnce(re_neighbor,centerIndex,rrset, rand_gen);
+                re_spreadOnce(re_neighbor,centerIndex,rrset,rand);
                 break;
             case "LT":
-                re_spreadOnceLT(re_neighbor,centerIndex,rrset);
+                re_spreadOnceLT(re_neighbor,centerIndex,rrset,rand);
 
                 break;
             default:
@@ -286,7 +286,7 @@ public class Network {
 
 
 
-    public void re_spreadOnceLT(ArrayList<ArrayList<Integer>> re_neighbor,int cindex, ArrayList<Integer> rrset)
+    public void re_spreadOnceLT(ArrayList<ArrayList<Integer>> re_neighbor,int cindex, ArrayList<Integer> rrset, Random rand)
     {
         rrset.add(cindex);
         while(true)
@@ -295,12 +295,10 @@ public class Network {
             {
                 return;
             }
-            cindex=re_neighbor.get(cindex).get((int) Math.floor(Math.random()*re_neighbor.get(cindex).size()));
+            cindex=re_neighbor.get(cindex).get((int) Math.floor(rand.nextFloat()*re_neighbor.get(cindex).size()));
             if(!rrset.contains((Integer)cindex))
             {
-
                 rrset.add(cindex);
-
             }
             else
             {
@@ -310,7 +308,7 @@ public class Network {
         }
     }
 
-    public void re_spreadOnce(ArrayList<ArrayList<Integer>> re_neighbor,int cindex, ArrayList<Integer> rrset, Random rand_gen)
+    public void re_spreadOnce(ArrayList<ArrayList<Integer>> re_neighbor,int cindex, ArrayList<Integer> rrset, Random rand)
     {
         ArrayList<Boolean> state =new ArrayList<Boolean>();
         for(int i=0;i<this.vertexNum;i++)
@@ -319,21 +317,16 @@ public class Network {
         }
         ArrayList<Integer> newActive =new ArrayList<Integer>();
 
-
         state.set(cindex,true);
         rrset.add(cindex);
 
-
         while(newActive.size()>0)
         {
-            re_spreadOneRound(re_neighbor, newActive, state,rrset, rand_gen);
-
+            re_spreadOneRound(re_neighbor, newActive, state,rrset, rand);
         }
-
-
     }
 
-    public void re_spreadOneRound(ArrayList<ArrayList<Integer>> re_neighbor, ArrayList<Integer> newActive, ArrayList<Boolean> state,ArrayList<Integer> rrset, Random rand_gen)
+    public void re_spreadOneRound(ArrayList<ArrayList<Integer>> re_neighbor, ArrayList<Integer> newActive, ArrayList<Boolean> state,ArrayList<Integer> rrset, Random rand)
      {
              ArrayList<Integer> newActiveTemp=new ArrayList<Integer>();
             //System.out.println("spreadOneRound");
@@ -354,7 +347,7 @@ public class Network {
                     //System.out.println(prob);
                     //System.out.println(prob);
                     //System.out.println(cseed+" "+ prob+" "+cseed_neighbor.size());
-                    if(isSuccess(prob, rand_gen) && !state.get(cseede))
+                    if(isSuccess(prob, rand) && !state.get(cseede))
                     {
                         rrset.add(cseede);
                         state.set(cseede,true);
@@ -391,27 +384,27 @@ public class Network {
                 return 0.0;
         }
     }*/
-    public double spread(ArrayList<Integer> seedSet, int times, Random rand_gen)
+    public double spread(ArrayList<Integer> seedSet, int times, Random rand)
     {
          //HashMap<Integer,ArrayList<Integer>> neighbor=new HashMap<Integer,ArrayList<Integer>>();
          double result=0;
         //System.out.println("spread");
         for(int i=0;i<times;i++)
         {
-            result = result+ spreadOnce(seedSet, rand_gen);
+            result = result+ spreadOnce(seedSet, rand);
             //System.out.println(i);
         }
         return result/times;
     }
 
-    public double spreadOnce(ArrayList<Integer> seedSet, Random rand_gen)
+    public double spreadOnce(ArrayList<Integer> seedSet, Random rand)
     {
         //System.out.println("spreadonce");
         if(this.type.equals("LT"))
         {
             for(int i=0;i<this.vertexNum;i++)
             {
-                threshold[i]=Math.random();
+                threshold[i]=rand.nextFloat();
                 c_threshold[i]=0;
             }
         }
@@ -435,13 +428,13 @@ public class Network {
             switch(type)
             {
                 case "IC":
-                    spreadOneRound(this.neighbor, newActive, state, rand_gen);
+                    spreadOneRound(this.neighbor, newActive, state, rand);
                     break;
                 case "VIC":
-                    spreadOneRound(this.neighbor, newActive, state, rand_gen);
+                    spreadOneRound(this.neighbor, newActive, state, rand);
                     break;
                 case "WC":
-                    spreadOneRound(this.neighbor, newActive, state, rand_gen);
+                    spreadOneRound(this.neighbor, newActive, state, rand);
                     break;
                 case "LT":
                     spreadOneRoundLT(this.neighbor, newActive,state);
@@ -493,7 +486,7 @@ public class Network {
         }
     }
 
-    public void spreadOneRound(ArrayList<ArrayList<Integer>> relationship, ArrayList<Integer> newActive, ArrayList<Boolean> state, Random rand_gen)
+    public void spreadOneRound(ArrayList<ArrayList<Integer>> relationship, ArrayList<Integer> newActive, ArrayList<Boolean> state, Random rand)
     {
         ArrayList<Integer> newActiveTemp=new ArrayList<Integer>();
         //System.out.println("spreadOneRound");
@@ -512,7 +505,7 @@ public class Network {
                 int cseede=cseed_neighbor.get(j);
                 double probability=get_prob(cseed,cseede);
                 //System.out.println(probability);
-                if(isSuccess(probability, rand_gen))
+                if(isSuccess(probability,rand))
                 {
                     if(!state.get(cseede))
                     {
@@ -576,7 +569,7 @@ public class Network {
         }
     }
 
-    public void chanageToRelization(Random rand_gen)
+    public void chanageToRelization(Random rand)
     {
         for(int i=0;i<neighbor.size();i++)
         {
@@ -585,7 +578,7 @@ public class Network {
             for(int j=0;j<neighbor.get(i).size();j++)
             {
                 int cseede=neighbor.get(i).get(j);
-                if(isSuccess(get_prob(cseed,cseede), rand_gen))
+                if(isSuccess(get_prob(cseed,cseede), rand))
                 {
                     temp.add(cseede);
                 }
@@ -599,9 +592,9 @@ public class Network {
         }
         neighbor_reverse.clear();
     }
-    public boolean isSuccess(double prob, Random rand_gen)
+    public boolean isSuccess(double prob, Random rand)
     {
-        if(rand_gen.nextFloat() < prob)
+        if(rand.nextFloat() < prob)
         {
             return true;
         }
