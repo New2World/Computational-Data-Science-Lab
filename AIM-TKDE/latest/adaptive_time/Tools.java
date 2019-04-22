@@ -16,7 +16,6 @@ public class Tools {
         System.out.println();
     }
 
-
     public static void printdoublelistln(ArrayList<Double> list)
     {
         for(int i=0;i<list.size();i++)

@@ -19,7 +19,7 @@ public class SeedingProcess_time{
     private static ArrayList<Future<Double>> results = new ArrayList<Future<Double>>();
 
     public static void createThreadPool(){
-        pool = Executors.newFixedThreadPool(36);
+        pool = Executors.newFixedThreadPool(32);
     }
 
     public static void shutdownThreadPool(){
@@ -127,6 +127,8 @@ public class SeedingProcess_time{
     public static double Go_dynamic(Network network, Command command, int round, int budget, ArrayList<Double> record, ArrayList<Integer> record_budget)
     {
         //System.out.println("Go");
+        long startTime, endTime;
+        startTime = System.currentTimeMillis();
         Random rand = new Random();
         DiffusionState diffusionState=new DiffusionState(network, round, budget);
         double influence=0;
@@ -142,6 +144,8 @@ public class SeedingProcess_time{
             record.set(i, record.get(i)+diffusionState.aNum);
             record_budget.set(i, record_budget.get(i)+seed_set.size());
         }
+        endTime = System.currentTimeMillis();
+        Tools.printElapsedTime(startTime, endTime, "dynamic thread");
         //System.out.println();
         return influence;
 
