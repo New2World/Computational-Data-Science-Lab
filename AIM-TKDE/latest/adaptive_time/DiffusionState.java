@@ -157,17 +157,18 @@ public class DiffusionState {
         }
         for(int i=0;i<seed_set.size();i++)
         {
-            if(!state[seed_set.get(i)])
+            int seed_i = seed_set.get(i);
+            if(!state[seed_i])
             {
-                state[seed_set.get(i)]=true;
-                newActive.add(seed_set.get(i));
+                state[seed_i]=true;
+                newActive.add(seed_i);
                 aNum++;
                 budget_left--;
             }
             else
             {
 
-                throw new ArithmeticException("diffusionstate.seed: seeding an active node "+seed_set.get(i));
+                throw new ArithmeticException("diffusionstate.seed: seeding an active node "+seed_i);
             }
 
         }

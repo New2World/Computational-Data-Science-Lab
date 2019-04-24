@@ -233,13 +233,15 @@ public class Policy{
         //greedy rest
         //greedy_k(network, diffusionState, result, k);
         HashMap<Integer, ArrayList<Integer>> nodes_cover_sets = new HashMap<Integer, ArrayList<Integer>>();
+        boolean[] nodes_cover_sets_key = new boolean[network.vertexNum];
         boolean[] coverred_rrsets=new boolean[rrsets.size()];
         for(int i=0; i<rrsets.size(); i++)
         {
-            for(int j=0;j<rrsets.get(i).size();j++)
+            ArrayList<Integer> rrset_i = rrsets.get(i);
+            for(int j=0;j<rrset_i.size();j++)
             {
-                int index=rrsets.get(i).get(j);
-                if(nodes_cover_sets.containsKey(index))
+                int index=rrset_i.get(j);
+                if(nodes_cover_sets_key[index])
                 {
                     nodes_cover_sets.get(index).add(i);
                 }
@@ -248,6 +250,7 @@ public class Policy{
                     ArrayList<Integer> temp=new ArrayList<Integer>();
                     temp.add(i);
                     nodes_cover_sets.put(index, temp);
+                    nodes_cover_sets_key[index] = true;
                 }
             }
             coverred_rrsets[i]=false;
@@ -349,13 +352,15 @@ public class Policy{
         //greedy rest
         //greedy_k(network, diffusionState, result, k);
         HashMap<Integer, ArrayList<Integer>> nodes_cover_sets = new HashMap<Integer, ArrayList<Integer>>();
+        boolean[] nodes_cover_sets_key = new boolean[network.vertexNum];
         boolean[] coverred_rrsets=new boolean[rrsets.size()];
         for(int i=0; i<rrsets.size(); i++)
         {
-            for(int j=0;j<rrsets.get(i).size();j++)
+            ArrayList<Integer> rrset_i = rrsets.get(i);
+            for(int j=0;j<rrset_i.size();j++)
             {
-                int index=rrsets.get(i).get(j);
-                if(nodes_cover_sets.containsKey(index))
+                int index=rrset_i.get(j);
+                if(nodes_cover_sets_key[index])
                 {
                     nodes_cover_sets.get(index).add(i);
                 }
@@ -364,6 +369,7 @@ public class Policy{
                     ArrayList<Integer> temp=new ArrayList<Integer>();
                     temp.add(i);
                     nodes_cover_sets.put(index, temp);
+                    nodes_cover_sets_key[index] = true;
                 }
             }
             coverred_rrsets[i]=false;
@@ -529,15 +535,16 @@ public class Policy{
             newActive.clear();
             for(int i=0;i<newActiveTemp.size();i++)
             {
-                if(diffusionState.newActive.contains(newActiveTemp.get(i)))
+                int newActive_i = newActiveTemp.get(i);
+                if(diffusionState.newActive.contains(newActive_i))
                 {
                     return 1;
                 }
-                if(!state[newActiveTemp.get(i)])
+                if(!state[newActive_i])
                 {
-                    newActive.add(newActiveTemp.get(i));
-                    rrset.add(newActiveTemp.get(i));
-                    state[newActiveTemp.get(i)]=true;
+                    newActive.add(newActive_i);
+                    rrset.add(newActive_i);
+                    state[newActive_i]=true;
                 }
             }
             return 0;

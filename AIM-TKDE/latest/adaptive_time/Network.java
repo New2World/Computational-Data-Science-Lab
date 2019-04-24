@@ -291,11 +291,12 @@ public class Network {
         rrset.add(cindex);
         while(true)
         {
-            if(re_neighbor.get(cindex).size()==0)
+            ArrayList<Integer> re_neighbor_i = re_neighbor.get(cindex);
+            if(re_neighbor_i.size()==0)
             {
                 return;
             }
-            cindex=re_neighbor.get(cindex).get((int) Math.floor(rand.nextFloat()*re_neighbor.get(cindex).size()));
+            cindex=re_neighbor_i.get((int) Math.floor(rand.nextFloat()*re_neighbor_i.size()));
             if(!rrset.contains((Integer)cindex))
             {
                 rrset.add(cindex);
@@ -575,9 +576,10 @@ public class Network {
         {
             ArrayList<Integer> temp=new ArrayList<Integer>();
             int cseed=i;
-            for(int j=0;j<neighbor.get(i).size();j++)
+            ArrayList<Integer> neighbor_i = neighbor.get(i);
+            for(int j=0;j<neighbor_i.size();j++)
             {
-                int cseede=neighbor.get(i).get(j);
+                int cseede=neighbor_i.get(j);
                 if(isSuccess(get_prob(cseed,cseede), rand))
                 {
                     temp.add(cseede);
@@ -586,7 +588,7 @@ public class Network {
             }
             for(int j=0;j<temp.size();j++)
             {
-                neighbor.get(i).remove((Integer)temp.get(j));
+                neighbor_i.remove((Integer)temp.get(j));
 
             }
         }
@@ -611,9 +613,10 @@ public class Network {
         int edgenum=0;
         for(int i=0;i<vertexNum;i++)
         {
-            for(int j=0;j<neighbor.get(i).size();j++)
+            ArrayList<Integer> neighbor_i = neighbor.get(i);
+            for(int j=0;j<neighbor_i.size();j++)
             {
-                System.out.println(i+" "+neighbor.get(i).get(j));
+                System.out.println(i+" "+neighbor_i.get(j));
                 edgenum++;
             }
         }
