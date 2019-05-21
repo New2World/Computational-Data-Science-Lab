@@ -1,9 +1,14 @@
 #pragma once
 #include <cstdio>
 #include <cstdlib>
+
+#include <iostream>
 #include <vector>
 #include <string>
 #include <map>
+
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
 
 using namespace std;
 
@@ -16,10 +21,24 @@ class Network{
         c_threshold = nullptr;
         s_contri = nullptr;
     }
+
+    template <typename T>
+    void freeSpace(T *ptr){
+        if(ptr != nullptr)
+            delete [] ptr;
+    }
+
+    void addNode(int n1, int n2){
+        neighbor[n1].push_back(n2);
+        neighbor_reverse[n2].push_back(n1);
+        inDegree[n2]++;
+        outDegree[n1]++;
+    }
+
 public:
     int vertexNum, edgeNum;
-    vector<vector<int> > neighbor, neighbor_reverse;
-    vector<vector<double> > probability;
+    vector<vector<int>> neighbor, neighbor_reverse;
+    vector<vector<double>> probability;
 
     vector<int> sorted_degree;
     int *inDegree, *outDegree;
@@ -36,7 +55,7 @@ public:
 
     Network(string path, string type, int vertexNum){
         clearPointers();
-        printf("import %s %s\n", path, type);
+        cout << "import " << path << " " << type << endl;
         this->path = path;
         this->type = type;
         this->vertexNum = vertexNum;
@@ -49,51 +68,147 @@ public:
 
         importRelation(path);
 
-        switch(type){
-            case "IC":
-                IC_prob = .1;
-                break;
-            case "WC":
-                break;
-            case "VIC":
-                break;
-            case "LT":
-                threshold = new double[vertexNum];
-                c_threshold = new double[vertexNum];
-                break;
-            default:
-                perror("Invalid model");
+        if(type == "IC")
+            IC_prob = .1;
+        else if(type == "LT"){
+            threshold = new double[vertexNum];
+            c_threshold = new double[vertexNum];
         }
+        else
+            printf("Invalid model\n");
     }
 
-    void set_ic_prob(double prob){
+    ~Network(){
+        freeSpace(inDegree);
+        freeSpace(outDegree);
+        freeSpace(s_contri);
+        freeSpace(s_contri_order);
+        freeSpace(threshold);
+        freeSpace(c_threshold);
+    }
+
+    void importRelation(string path){
+        for(int i = 0;i < vertexNum;i++){
+            neighbor.push_back(vector<int>());
+            neighbor_reverse.push_back(vector<int>());
+            probability.push_back(vector<double>());
+            inDegree[i] = 0;
+            outDegree[i] = 0;
+        }
+        char line[256];
+        int node1, node2;
+        double prob;
+        FILE *fd = fopen(path.c_str(), "r");
+        while(NULL != fgets(line, 256, fd)){
+            vector<string> inStr;
+            boost::split(inStr, line, boost::is_any_of(" "));
+            node1 = stoi(inStr[0]);
+            node2 = stoi(inStr[1]);
+            if(type == "VIC"){
+                prob = stod(inStr[2]);
+                addNode(node1, node2);
+                probability[node1].push_back(prob);
+            }
+            else
+                addNode(node1, node2);
+        }
+        fclose(fd);
+    }
+
+    void setICProb(double prob){
         IC_prob = prob;
     }
 
-    void sort_by_degree(){
-        map<int,int> tempMap;
+    void sortByDegree(){
+        vector<pair<int,int>> tempMap;
         for(int i = 0;i < vertexNum;i++)
-            tempMap[i] = outDegree[i];
-        sort(tempMap.begin(), tempMap.end());
-        for(auto i = tempMap.begin();i != tempMap.end();i++)
-            sorted_degree.push_back(i->second);
+            tempMap.push_back(make_pair(i,outDegree[i]));
+        sort(tempMap.begin(), tempMap.end(), [](auto a, auto b)-> bool {
+            return a.second > b.second;
+        });
+        for(pair<int,int> p: tempMap)
+            sorted_degree.push_back(p.first);
     }
 
-    void set_s_contri(string path){
+    void setSContri(string path){
         s_contri = new double[vertexNum];
         s_contri_order = new int[vertexNum];
         memset(s_contri, 0, vertexNum);
+        char line[256];
         int index = 0, node;
         double value;
-        FILE *fd = fopen(path, "r");
-        while(!feof(fd)){
-            fscanf(fd, "%d %llf", &node, &value);
-            s_contri[node] = value;
-            s_contri_order[index] = node;
+        FILE *fd = fopen(path.c_str(), "r");
+        vector<string> inStr;
+        while(NULL != fgets(line, 256, fd)){
+            boost::split(inStr, line, boost::is_any_of(" "));
+            s_contri[node] = stod(inStr[1]);
+            s_contri_order[index] = stoi(inStr[0]);
             index++;
         }
         fclose(fd);
         is_s_contri = true;
         s_contri_path = path;
+    }
+
+    void showSContri(){
+        for(int i = 0;i < vertexNum;i++)
+            printf("%d %lf\n", i, s_contri[i]);
+    }
+
+    void showData(){
+        int edgenum = 0;
+        for(int i = 0;i < vertexNum;i++)
+            for(int j = 0;j < neighbor[i].size();j++,edgenum++)
+                printf("%d %d\n", i, neighbor[i][j]);
+        printf("Edge number: %d\n", edgenum);
+    }
+
+    bool isSuccess(double prob, mt19937 rand){
+        if((double)rand()/rand.max() < prob)
+            return true;
+        return false;
+    }
+
+    void changeToRelization(mt19937 rand){
+        vector<int> temp;
+        for(int i = 0;i < neighbor.size();i++){
+            for(int j = 0;j < neighbor[i].size();j++){
+                if(isSuccess(getProb(i,neighbor[i][j]), rand)){
+                    temp.push_back(neighbor[i][j]);
+                    neighbor[i].erase(neighbor[i].begin()+j);
+                    j--;
+                }
+            }
+            // for(int t: temp)
+            //     neighbor[i].erase(find(heighbor[i].begin(), neighbor[i].end(), t));
+        }
+        neighbor_reverse.clear();
+    }
+
+    double getProbByIndex(int cseed, int cseede){
+        if(type == "IC")
+            return IC_prob;
+        else if(type == "VIC"){
+            int index = [this, cseed, cseede]()->int{
+                for(int i = 0;i < neighbor[cseed].size();i++)
+                    if(neighbor[cseed][i] == cseede)
+                        return i;
+                return -1;
+            }();
+            if(index < 0)
+                throw "error occurs in getProbByIndex";
+            return probability[cseed][index];
+        }
+        else if(type == "WC")
+            return 1./inDegree[cseede];
+        else if(type == "LT")
+            return 0.;
+        else
+            printf("Invalid model\n");
+            return 0.;
+    }
+
+    double getProb(int cseed, int cseede){
+        return getProbByIndex(cseed, cseede);
     }
 };
