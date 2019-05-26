@@ -78,6 +78,37 @@ public:
             printf("Invalid model\n");
     }
 
+    Network(const Network &network){
+        clearPointers();
+        path = network.path;
+        type = network.type;
+        vertexNum = network.vertexNum;
+        edgeNum = network.edgeNum;
+        is_s_contri = network.is_s_contri;
+        neighbor = network.neighbor;
+        neighbor_reverse = network.neighbor_reverse;
+        probability = network.probability;
+        sorted_degree = network.sorted_degree;
+        IC_prob = network.IC_prob;
+        s_contri_path = network.s_contri_path;
+        inDegree = new int[vertexNum];
+        outDegree = new int[vertexNum];
+        memcpy(inDegree, network.inDegree, vertexNum*sizeof(int));
+        memcpy(outDegree, network.outDegree, vertexNum*sizeof(int));
+        if(network.s_contri != nullptr){
+            s_contri_order = new int[vertexNum];
+            s_contri = new double[vertexNum];
+            memcpy(s_contri_order, network.s_contri_order, vertexNum*sizeof(int));
+            memcpy(s_contri, network.s_contri, vertexNum*sizeof(double));
+        }
+        if(type == "LT"){
+            threshold = new double[vertexNum];
+            c_threshold = new double[vertexNum];
+            memcpy(threshold, network.threshold, vertexNum*sizeof(double));
+            memcpy(c_threshold, network.c_threshold, vertexNum*sizeof(double));
+        }
+    }
+
     ~Network(){
         freeSpace(inDegree);
         freeSpace(outDegree);
@@ -163,7 +194,7 @@ public:
         printf("Edge number: %d\n", edgenum);
     }
 
-    bool isSuccess(double prob, mt19937 rand){
+    bool isSuccess(double prob, mt19937 rand) const {
         if((double)rand()/rand.max() < prob)
             return true;
         return false;
@@ -185,7 +216,7 @@ public:
         neighbor_reverse.clear();
     }
 
-    double getProbByIndex(int cseed, int cseede){
+    double getProbByIndex(int cseed, int cseede) const {
         if(type == "IC")
             return IC_prob;
         else if(type == "VIC"){
@@ -208,7 +239,7 @@ public:
             return 0.;
     }
 
-    double getProb(int cseed, int cseede){
+    double getProb(int cseed, int cseede) const {
         return getProbByIndex(cseed, cseede);
     }
 };

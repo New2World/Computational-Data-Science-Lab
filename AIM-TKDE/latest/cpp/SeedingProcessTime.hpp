@@ -18,7 +18,7 @@ using namespace std;
 #include "DiffusionState.hpp"
 
 class SeedingProcessTime{
-    static void goDynamic(Network network, Policy policy, int round, int budget, vector<double> &record, vector<int> &record_budget, double *result, int tid){
+    static void goDynamic(const Network &network, Policy policy, int round, int budget, vector<double> &record, vector<int> &record_budget, double *result, int tid){
         mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
         DiffusionState diffusionState(network, round, budget);
         double influence = 0.;
@@ -33,7 +33,7 @@ class SeedingProcessTime{
         result[tid] = influence;
     }
 
-    static void goUniform_d(Network network, Policy policy, int round, int d, int budget, vector<double> &record, vector<int> &record_budget, double *result, int tid){
+    static void goUniform_d(const Network &network, Policy policy, int round, int d, int budget, vector<double> &record, vector<int> &record_budget, double *result, int tid){
         mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
         DiffusionState diffusionState(network, round, budget);
         double influence = 0.;
@@ -54,7 +54,7 @@ class SeedingProcessTime{
         result[tid] = influence;
     }
 
-    static void goStatic(Network network, Policy policy, int round, int budget, vector<double> &record, vector<int> &record_budget, double *result, int tid){
+    static void goStatic(const Network &network, Policy policy, int round, int budget, vector<double> &record, vector<int> &record_budget, double *result, int tid){
         mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
         DiffusionState diffusionState(network, round, budget);
         double influence = 0.;
@@ -71,7 +71,7 @@ class SeedingProcessTime{
         result[tid] = influence;
     }
 
-    static void goFull(Network network, Policy policy, int round, int budget, vector<double> &record, vector<int> &record_budget, double *result, int tid){
+    static void goFull(const Network &network, Policy policy, int round, int budget, vector<double> &record, vector<int> &record_budget, double *result, int tid){
         mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
         DiffusionState diffusionState(network, round, budget);
         double influence = 0.;
@@ -94,7 +94,7 @@ class SeedingProcessTime{
 public:
     static int round;
 
-    static void MultiGo(Network network, Policy policy, int simutimes, int budget, vector<double> &record, vector<int> &record_budget, string type, int d){
+    static void MultiGo(const Network &network, Policy policy, int simutimes, int budget, vector<double> &record, vector<int> &record_budget, string type, int d){
         printf("Multi Go\n");
         if(round == -1){
             throw "round == -1";
@@ -104,7 +104,7 @@ public:
         double *results = new double[round];
         vector<vector<double>> records(simutimes, vector<double>(round, 0.));
         vector<vector<int>> records_budget(simutimes, vector<int>(round, 0));
-        boost::asio::thread_pool pool(32);
+        boost::asio::thread_pool pool(3);
         for(int i = 0;i < simutimes;i++){
             printf("Simulation number %d\n", i+1);
             // vector<double> _record(round, 0.);

@@ -7,7 +7,7 @@
 #include "Network.hpp"
 
 class DiffusionState{
-    void diffuseOneRound(Network network, mt19937 rand){
+    void diffuseOneRound(const Network &network, mt19937 rand){
         vector<int> new_active_temp;
         double prob;
         for(int cseed: new_active){
@@ -35,7 +35,7 @@ public:
     vector<int> new_active;
     bool round_limit, budget_limit;
 
-    DiffusionState(Network network, int round_left, int budget_left){
+    DiffusionState(const Network &network, int round_left, int budget_left){
         anum = 0;
         state = nullptr;
         this->round_left = round_left;
@@ -56,7 +56,7 @@ public:
         state = nullptr;
         state = new bool[diffusionState.vnum];
         memcpy(state, diffusionState.state, diffusionState.vnum);
-        new_active = vector<int>(diffusionState.new_active);
+        new_active = diffusionState.new_active;
         round_limit = diffusionState.round_limit;
         budget_limit = diffusionState.budget_limit;
         anum = diffusionState.anum;
@@ -67,7 +67,7 @@ public:
             delete [] state;
     }
 
-    double diffuse(Network network, int round, mt19937 rand){
+    double diffuse(const Network &network, int round, mt19937 rand){
         for(int i = 0;i < round;i++){
             diffuseOneRound(network, rand);
             if(new_active.size() == 0)
@@ -76,7 +76,7 @@ public:
         return anum;
     }
 
-    int diffuse(Network network, int round, vector<double> record, int bound, mt19937 rand){
+    int diffuse(const Network &network, int round, vector<double> record, int bound, mt19937 rand){
         double last = record[record.size()-1];
         for(int i = 0;i < round;i++){
             diffuseOneRound(network, rand);
@@ -105,7 +105,7 @@ public:
         }
     }
 
-    double expInfluenceComplete(Network network, int times, mt19937 rand){
+    double expInfluenceComplete(const Network &network, int times, mt19937 rand){
         double result = 0.;
         for(int i = 0;i < times;i++){
             DiffusionState temp = DiffusionState(*this);

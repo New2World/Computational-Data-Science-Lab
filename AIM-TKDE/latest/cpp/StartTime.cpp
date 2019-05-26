@@ -30,7 +30,7 @@ void run(string name, int simutimes, int k, int vnum, Network network){
     // start timer
     auto launch = chrono::high_resolution_clock::now();
 
-    printf("k = %d ; d = %d\n", k, SeedingProcessTime::round);
+    printf("k = %d\td = %d\n", k, SeedingProcessTime::round);
     printf("simutimes = %d\n", simutimes);
     printf("simu_rest_times = %d\n", Policy::simurest_times);
     printf("rrsets size = %d\n", Policy::rrsets_size);
@@ -110,13 +110,13 @@ int main(int args, char **argv){
     Policy::simurest_times = 100;
     Policy::rrsets_size = 100000;
 
-    string name(argv[0]);
-    string type(argv[1]);
-    int vnum = atoi(argv[2]);
-    int simutimes = atoi(argv[3]);
-    SeedingProcessTime::round = atoi(argv[4]);
-    Policy::simurest_times = atoi(argv[5]);
-    int k = atoi(argv[6]);
+    string name(argv[1]);
+    string type(argv[2]);
+    int vnum = atoi(argv[3]);
+    int simutimes = atoi(argv[4]);
+    SeedingProcessTime::round = atoi(argv[5]);
+    Policy::simurest_times = atoi(argv[6]);
+    int k = atoi(argv[7]);
 
     string path("data/"+name+".txt");
     Network network(path, type, vnum);
