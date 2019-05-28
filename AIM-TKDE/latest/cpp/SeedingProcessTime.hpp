@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdio>
 #include <cstdlib>
+
+#include <iostream>
 #include <vector>
 #include <string>
 #include <random>
@@ -23,6 +25,7 @@ class SeedingProcessTime{
         DiffusionState diffusionState(network, round, budget);
         double influence = 0.;
         for(int i = 0;i < round;i++){
+            // cout << "dynamic running " << tid << endl;
             vector<int> seed_set;
             seed_set = policy.computeSeedSet(network, diffusionState, 0, rand);
             diffusionState.seed(seed_set);
@@ -38,6 +41,7 @@ class SeedingProcessTime{
         DiffusionState diffusionState(network, round, budget);
         double influence = 0.;
         for(int i = 0;i < round;i++){
+            // cout << "uniform_d running " << tid << endl;
             vector<int> seed_set;
             if(i == round - 1 && diffusionState.budget_left > 0){
                 seed_set = policy.computeSeedSet(network, diffusionState, diffusionState.budget_left, rand);
@@ -59,6 +63,7 @@ class SeedingProcessTime{
         DiffusionState diffusionState(network, round, budget);
         double influence = 0.;
         for(int i = 0;i < round;i++){
+            // cout << "static running " << tid << endl;
             vector<int> seed_set;
             if(i == 0){
                 seed_set = policy.computeSeedSet(network, diffusionState, budget, rand);
@@ -76,6 +81,7 @@ class SeedingProcessTime{
         DiffusionState diffusionState(network, round, budget);
         double influence = 0.;
         for(int i = 0;i < round;i++){
+            // cout << "full running " << tid << endl;
             vector<int> seed_set;
             if(i == round-1 && diffusionState.budget_left > 0){
                 seed_set = policy.computeSeedSet(network, diffusionState, diffusionState.budget_left, rand);
@@ -107,31 +113,16 @@ public:
         boost::asio::thread_pool pool(3);
         for(int i = 0;i < simutimes;i++){
             printf("Simulation number %d\n", i+1);
-            // vector<double> _record(round, 0.);
-            // vector<int> _record_budget(round, 0);
-            // records.push_back(vector<double>(round, 0.));
-            // records_budget.push_back(vector<int>(round, 0));
             if(type == "dynamic")
-                boost::asio::post(pool, boost::bind(goDynamic, network, policy, round, budget, ref(records[i]), ref(records_budget[i]), results, i));
+                boost::asio::post(pool, boost::bind(goDynamic, network, policy, round, budget, ref(records[i]), ref(records_budget[i]), results, i+1));
             else if(type == "static")
-                boost::asio::post(pool, boost::bind(goStatic, network, policy, round, budget, ref(records[i]), ref(records_budget[i]), results, i));
+                boost::asio::post(pool, boost::bind(goStatic, network, policy, round, budget, ref(records[i]), ref(records_budget[i]), results, i+1));
             else if(type == "uniform")
-                boost::asio::post(pool, boost::bind(goUniform_d, network, policy, round, d, budget, ref(records[i]), ref(records_budget[i]), results, i));
+                boost::asio::post(pool, boost::bind(goUniform_d, network, policy, round, d, budget, ref(records[i]), ref(records_budget[i]), results, i+1));
             else if(type == "full")
-                boost::asio::post(pool, boost::bind(goFull, network, policy, round, budget, ref(records[i]), ref(records_budget[i]), results, i));
+                boost::asio::post(pool, boost::bind(goFull, network, policy, round, budget, ref(records[i]), ref(records_budget[i]), results, i+1));
             else
                 printf("Invalid model\n");
-
-            // if(type == "dynamic")
-            //     results[i] = goDynamic(network, policy, round, budget, records[i], records_budget[i]);
-            // else if(type == "static")
-            //     results[i] = goStatic(network, policy, round, budget, records[i], records_budget[i]);
-            // else if(type == "uniform")
-            //     results[i] = goUniform_d(network, policy, round, d, budget, records[i], records_budget[i]);
-            // else if(type == "full")
-            //     results[i] = goFull(network, policy, round, budget, records[i], records_budget[i]);
-            // else
-            //     printf("Invalid model\n");
         }
         pool.join();
         for(int i = 0;i < round;i++)

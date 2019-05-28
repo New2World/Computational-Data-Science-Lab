@@ -26,7 +26,7 @@ void printTime(chrono::high_resolution_clock::time_point start, chrono::high_res
     cout << "time elapsed in hours: " << duration << endl;
 }
 
-void run(string name, int simutimes, int k, int vnum, Network network){
+void run(int simutimes, int k, int vnum, Network network){
     // start timer
     auto launch = chrono::high_resolution_clock::now();
 
@@ -122,5 +122,5 @@ int main(int args, char **argv){
     Network network(path, type, vnum);
     network.setICProb(.1);
 
-    run(name, simutimes, k, vnum, network);
+    run(simutimes, k, vnum, network);
 }

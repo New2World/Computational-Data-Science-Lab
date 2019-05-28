@@ -141,6 +141,12 @@ double reverseGreedyLazy_k(const Network & network, DiffusionState diffusionStat
         }
         coverred_rrsets[i] = false;
     }
+    vector<pair<int,int>> sortPair;
+    for(auto i = nodes_cover_sets.begin();i != nodes_cover_sets.end();i++)
+        sortPair.push_back(make_pair(i->first, i->second.size()));
+    sort(sortPair.begin(), sortPair.end(), [](auto a, auto b)-> bool {
+        return a.second > b.second;
+    });
 
     return profit*(network.vertexNum-diffusionState.anum)/Policy::rrsets_size;
 }
@@ -164,6 +170,12 @@ double reverseGreedyLazyTime_k(const Network & network, DiffusionState diffusion
         }
         coverred_rrsets[i] = false;
     }
+    vector<pair<int,int>> sortPair;
+    for(auto i = nodes_cover_sets.begin();i != nodes_cover_sets.end();i++)
+        sortPair.push_back(make_pair(i->first, i->second.size()));
+    sort(sortPair.begin(), sortPair.end(), [](auto a, auto b)-> bool {
+        return a.second > b.second;
+    });
     
     return profit*(network.vertexNum-diffusionState.anum)/Policy::rrsets_size;
 }
