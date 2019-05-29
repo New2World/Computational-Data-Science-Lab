@@ -74,7 +74,7 @@ public:
             threshold = new double[vertexNum];
             c_threshold = new double[vertexNum];
         }
-        else
+        else if(type != "WC" && type != "VIC")
             printf("Invalid model\n");
     }
 
