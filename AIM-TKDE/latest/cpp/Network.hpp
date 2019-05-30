@@ -226,8 +226,10 @@ public:
                         return i;
                 return -1;
             }();
-            if(index < 0)
-                throw "error occurs in getProbByIndex";
+            if(index < 0){
+                cout << "error occurs in getProbByIndex" << endl;
+                exit(1);
+            }
             return probability[cseed][index];
         }
         else if(type == "WC")

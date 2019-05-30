@@ -30,23 +30,23 @@ public:
     void remove(int n){
         vector<int>::iterator v_iter;
         if((v_iter = find(node_order.begin(), node_order.end(), n)) == node_order.end())
-            throw "remove fail: no node exists";
+            cout << "remove fail: no node exists" << endl;
         else{
             node_order.erase(v_iter);
             if(value_list.find(n) == value_list.end())
-                throw "remove fail: node is associated with null";
+                cout << "remove fail: node is associated with null" << endl;
             else
                 value_list.erase(n);
         }
     }
     int get(int id){
         if(id > node_order.size())
-            throw "sortedMap get out of bound";
+            cout << "sortedMap get out of bound" << endl;
         return node_order[id];
     }
     double getvalue(int n){
         if(value_list.find(n) == value_list.end())
-            throw "sortedMap getvalue node not exist";
+            cout << "sortedMap getvalue node not exist" << endl;
         return value_list[n];
     }
     bool contains(int n){
@@ -72,7 +72,7 @@ public:
                     return i;
                 }
             }
-            throw "something wrong when insert";
+            cout << "something wrong when insert" << endl;
         }
         else{
             mid = (l+r)>>1;

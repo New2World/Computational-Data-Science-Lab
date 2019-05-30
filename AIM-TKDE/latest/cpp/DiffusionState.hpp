@@ -92,7 +92,7 @@ public:
 
     void seed(vector<int> seed_set){
         if(seed_set.size() > budget_left && budget_limit)
-            throw "diffusionState.seed over budget";
+            cout << "diffusionState.seed over budget" << endl;
         for(int i: seed_set){
             if(!state[i]){
                 state[i] = true;
@@ -101,7 +101,7 @@ public:
                 budget_left--;
             }
             else
-                throw "diffusionState.seed: seeding an active node";
+                cout << "diffusionState.seed: seeding an active node" << endl;
         }
     }
 

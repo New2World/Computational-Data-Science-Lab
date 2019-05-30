@@ -32,7 +32,7 @@ public:
 int Policy::rrsets_size = 100000;
 int Policy::simurest_times = 100;
 
-int reSpreadOneRound(const Network & network, vector<int> new_active, bool *state, vector<int> rrset, const DiffusionState& diffusionState, mt19937& rand){
+int reSpreadOneRound(const Network & network, vector<int> &new_active, bool *state, vector<int> &rrset, const DiffusionState& diffusionState, mt19937& rand){
     int cseed, cseede;
     double prob;
     vector<int> new_active_temp;
@@ -60,7 +60,7 @@ int reSpreadOneRound(const Network & network, vector<int> new_active, bool *stat
     return 0;
 }
 
-int reSpreadOnce(const Network & network, int cindex, vector<int> rrset, const DiffusionState& diffusionState, mt19937& rand){
+int reSpreadOnce(const Network & network, int cindex, vector<int> &rrset, const DiffusionState& diffusionState, mt19937& rand){
     bool state[diffusionState.vnum] = {false};
     // memcpy(state, diffusionState.state, diffusionState.vnum);
     vector<int> new_active;
@@ -103,17 +103,18 @@ double getrrsets(const Network & network, vector<vector<int>> &rrsets, double si
     double t_set = 0.;
     vector<int> rrset;
     for(int i = 0;i < size;i++){
-        // cout << "get rrsetssss" << endl;
         rrset.clear();
-        if(getrrset(network, rrset, diffusionState, rand) == 0)
+        if(getrrset(network, rrset, diffusionState, rand) == 0){
             rrsets[i] = rrset;
-        if(i % 5000 == 0)
-            cout << i << " < " << size << endl;
+            // cout << "rrset size: " << rrset.size() << endl;
+        }
+        // if(i % 5000 == 0)
+        //     cout << i << " < " << size << endl;
     }
     return t_set;
 }
 
-void simuGreedy_1(const Network & network, const DiffusionState& diffusionState, vector<int> result, mt19937& rand){
+void simuGreedy_1(const Network & network, const DiffusionState& diffusionState, vector<int> &result, mt19937& rand){
     int c_index = -1;
     double c_profit = -__DBL_MAX__;
     for(int i = 0;i < network.vertexNum;i++){
@@ -131,11 +132,9 @@ void simuGreedy_1(const Network & network, const DiffusionState& diffusionState,
 }
 
 double reverseGreedyLazy_k(const Network & network, const DiffusionState& diffusionState, vector<int> &result, int k, mt19937& rand){
-    cout << "reverseGreedyLazy_k 1" << endl;
     double profit = 0.;
     vector<vector<int>> rrsets(Policy::rrsets_size);
     getrrsets(network, rrsets, Policy::rrsets_size, diffusionState, rand);
-    cout << "reverseGreedyLazy_k 2" << endl;
     map<int, vector<int>> nodes_cover_sets;
     bool coverred_rrsets[rrsets.size()];
     // bool *coverred_rrsets = new bool[rrsets.size()];
@@ -158,7 +157,6 @@ double reverseGreedyLazy_k(const Network & network, const DiffusionState& diffus
     sort(sortPair.begin(), sortPair.end(), [](auto a, auto b)-> bool {
         return a.second > b.second;
     });
-    cout << "reverseGreedyLazy_k 3" << endl;
     sortedMap mymap;
     for(pair<int,int> p: sortPair)
         mymap.push_back(p.first, p.second);
@@ -243,8 +241,10 @@ double reverseGreedyLazyTime_k(const Network & network, const DiffusionState& di
                 result.push_back(c_seed);
                 sign = true;
                 for(int j = 0;j < c_seed_cover.size();j++){
-                    if(coverred_rrsets[c_seed_cover[j]])
-                        throw "greedy update may wrong";
+                    if(coverred_rrsets[c_seed_cover[j]]){
+                        cout << "greedy update may wrong" << endl;
+                        exit(1);
+                    }
                     else
                         coverred_rrsets[c_seed_cover[j]] = true;
                 }
@@ -253,8 +253,10 @@ double reverseGreedyLazyTime_k(const Network & network, const DiffusionState& di
             if(t_bound <= c_bound - 1)
                 c_bound = t_bound;
         }
-        if(!sign)
-            throw "greedy lazy: no node selected";
+        if(!sign){
+            cout << "greedy lazy: no node selected" << endl;
+            exit(1);
+        }
     }
     return profit*(network.vertexNum-diffusionState.anum)/Policy::rrsets_size;
 }
@@ -319,7 +321,6 @@ public:
 class GreedyPolicyDynamic: public Policy{
     double select_k(const Network & network, const DiffusionState& diffusionState, vector<int> result, int k, mt19937& rand){
         reverseGreedyLazy_k(network, diffusionState, result, k, rand);
-        cout << "select k" << endl;
         double influence = 0.;
         for(int i = 0;i < simurest_times;i++){
             DiffusionState temp(diffusionState);
