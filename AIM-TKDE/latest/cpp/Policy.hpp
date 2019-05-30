@@ -1,12 +1,15 @@
 #pragma once
-#include <cstdio>
-#include <cstdlib>
-#include <climits>
+#include <iostream>
 #include <vector>
 #include <string>
 #include <map>
 #include <random>
+#include <algorithm>
+#include <functional>
 
+using namespace std;
+
+#include "sortedMap.hpp"
 #include "Network.hpp"
 #include "DiffusionState.hpp"
 
@@ -21,7 +24,7 @@ public:
     }
     ~Policy(){}
 
-    virtual vector<int> computeSeedSet(const Network &, DiffusionState, int, mt19937){
+    virtual vector<int> computeSeedSet(const Network &, const DiffusionState&, int, mt19937&){
         return {};
     }
 };
@@ -29,7 +32,7 @@ public:
 int Policy::rrsets_size = 100000;
 int Policy::simurest_times = 100;
 
-int reSpreadOneRound(const Network & network, vector<int> new_active, bool *state, vector<int> rrset, DiffusionState diffusionState, mt19937 rand){
+int reSpreadOneRound(const Network & network, vector<int> new_active, bool *state, vector<int> rrset, const DiffusionState& diffusionState, mt19937& rand){
     int cseed, cseede;
     double prob;
     vector<int> new_active_temp;
@@ -57,9 +60,9 @@ int reSpreadOneRound(const Network & network, vector<int> new_active, bool *stat
     return 0;
 }
 
-int reSpreadOnce(const Network & network, int cindex, vector<int> rrset, DiffusionState diffusionState, mt19937 rand){
-    bool *state = new bool[diffusionState.vnum];
-    memcpy(state, diffusionState.state, diffusionState.vnum);
+int reSpreadOnce(const Network & network, int cindex, vector<int> rrset, const DiffusionState& diffusionState, mt19937& rand){
+    bool state[diffusionState.vnum] = {false};
+    // memcpy(state, diffusionState.state, diffusionState.vnum);
     vector<int> new_active;
 
     state[cindex] = true;
@@ -72,38 +75,45 @@ int reSpreadOnce(const Network & network, int cindex, vector<int> rrset, Diffusi
             return 1;
         round++;
     }
-    delete [] state;
     return 0;
 }
 
-double getrrset(const Network & network, vector<int> rrset, DiffusionState diffusionState, mt19937 rand){
-    int centerIndex;
+double getrrset(const Network & network, vector<int> &rrset, const DiffusionState& diffusionState, mt19937& rand){
+    int centerIndex, vnum = network.vertexNum;
+    long long RMAX = rand.max();
     while(true){
-        centerIndex = (int)(floor((double)rand()/rand.max()*network.vertexNum));
+        centerIndex = (int)((double)rand()/RMAX*vnum);
         if(!diffusionState.state[centerIndex])
             break;
     }
-    if(network.type == "IC" || network.type == "VIC" || network.type == "WC")
+    switch(network.type[0]){
+    case 'I':    // IC
+    case 'V':    // VIC
+    case 'W':    // WC
         return reSpreadOnce(network, centerIndex, rrset, diffusionState, rand);
-    else if(network.type == "LT")
+    case 'L':    // LT
         return 0.;
-    else{
-        printf("Invalid model\n");
+    default:
+        cout << "Invalid model" << endl;
         return 0.;
     }
 }
 
-double getrrsets(const Network & network, vector<vector<int>> rrsets, double size, DiffusionState diffusionState, mt19937 rand){
+double getrrsets(const Network & network, vector<vector<int>> &rrsets, double size, const DiffusionState& diffusionState, mt19937& rand){
     double t_set = 0.;
+    vector<int> rrset;
     for(int i = 0;i < size;i++){
-        vector<int> rrset;
+        // cout << "get rrsetssss" << endl;
+        rrset.clear();
         if(getrrset(network, rrset, diffusionState, rand) == 0)
-            rrsets.push_back(rrset);
+            rrsets[i] = rrset;
+        if(i % 5000 == 0)
+            cout << i << " < " << size << endl;
     }
     return t_set;
 }
 
-void simuGreedy_1(const Network & network, DiffusionState diffusionState, vector<int> result, mt19937 rand){
+void simuGreedy_1(const Network & network, const DiffusionState& diffusionState, vector<int> result, mt19937& rand){
     int c_index = -1;
     double c_profit = -__DBL_MAX__;
     for(int i = 0;i < network.vertexNum;i++){
@@ -120,18 +130,19 @@ void simuGreedy_1(const Network & network, DiffusionState diffusionState, vector
     result.push_back(c_index);
 }
 
-double reverseGreedyLazy_k(const Network & network, DiffusionState diffusionState, vector<int> &result, int k, mt19937 rand){
-    int index;
+double reverseGreedyLazy_k(const Network & network, const DiffusionState& diffusionState, vector<int> &result, int k, mt19937& rand){
+    cout << "reverseGreedyLazy_k 1" << endl;
     double profit = 0.;
-    vector<vector<int>> rrsets;
+    vector<vector<int>> rrsets(Policy::rrsets_size);
     getrrsets(network, rrsets, Policy::rrsets_size, diffusionState, rand);
+    cout << "reverseGreedyLazy_k 2" << endl;
     map<int, vector<int>> nodes_cover_sets;
     bool coverred_rrsets[rrsets.size()];
     // bool *coverred_rrsets = new bool[rrsets.size()];
     // bool *nodes_cover_sets_key = new bool[network.vertexNum];
     for(int i = 0;i < rrsets.size();i++){
         for(int j = 0;j < rrsets[i].size();j++){
-            index = rrsets[i][j];
+            int index = rrsets[i][j];
             if(nodes_cover_sets.find(index) != nodes_cover_sets.end())
                 nodes_cover_sets[index].push_back(i);
             else{
@@ -147,12 +158,48 @@ double reverseGreedyLazy_k(const Network & network, DiffusionState diffusionStat
     sort(sortPair.begin(), sortPair.end(), [](auto a, auto b)-> bool {
         return a.second > b.second;
     });
-
+    cout << "reverseGreedyLazy_k 3" << endl;
+    sortedMap mymap;
+    for(pair<int,int> p: sortPair)
+        mymap.push_back(p.first, p.second);
+    for(int i = 0;i < k;i++){
+        bool sign = false;
+        int c_bound = mymap.size();
+        while(c_bound > 0){
+            int c_seed = mymap.get(0), t_bound;
+            vector<int> c_seed_cover = nodes_cover_sets[c_seed];
+            for(int j = 0;j < c_seed_cover.size();j++){
+                if(coverred_rrsets[c_seed_cover[j]]){
+                    c_seed_cover.erase(c_seed_cover.begin()+j);
+                    j--;
+                }
+            }
+            t_bound = mymap.update(c_seed, c_seed_cover.size());
+            if(t_bound == 0){
+                result.push_back(c_seed);
+                sign = true;
+                for(int j = 0;j < c_seed_cover.size();j++){
+                    if(coverred_rrsets[c_seed_cover[j]]){
+                        cout << "greedy update may wrong" << endl;
+                        exit(1);
+                    }
+                    else
+                        coverred_rrsets[c_seed_cover[j]] = true;
+                }
+                break;
+            }
+            if(t_bound <= c_bound - 1)
+                c_bound = t_bound;
+        }
+        if(!sign){
+            cout << "greedy lazy: no node selected" << endl;
+            exit(1);
+        }
+    }
     return profit*(network.vertexNum-diffusionState.anum)/Policy::rrsets_size;
 }
 
-double reverseGreedyLazyTime_k(const Network & network, DiffusionState diffusionState, vector<int> &result, int k, mt19937 rand){
-    int index;
+double reverseGreedyLazyTime_k(const Network & network, const DiffusionState& diffusionState, vector<int> &result, int k, mt19937& rand){
     double profit = 0.;
     vector<vector<int>> rrsets;
     getrrsets(network, rrsets, Policy::rrsets_size, diffusionState, rand);
@@ -160,7 +207,7 @@ double reverseGreedyLazyTime_k(const Network & network, DiffusionState diffusion
     bool coverred_rrsets[rrsets.size()];
     for(int i = 0;i < rrsets.size();i++){
         for(int j = 0;j < rrsets[i].size();j++){
-            index = rrsets[i][j];
+            int index = rrsets[i][j];
             if(nodes_cover_sets.find(index) != nodes_cover_sets.end())
                 nodes_cover_sets[index].push_back(i);
             else{
@@ -176,13 +223,45 @@ double reverseGreedyLazyTime_k(const Network & network, DiffusionState diffusion
     sort(sortPair.begin(), sortPair.end(), [](auto a, auto b)-> bool {
         return a.second > b.second;
     });
-    
+    sortedMap mymap;
+    for(pair<int,int> p: sortPair)
+        mymap.push_back(p.first, p.second);
+    for(int i = 0;i < k;i++){
+        bool sign = false;
+        int c_bound = mymap.size();
+        while(c_bound > 0){
+            int c_seed = mymap.get(0), t_bound;
+            vector<int> c_seed_cover = nodes_cover_sets[c_seed];
+            for(int j = 0;j < c_seed_cover.size();j++){
+                if(coverred_rrsets[c_seed_cover[j]]){
+                    c_seed_cover.erase(c_seed_cover.begin()+j);
+                    j--;
+                }
+            }
+            t_bound = mymap.update(c_seed, c_seed_cover.size());
+            if(t_bound == 0){
+                result.push_back(c_seed);
+                sign = true;
+                for(int j = 0;j < c_seed_cover.size();j++){
+                    if(coverred_rrsets[c_seed_cover[j]])
+                        throw "greedy update may wrong";
+                    else
+                        coverred_rrsets[c_seed_cover[j]] = true;
+                }
+                break;
+            }
+            if(t_bound <= c_bound - 1)
+                c_bound = t_bound;
+        }
+        if(!sign)
+            throw "greedy lazy: no node selected";
+    }
     return profit*(network.vertexNum-diffusionState.anum)/Policy::rrsets_size;
 }
 
 class GreedyPolicy_kd: public Policy{
 public:
-    vector<int> computeSeedSet(const Network & network, DiffusionState diffusionState, int k, mt19937 rand){
+    vector<int> computeSeedSet(const Network & network, const DiffusionState& diffusionState, int k, mt19937& rand){
         vector<int> result;
         reverseGreedyLazy_k(network, diffusionState, result, k, rand);
         return result;
@@ -191,7 +270,7 @@ public:
 
 class GreedyTime: public Policy{
 public:
-    vector<int> computeSeedSet(const Network & network, DiffusionState diffusionState, int k, mt19937 rand){
+    vector<int> computeSeedSet(const Network & network, const DiffusionState& diffusionState, int k, mt19937& rand){
         vector<int> result;
         reverseGreedyLazyTime_k(network, diffusionState, result, k, rand);
         return result;
@@ -200,7 +279,7 @@ public:
 
 class LocalGreedyPolicy_kd: public Policy{
 public:
-    vector<int> computeSeedSet(const Network & network, DiffusionState diffusionState, int k, mt19937 rand){
+    vector<int> computeSeedSet(const Network & network, const DiffusionState& diffusionState, int k, mt19937& rand){
         vector<int> result;
         reverseGreedyLazy_k(network, diffusionState, result, k, rand);
         return result;
@@ -209,7 +288,7 @@ public:
 
 class RandomPolicy_kd: public Policy{
 public:
-    vector<int> computeSeedSet(const Network & network, DiffusionState diffusionState, int k, mt19937 rand){
+    vector<int> computeSeedSet(const Network & network, const DiffusionState& diffusionState, int k, mt19937& rand){
         int index;
         vector<int> result;
         while(result.size() < k){
@@ -223,7 +302,7 @@ public:
 
 class DegreePolicy_kd: public Policy{
 public:
-    vector<int> computeSeedSet(const Network & network, DiffusionState diffusionState, int k, mt19937 rand){
+    vector<int> computeSeedSet(const Network & network, const DiffusionState& diffusionState, int k, mt19937& rand){
         vector<int> result;
         for(int i = 0;i < network.vertexNum;i++){
             if(!diffusionState.state[network.sorted_degree[i]]){
@@ -238,8 +317,9 @@ public:
 };
 
 class GreedyPolicyDynamic: public Policy{
-    double select_k(const Network & network, DiffusionState diffusionState, vector<int> result, int k, mt19937 rand){
+    double select_k(const Network & network, const DiffusionState& diffusionState, vector<int> result, int k, mt19937& rand){
         reverseGreedyLazy_k(network, diffusionState, result, k, rand);
+        cout << "select k" << endl;
         double influence = 0.;
         for(int i = 0;i < simurest_times;i++){
             DiffusionState temp(diffusionState);
@@ -254,7 +334,7 @@ class GreedyPolicyDynamic: public Policy{
         return influence / simurest_times;
     }
 public:
-    vector<int> computeSeedSet(const Network & network, DiffusionState diffusionState, int k, mt19937 rand){
+    vector<int> computeSeedSet(const Network & network, const DiffusionState& diffusionState, int k, mt19937& rand){
         vector<int> result;
         if(diffusionState.budget_left == 0)
             return result;

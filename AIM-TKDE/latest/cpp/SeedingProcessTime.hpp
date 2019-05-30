@@ -20,7 +20,7 @@ using namespace std;
 #include "DiffusionState.hpp"
 
 class SeedingProcessTime{
-    static void goDynamic(const Network &network, Policy policy, int round, int budget, vector<double> &record, vector<int> &record_budget, double *result, int tid){
+    static void goDynamic(const Network &network, GreedyPolicyDynamic policy, int round, int budget, vector<double> &record, vector<int> &record_budget, double *result, int tid){
         mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
         DiffusionState diffusionState(network, round, budget);
         double influence = 0.;
@@ -36,7 +36,7 @@ class SeedingProcessTime{
         *result = influence;
     }
 
-    static void goUniform_d(const Network &network, Policy policy, int round, int d, int budget, vector<double> &record, vector<int> &record_budget, double *result, int tid){
+    static void goUniform_d(const Network &network, GreedyPolicy_kd policy, int round, int d, int budget, vector<double> &record, vector<int> &record_budget, double *result, int tid){
         mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
         DiffusionState diffusionState(network, round, budget);
         double influence = 0.;
@@ -58,7 +58,7 @@ class SeedingProcessTime{
         *result = influence;
     }
 
-    static void goStatic(const Network &network, Policy policy, int round, int budget, vector<double> &record, vector<int> &record_budget, double *result, int tid){
+    static void goStatic(const Network &network, GreedyPolicy_kd policy, int round, int budget, vector<double> &record, vector<int> &record_budget, double *result, int tid){
         mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
         DiffusionState diffusionState(network, round, budget);
         double influence = 0.;
@@ -76,7 +76,7 @@ class SeedingProcessTime{
         *result = influence;
     }
 
-    static void goFull(const Network &network, Policy policy, int round, int budget, vector<double> &record, vector<int> &record_budget, double *result, int tid){
+    static void goFull(const Network &network, GreedyPolicy_kd policy, int round, int budget, vector<double> &record, vector<int> &record_budget, double *result, int tid){
         mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
         DiffusionState diffusionState(network, round, budget);
         double influence = 0.;
@@ -100,7 +100,7 @@ class SeedingProcessTime{
 public:
     static int round;
 
-    static void MultiGo(const Network &network, Policy policy, int simutimes, int budget, vector<double> &record, vector<int> &record_budget, const string type, int d){
+    static void MultiGo(const Network &network, int simutimes, int budget, vector<double> &record, vector<int> &record_budget, const string type, int d){
         printf("Multi Go\n");
         if(round == -1){
             throw "round == -1";
@@ -115,13 +115,13 @@ public:
         for(int i = 0;i < simutimes;i++){
             printf("Simulation number %d\n", i+1);
             if(type == "dynamic")
-                boost::asio::post(pool, boost::bind(goDynamic, network, policy, round, budget, ref(records[i]), ref(records_budget[i]), results+i, i));
+                boost::asio::post(pool, boost::bind(goDynamic, network, GreedyPolicyDynamic(), round, budget, ref(records[i]), ref(records_budget[i]), results+i, i));
             else if(type == "static")
-                boost::asio::post(pool, boost::bind(goStatic, network, policy, round, budget, ref(records[i]), ref(records_budget[i]), results+i, i));
+                boost::asio::post(pool, boost::bind(goStatic, network, GreedyPolicy_kd(), round, budget, ref(records[i]), ref(records_budget[i]), results+i, i));
             else if(type == "uniform")
-                boost::asio::post(pool, boost::bind(goUniform_d, network, policy, round, d, budget, ref(records[i]), ref(records_budget[i]), results+i, i));
+                boost::asio::post(pool, boost::bind(goUniform_d, network, GreedyPolicy_kd(), round, d, budget, ref(records[i]), ref(records_budget[i]), results+i, i));
             else if(type == "full")
-                boost::asio::post(pool, boost::bind(goFull, network, policy, round, budget, ref(records[i]), ref(records_budget[i]), results+i, i));
+                boost::asio::post(pool, boost::bind(goFull, network, GreedyPolicy_kd(), round, budget, ref(records[i]), ref(records_budget[i]), results+i, i));
             else
                 printf("Invalid model\n");
         }

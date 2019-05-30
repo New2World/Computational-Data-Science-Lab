@@ -194,13 +194,13 @@ public:
         printf("Edge number: %d\n", edgenum);
     }
 
-    bool isSuccess(double prob, mt19937 rand) const {
+    bool isSuccess(double prob, mt19937& rand) const {
         if((double)rand()/rand.max() < prob)
             return true;
         return false;
     }
 
-    void changeToRelization(mt19937 rand){
+    void changeToRelization(mt19937& rand){
         vector<int> temp;
         for(int i = 0;i < neighbor.size();i++){
             for(int j = 0;j < neighbor[i].size();j++){

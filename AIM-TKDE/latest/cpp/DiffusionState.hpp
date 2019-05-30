@@ -7,7 +7,7 @@
 #include "Network.hpp"
 
 class DiffusionState{
-    void diffuseOneRound(const Network &network, mt19937 rand){
+    void diffuseOneRound(const Network &network, mt19937& rand){
         vector<int> new_active_temp;
         double prob;
         for(int cseed: new_active){
@@ -67,7 +67,7 @@ public:
             delete [] state;
     }
 
-    double diffuse(const Network &network, int round, mt19937 rand){
+    double diffuse(const Network &network, int round, mt19937& rand){
         for(int i = 0;i < round;i++){
             diffuseOneRound(network, rand);
             if(new_active.size() == 0)
@@ -76,7 +76,7 @@ public:
         return anum;
     }
 
-    int diffuse(const Network &network, int round, vector<double> record, int bound, mt19937 rand){
+    int diffuse(const Network &network, int round, vector<double> record, int bound, mt19937& rand){
         double last = record[record.size()-1];
         for(int i = 0;i < round;i++){
             diffuseOneRound(network, rand);
@@ -105,7 +105,7 @@ public:
         }
     }
 
-    double expInfluenceComplete(const Network &network, int times, mt19937 rand){
+    double expInfluenceComplete(const Network &network, int times, mt19937& rand){
         double result = 0.;
         for(int i = 0;i < times;i++){
             DiffusionState temp = DiffusionState(*this);

@@ -44,7 +44,7 @@ void run(int simutimes, int k, int vnum, Network network){
     record = vector<double>(SeedingProcessTime::round, 0.);
     record_budget = vector<int>(SeedingProcessTime::round, 0);
     auto start = chrono::high_resolution_clock::now();
-    SeedingProcessTime::MultiGo(network, GreedyPolicyDynamic(), simutimes, k, record, record_budget, "dynamic", -1);
+    SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "dynamic", -1);
     auto end = chrono::high_resolution_clock::now();
     printTime(start, end);
     printVector(record);
@@ -56,7 +56,7 @@ void run(int simutimes, int k, int vnum, Network network){
     record = vector<double>(SeedingProcessTime::round, 0.);
     record_budget = vector<int>(SeedingProcessTime::round, 0);
     start = chrono::high_resolution_clock::now();
-    SeedingProcessTime::MultiGo(network, GreedyPolicy_kd(), simutimes, k, record, record_budget, "static", -1);
+    SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "static", -1);
     end = chrono::high_resolution_clock::now();
     printTime(start, end);
     printVector(record);
@@ -68,7 +68,7 @@ void run(int simutimes, int k, int vnum, Network network){
     record = vector<double>(SeedingProcessTime::round, 0.);
     record_budget = vector<int>(SeedingProcessTime::round, 0);
     start = chrono::high_resolution_clock::now();
-    SeedingProcessTime::MultiGo(network, GreedyPolicy_kd(), simutimes, k, record, record_budget, "uniform", 1);
+    SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "uniform", 1);
     end = chrono::high_resolution_clock::now();
     printTime(start, end);
     printVector(record);
@@ -80,7 +80,7 @@ void run(int simutimes, int k, int vnum, Network network){
     record = vector<double>(SeedingProcessTime::round, 0.);
     record_budget = vector<int>(SeedingProcessTime::round, 0);
     start = chrono::high_resolution_clock::now();
-    SeedingProcessTime::MultiGo(network, GreedyPolicy_kd(), simutimes, k, record, record_budget, "uniform", 2);
+    SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "uniform", 2);
     end = chrono::high_resolution_clock::now();
     printTime(start, end);
     printVector(record);
@@ -92,7 +92,7 @@ void run(int simutimes, int k, int vnum, Network network){
     record = vector<double>(SeedingProcessTime::round, 0.);
     record_budget = vector<int>(SeedingProcessTime::round, 0);
     start = chrono::high_resolution_clock::now();
-    SeedingProcessTime::MultiGo(network, GreedyPolicy_kd(), simutimes, k, record, record_budget, "full", -1);
+    SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "full", -1);
     end = chrono::high_resolution_clock::now();
     printTime(start, end);
     printVector(record);
@@ -108,7 +108,7 @@ void run(int simutimes, int k, int vnum, Network network){
 int main(int args, char **argv){
     SeedingProcessTime::round = 5;
     Policy::simurest_times = 100;
-    Policy::rrsets_size = 100000;
+    Policy::rrsets_size = 10000;    // 100000
 
     string name(argv[1]);
     string type(argv[2]);
