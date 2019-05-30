@@ -35,8 +35,10 @@ public:
             node_order.erase(v_iter);
             if(value_list.find(n) == value_list.end())
                 cout << "remove fail: node is associated with null" << endl;
-            else
+            else{
                 value_list.erase(n);
+                _size--;
+            }
         }
     }
     int get(int id){

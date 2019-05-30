@@ -108,7 +108,7 @@ void run(int simutimes, int k, int vnum, Network network){
 int main(int args, char **argv){
     SeedingProcessTime::round = 5;
     Policy::simurest_times = 100;
-    Policy::rrsets_size = 10000;    // 100000
+    Policy::rrsets_size = 1000;    // 100000
 
     string name(argv[1]);
     string type(argv[2]);
@@ -117,6 +117,7 @@ int main(int args, char **argv){
     SeedingProcessTime::round = atoi(argv[5]);
     Policy::simurest_times = atoi(argv[6]);
     int k = atoi(argv[7]);
+    Policy::rrsets_size = atoi(argv[8]);
 
     string path("data/"+name+".txt");
     Network network(path, type, vnum);

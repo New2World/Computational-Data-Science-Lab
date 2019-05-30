@@ -19,6 +19,8 @@ using namespace std;
 #include "Network.hpp"
 #include "DiffusionState.hpp"
 
+// #define PARALLEL
+
 class SeedingProcessTime{
     static void goDynamic(const Network &network, GreedyPolicyDynamic policy, int round, int budget, vector<double> &record, vector<int> &record_budget, double *result, int tid){
         mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
@@ -107,25 +109,52 @@ public:
             return;
         }
         double result = 0.;
-        double *results = new double[simutimes];
-        memset(results, 0, simutimes*sizeof(double));
+        double results[simutimes];
         vector<vector<double>> records(simutimes, vector<double>(round, 0.));
         vector<vector<int>> records_budget(simutimes, vector<int>(round, 0));
+        #ifdef PARALLEL
         boost::asio::thread_pool pool(6);
         for(int i = 0;i < simutimes;i++){
             printf("Simulation number %d\n", i+1);
-            if(type == "dynamic")
+            switch(type[0]){
+            case 'd':
                 boost::asio::post(pool, boost::bind(goDynamic, network, GreedyPolicyDynamic(), round, budget, ref(records[i]), ref(records_budget[i]), results+i, i));
-            else if(type == "static")
+                break;
+            case 's':
                 boost::asio::post(pool, boost::bind(goStatic, network, GreedyPolicy_kd(), round, budget, ref(records[i]), ref(records_budget[i]), results+i, i));
-            else if(type == "uniform")
+                break;
+            case 'u':
                 boost::asio::post(pool, boost::bind(goUniform_d, network, GreedyPolicy_kd(), round, d, budget, ref(records[i]), ref(records_budget[i]), results+i, i));
-            else if(type == "full")
+                break;
+            case 'f':
                 boost::asio::post(pool, boost::bind(goFull, network, GreedyPolicy_kd(), round, budget, ref(records[i]), ref(records_budget[i]), results+i, i));
-            else
+                break;
+            default:
                 printf("Invalid model\n");
+            }
         }
         pool.join();
+        #else
+        for(int i = 0;i < simutimes;i++){
+            printf("Simulation number %d\n", i+1);
+            switch(type[0]){
+            case 'd':
+                goDynamic(network, GreedyPolicyDynamic(), round, budget, records[i], records_budget[i], results+i, i);
+                break;
+            case 's':
+                goStatic(network, GreedyPolicy_kd(), round, budget, records[i], records_budget[i], results+i, i);
+                break;
+            case 'u':
+                goUniform_d(network, GreedyPolicy_kd(), round, d, budget, records[i], records_budget[i], results+i, i);
+                break;
+            case 'f':
+                goFull(network, GreedyPolicy_kd(), round, budget, records[i], records_budget[i], results+i, i);
+                break;
+            default:
+                printf("Invalid model\n");
+            }
+        }
+        #endif
         for(int i = 0;i < round;i++)
             result += results[i];
         for(int i = 0;i < round;i++){
@@ -137,7 +166,6 @@ public:
             record_budget[i] /= simutimes;
         }
         printf("%lf\n", result/simutimes);
-        delete [] results;
     }
 };
 

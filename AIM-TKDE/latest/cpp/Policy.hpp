@@ -61,7 +61,7 @@ int reSpreadOneRound(const Network & network, vector<int> &new_active, bool *sta
 }
 
 int reSpreadOnce(const Network & network, int cindex, vector<int> &rrset, const DiffusionState& diffusionState, mt19937& rand){
-    bool state[diffusionState.vnum] = {false};
+    bool state[diffusionState.vnum];
     // memcpy(state, diffusionState.state, diffusionState.vnum);
     vector<int> new_active;
 
@@ -80,10 +80,9 @@ int reSpreadOnce(const Network & network, int cindex, vector<int> &rrset, const 
 
 double getrrset(const Network & network, vector<int> &rrset, const DiffusionState& diffusionState, mt19937& rand){
     int centerIndex, vnum = network.vertexNum;
-    long long RMAX = rand.max();
     while(true){
-        centerIndex = (int)((double)rand()/RMAX*vnum);
-        if(!diffusionState.state[centerIndex])
+        centerIndex = rand()*vnum/rand.max()-1;
+        if(!diffusionState.state[centerIndex<0?0:centerIndex])
             break;
     }
     switch(network.type[0]){
@@ -160,12 +159,15 @@ double reverseGreedyLazy_k(const Network & network, const DiffusionState& diffus
     sortedMap mymap;
     for(pair<int,int> p: sortPair)
         mymap.push_back(p.first, p.second);
+    int c_bound, t_bound, c_seed;
+    bool sign;
+    vector<int> c_seed_cover;
     for(int i = 0;i < k;i++){
-        bool sign = false;
-        int c_bound = mymap.size();
+        sign = false;
+        c_bound = mymap.size();
         while(c_bound > 0){
-            int c_seed = mymap.get(0), t_bound;
-            vector<int> c_seed_cover = nodes_cover_sets[c_seed];
+            c_seed = mymap.get(0);
+            c_seed_cover = nodes_cover_sets[c_seed];
             for(int j = 0;j < c_seed_cover.size();j++){
                 if(coverred_rrsets[c_seed_cover[j]]){
                     c_seed_cover.erase(c_seed_cover.begin()+j);
@@ -173,6 +175,7 @@ double reverseGreedyLazy_k(const Network & network, const DiffusionState& diffus
                 }
             }
             t_bound = mymap.update(c_seed, c_seed_cover.size());
+            cout << "t_bound: " << t_bound << " - c_bound: " << c_bound << endl;
             if(t_bound == 0){
                 result.push_back(c_seed);
                 sign = true;
@@ -347,7 +350,7 @@ public:
             select_k(network, diffusionState, result, diffusionState.budget_left, rand);
             return result;
         }
-        
+
         double profit = -__DBL_MAX__;
         for(int k = 1;k < diffusionState.budget_left;k++){
             vector<int> temp_result;

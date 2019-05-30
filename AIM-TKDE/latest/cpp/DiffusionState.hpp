@@ -91,8 +91,10 @@ public:
     }
 
     void seed(vector<int> seed_set){
-        if(seed_set.size() > budget_left && budget_limit)
+        if(seed_set.size() > budget_left && budget_limit){
             cout << "diffusionState.seed over budget" << endl;
+            exit(1);
+        }
         for(int i: seed_set){
             if(!state[i]){
                 state[i] = true;
