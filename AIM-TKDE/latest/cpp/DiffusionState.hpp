@@ -52,7 +52,8 @@ public:
     }
 
     DiffusionState(const DiffusionState &diffusionState){
-        anum = 0;
+        round_left = diffusionState.round_left;
+        budget_left = diffusionState.budget_left;
         state = nullptr;
         state = new bool[diffusionState.vnum];
         memcpy(state, diffusionState.state, diffusionState.vnum);
@@ -60,6 +61,7 @@ public:
         round_limit = diffusionState.round_limit;
         budget_limit = diffusionState.budget_limit;
         anum = diffusionState.anum;
+        vnum = diffusionState.vnum;
     }
 
     ~DiffusionState(){
@@ -91,10 +93,13 @@ public:
     }
 
     void seed(vector<int> seed_set){
+        cout << seed_set.size() << " > " << budget_left << endl;
         if(seed_set.size() > budget_left && budget_limit){
             cout << "diffusionState.seed over budget: " << seed_set.size() << " - " << budget_left << endl;
             exit(1);
         }
+        if(budget_left == 0)
+            return;
         for(int i: seed_set){
             if(!state[i]){
                 state[i] = true;
