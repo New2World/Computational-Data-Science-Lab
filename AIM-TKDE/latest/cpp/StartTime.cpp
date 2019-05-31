@@ -35,14 +35,14 @@ void run(int simutimes, int k, int vnum, Network network){
     printf("simu_rest_times = %d\n", Policy::simurest_times);
     printf("rrsets size = %d\n", Policy::rrsets_size);
 
-    vector<int> record_budget;
+    vector<double> record_budget;
     vector<double> record;
 
     cout << "-------------------------------------------" << endl;
     cout << "-------------------------------------------" << endl;
     cout << "dynamic" << endl;
     record = vector<double>(SeedingProcessTime::round, 0.);
-    record_budget = vector<int>(SeedingProcessTime::round, 0);
+    record_budget = vector<double>(SeedingProcessTime::round, 0);
     auto start = chrono::high_resolution_clock::now();
     SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "dynamic", -1);
     auto end = chrono::high_resolution_clock::now();
@@ -54,7 +54,7 @@ void run(int simutimes, int k, int vnum, Network network){
 
     cout << "static" << endl;
     record = vector<double>(SeedingProcessTime::round, 0.);
-    record_budget = vector<int>(SeedingProcessTime::round, 0);
+    record_budget = vector<double>(SeedingProcessTime::round, 0);
     start = chrono::high_resolution_clock::now();
     SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "static", -1);
     end = chrono::high_resolution_clock::now();
@@ -66,7 +66,7 @@ void run(int simutimes, int k, int vnum, Network network){
 
     cout << "uniform 1" << endl;
     record = vector<double>(SeedingProcessTime::round, 0.);
-    record_budget = vector<int>(SeedingProcessTime::round, 0);
+    record_budget = vector<double>(SeedingProcessTime::round, 0);
     start = chrono::high_resolution_clock::now();
     SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "uniform", 1);
     end = chrono::high_resolution_clock::now();
@@ -78,7 +78,7 @@ void run(int simutimes, int k, int vnum, Network network){
 
     cout << "uniform 2" << endl;
     record = vector<double>(SeedingProcessTime::round, 0.);
-    record_budget = vector<int>(SeedingProcessTime::round, 0);
+    record_budget = vector<double>(SeedingProcessTime::round, 0);
     start = chrono::high_resolution_clock::now();
     SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "uniform", 2);
     end = chrono::high_resolution_clock::now();
@@ -90,7 +90,7 @@ void run(int simutimes, int k, int vnum, Network network){
 
     cout << "full" << endl;
     record = vector<double>(SeedingProcessTime::round, 0.);
-    record_budget = vector<int>(SeedingProcessTime::round, 0);
+    record_budget = vector<double>(SeedingProcessTime::round, 0);
     start = chrono::high_resolution_clock::now();
     SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "full", -1);
     end = chrono::high_resolution_clock::now();
