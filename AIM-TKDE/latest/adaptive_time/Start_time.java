@@ -16,7 +16,7 @@ public class Start_time{
         System.out.println("rrsets_size "+Policy.rrsets_size);
 
         ArrayList<Double> record;
-        ArrayList<Integer> record_budget;
+        ArrayList<Double> record_budget;
 
         SeedingProcess_time.createThreadPool();
 
@@ -25,63 +25,63 @@ public class Start_time{
         System.out.println("-------------------------------------------");
         System.out.println("dynamic");
         record=new ArrayList<Double>();
-        record_budget=new ArrayList<Integer>();
+        record_budget=new ArrayList<Double>();
         startTime = System.currentTimeMillis();
         SeedingProcess_time.MultiGo(network, new Policy.Greedy_policy_dynamic(), simutimes, k, record,record_budget,"dynamic",-1);
         endTime = System.currentTimeMillis();
         Tools.printElapsedTime(startTime, endTime, "dynamic");
         Tools.printdoublelistln(record, SeedingProcess_time.round);
-        Tools.printintlistln(record_budget, SeedingProcess_time.round);
+        Tools.printdoublelistln(record_budget, SeedingProcess_time.round);
         System.out.println("-------------------------------------------");
         System.out.println("-------------------------------------------");
 
         System.out.println("static");
         record=new ArrayList<Double>();
-        record_budget=new ArrayList<Integer>();
+        record_budget=new ArrayList<Double>();
         startTime = System.currentTimeMillis();
         SeedingProcess_time.MultiGo(network, new Policy.Greedy_policy_kd(), simutimes, k, record,record_budget,"static",-1);
         endTime = System.currentTimeMillis();
         Tools.printElapsedTime(startTime, endTime, "static");
         Tools.printdoublelistln(record, SeedingProcess_time.round);
-        Tools.printintlistln(record_budget, SeedingProcess_time.round);
+        Tools.printdoublelistln(record_budget, SeedingProcess_time.round);
         System.out.println("-------------------------------------------");
         System.out.println("-------------------------------------------");
 
 
         System.out.println("uniform 1");
         record=new ArrayList<Double>();
-        record_budget=new ArrayList<Integer>();
+        record_budget=new ArrayList<Double>();
         startTime = System.currentTimeMillis();
         SeedingProcess_time.MultiGo(network, new Policy.Greedy_policy_kd(), simutimes, k, record,record_budget,"uniform",1);
         endTime = System.currentTimeMillis();
         Tools.printElapsedTime(startTime, endTime, "uniform 1");
         Tools.printdoublelistln(record, SeedingProcess_time.round);
-        Tools.printintlistln(record_budget, SeedingProcess_time.round);
+        Tools.printdoublelistln(record_budget, SeedingProcess_time.round);
         System.out.println("-------------------------------------------");
         System.out.println("-------------------------------------------");
 
 
         System.out.println("uniform 2");
         record=new ArrayList<Double>();
-        record_budget=new ArrayList<Integer>();
+        record_budget=new ArrayList<Double>();
         startTime = System.currentTimeMillis();
         SeedingProcess_time.MultiGo(network, new Policy.Greedy_policy_kd(), simutimes, k, record,record_budget,"uniform",2);
         endTime = System.currentTimeMillis();
         Tools.printElapsedTime(startTime, endTime, "uniform 2");
         Tools.printdoublelistln(record, SeedingProcess_time.round);
-        Tools.printintlistln(record_budget, SeedingProcess_time.round);
+        Tools.printdoublelistln(record_budget, SeedingProcess_time.round);
         System.out.println("-------------------------------------------");
         System.out.println("-------------------------------------------");
 
         System.out.println("full");
         record=new ArrayList<Double>();
-        record_budget=new ArrayList<Integer>();
+        record_budget=new ArrayList<Double>();
         startTime = System.currentTimeMillis();
         SeedingProcess_time.MultiGo(network, new Policy.Greedy_policy_kd(), simutimes, k, record,record_budget,"full",-1);
         endTime = System.currentTimeMillis();
         Tools.printElapsedTime(startTime, endTime, "full");
         Tools.printdoublelistln(record, SeedingProcess_time.round);
-        Tools.printintlistln(record_budget, SeedingProcess_time.round);
+        Tools.printdoublelistln(record_budget, SeedingProcess_time.round);
         System.out.println("-------------------------------------------");
         System.out.println("-------------------------------------------");
 

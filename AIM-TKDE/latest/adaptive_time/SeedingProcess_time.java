@@ -32,7 +32,7 @@ public class SeedingProcess_time{
             int simutimes,
             int budget,
             ArrayList<Double> record,
-            ArrayList<Integer> record_budget, String type, int d)
+            ArrayList<Double> record_budget, String type, int d)
     {
         //ArrayList<Double> c_result=new ArrayList<Double>();
         System.out.println("MultiGo");
@@ -43,17 +43,17 @@ public class SeedingProcess_time{
         for(int i=0; i<round; i++)
         {
             record.add(0.0);
-            record_budget.add(0);
+            record_budget.add(0.0);
         }
         double result=0;
         ArrayList<ArrayList<Double>> records = new ArrayList<>();
-        ArrayList<ArrayList<Integer>> records_budget = new ArrayList<>();
+        ArrayList<ArrayList<Double>> records_budget = new ArrayList<>();
         for(int i=0; i<simutimes; i++)
         {
             //c_result.clear();
             System.out.println("Simulation number "+i);
             ArrayList<Double> _record = new ArrayList<Double>(record);
-            ArrayList<Integer> _record_budget = new ArrayList<Integer>(record_budget);
+            ArrayList<Double> _record_budget = new ArrayList<Double>(record_budget);
             records.add(_record);
             records_budget.add(_record_budget);
             Callable<Double> callObj = null;
@@ -111,8 +111,7 @@ public class SeedingProcess_time{
         }
 
         for(int i = 0;i < round;i++){
-            double record_val = 0.0;
-            int record_budget_val = 0;
+            double record_val = 0.0, record_budget_val = 0.0;
             for(int j = 0;j < simutimes;j++){
                 record_val += records.get(j).get(i);
                 record_budget_val += records_budget.get(j).get(i);
@@ -124,7 +123,7 @@ public class SeedingProcess_time{
         System.out.println(result/simutimes);
     }
 
-    public static double Go_dynamic(Network network, Command command, int round, int budget, ArrayList<Double> record, ArrayList<Integer> record_budget)
+    public static double Go_dynamic(Network network, Command command, int round, int budget, ArrayList<Double> record, ArrayList<Double> record_budget)
     {
         //System.out.println("Go");
         Random rand = new Random();
@@ -146,7 +145,7 @@ public class SeedingProcess_time{
 
     }
 
-    public static double Go_uniform_d(Network network, Command command, int round, int d, int budget, ArrayList<Double> record,ArrayList<Integer> record_budget)
+    public static double Go_uniform_d(Network network, Command command, int round, int d, int budget, ArrayList<Double> record,ArrayList<Double> record_budget)
     {
         // System.out.println("Go uniform");
         Random rand = new Random();
@@ -184,7 +183,7 @@ public class SeedingProcess_time{
 
     }
 
-    public static double Go_static(Network network, Command command, int round, int budget, ArrayList<Double> record,ArrayList<Integer> record_budget)
+    public static double Go_static(Network network, Command command, int round, int budget, ArrayList<Double> record,ArrayList<Double> record_budget)
     {
         //System.out.println("Go");
         Random rand = new Random();
@@ -210,7 +209,7 @@ public class SeedingProcess_time{
 
     }
 
-    public static double Go_full(Network network, Command command, int round, int budget, ArrayList<Double> record,ArrayList<Integer> record_budget)
+    public static double Go_full(Network network, Command command, int round, int budget, ArrayList<Double> record,ArrayList<Double> record_budget)
     {
         //System.out.println("Go");
         Random rand = new Random();
