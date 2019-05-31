@@ -76,7 +76,7 @@ public:
         return anum;
     }
 
-    int diffuse(const Network &network, int round, vector<double> record, int bound, mt19937& rand){
+    int diffuse(const Network &network, int round, vector<double> &record, int bound, mt19937& rand){
         double last = record[record.size()-1];
         for(int i = 0;i < round;i++){
             diffuseOneRound(network, rand);
@@ -92,7 +92,7 @@ public:
 
     void seed(vector<int> seed_set){
         if(seed_set.size() > budget_left && budget_limit){
-            cout << "diffusionState.seed over budget" << endl;
+            cout << "diffusionState.seed over budget: " << seed_set.size() << " - " << budget_left << endl;
             exit(1);
         }
         for(int i: seed_set){
