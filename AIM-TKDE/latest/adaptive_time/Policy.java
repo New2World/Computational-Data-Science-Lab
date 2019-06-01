@@ -273,6 +273,9 @@ public class Policy{
             mymap.push_back(entry.getKey(), entry.getValue());
             //System.out.println(entry.getKey()+" "+entry.getValue().size());
         }
+        System.out.println("mymap 0: "+mymap.get(0)+" "+mymap.valueList.get(mymap.get(0)));
+        System.out.println("mymap 1: "+mymap.get(1)+" "+mymap.valueList.get(mymap.get(1)));
+        System.out.println("mymap 2: "+mymap.get(2)+" "+mymap.valueList.get(mymap.get(2)));
 
         //--------------
         /*

@@ -135,7 +135,7 @@ public class Start_time{
         //int vnum=1157900;
 
 
-        String path="data/"+name+".txt";
+        String path="/home/ritchie/Downloads/data/"+name+".txt";
         Network network=new Network(path, type , vnum);
         network.set_ic_prob(0.1);
 
