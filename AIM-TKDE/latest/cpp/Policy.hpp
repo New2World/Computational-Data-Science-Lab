@@ -80,7 +80,8 @@ double getrrset(const Network & network, vector<int> &rrset, DiffusionState& dif
     int centerIndex, vnum = network.vertexNum;
     while(true){
         centerIndex = rand()*vnum/rand.max()-1;
-        if(!diffusionState.state[centerIndex<0?0:centerIndex])
+        centerIndex = centerIndex<0?0:centerIndex;
+        if(!diffusionState.state[centerIndex])
             break;
     }
     switch(network.type[0]){
@@ -140,13 +141,11 @@ double reverseGreedyLazy_k(const Network & network, DiffusionState& diffusionSta
     for(int i = 0;i < rrsets.size();i++){
         for(int j = 0;j < rrsets[i].size();j++){
             index = rrsets[i][j];
-            if(nodes_cover_sets_key[index])
-                nodes_cover_sets[index].push_back(i);
-            else{
+            if(!nodes_cover_sets_key[index]){
                 nodes_cover_sets[index] = vector<int>();
-                nodes_cover_sets[index].push_back(i);
                 nodes_cover_sets_key[index] = true;
             }
+            nodes_cover_sets[index].push_back(i);
         }
         coverred_rrsets[i] = false;
     }
@@ -159,6 +158,9 @@ double reverseGreedyLazy_k(const Network & network, DiffusionState& diffusionSta
     sortedMap mymap;
     for(pair<int,int> p: sortPair)
         mymap.push_back(p.first, p.second);
+    cout << "mymap 0: " << mymap.get(0) << " " << mymap.value_list[mymap.get(0)] << endl;
+    cout << "mymap 1: " << mymap.get(1) << " " << mymap.value_list[mymap.get(1)] << endl;
+    cout << "mymap 2: " << mymap.get(2) << " " << mymap.value_list[mymap.get(2)] << endl;
     int c_bound, t_bound, c_seed;
     bool sign;
     vector<int> c_seed_cover;
@@ -329,11 +331,12 @@ class GreedyPolicyDynamic: public Policy{
     double select_k(const Network & network, DiffusionState& diffusionState, vector<int> &result, int k, mt19937& rand){
         reverseGreedyLazy_k(network, diffusionState, result, k, rand);
         double influence = 0.;
+        vector<int> temp_seed;
         for(int i = 0;i < simurest_times;i++){
             DiffusionState temp(diffusionState);
             temp.seed(result);
             temp.diffuse(network, 1, rand);
-            vector<int> temp_seed;
+            temp_seed.clear();
             reverseGreedyLazy_k(network, temp, temp_seed, temp.budget_left, rand);
             temp.seed(temp_seed);
             temp.diffuse(network, temp.round_left, rand);

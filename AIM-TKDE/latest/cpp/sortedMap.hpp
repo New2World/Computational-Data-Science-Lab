@@ -8,9 +8,9 @@ using namespace std;
 
 class sortedMap{
     int _size;
+public:
     vector<int> node_order;
     map<int,double> value_list;
-public:
     sortedMap(){
         _size = 0;
     }

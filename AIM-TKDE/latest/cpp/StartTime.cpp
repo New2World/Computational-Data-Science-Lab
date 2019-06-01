@@ -24,8 +24,8 @@ void printVector(vector<T> vec){
 }
 
 void printTime(chrono::high_resolution_clock::time_point start, chrono::high_resolution_clock::time_point end){
-    auto duration = chrono::duration_cast<chrono::hours>(end-start).count();
-    cout << "time elapsed in hours: " << duration << endl;
+    auto duration = chrono::duration_cast<chrono::seconds>(end-start).count();
+    cout << "time elapsed in seconds: " << duration << endl;
 }
 
 void run(int simutimes, int k, int vnum, Network network){
@@ -40,62 +40,62 @@ void run(int simutimes, int k, int vnum, Network network){
     vector<double> record_budget;
     vector<double> record;
 
-    cout << "-------------------------------------------" << endl;
-    cout << "-------------------------------------------" << endl;
-    cout << "dynamic" << endl;
-    record = vector<double>(SeedingProcessTime::round, 0.);
-    record_budget = vector<double>(SeedingProcessTime::round, 0);
-    auto start = chrono::high_resolution_clock::now();
-    SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "dynamic", -1);
-    auto end = chrono::high_resolution_clock::now();
-    printTime(start, end);
-    printVector(record);
-    printVector(record_budget);
-    cout << "-------------------------------------------" << endl;
-    cout << "-------------------------------------------" << endl;
+    // cout << "-------------------------------------------" << endl;
+    // cout << "-------------------------------------------" << endl;
+    // cout << "dynamic" << endl;
+    // record = vector<double>(SeedingProcessTime::round, 0.);
+    // record_budget = vector<double>(SeedingProcessTime::round, 0);
+    // auto start = chrono::high_resolution_clock::now();
+    // SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "dynamic", -1);
+    // auto end = chrono::high_resolution_clock::now();
+    // printTime(start, end);
+    // printVector(record);
+    // printVector(record_budget);
+    // cout << "-------------------------------------------" << endl;
+    // cout << "-------------------------------------------" << endl;
 
-    cout << "static" << endl;
-    record = vector<double>(SeedingProcessTime::round, 0.);
-    record_budget = vector<double>(SeedingProcessTime::round, 0);
-    start = chrono::high_resolution_clock::now();
-    SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "static", -1);
-    end = chrono::high_resolution_clock::now();
-    printTime(start, end);
-    printVector(record);
-    printVector(record_budget);
-    cout << "-------------------------------------------" << endl;
-    cout << "-------------------------------------------" << endl;
+    // cout << "static" << endl;
+    // record = vector<double>(SeedingProcessTime::round, 0.);
+    // record_budget = vector<double>(SeedingProcessTime::round, 0);
+    // start = chrono::high_resolution_clock::now();
+    // SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "static", -1);
+    // end = chrono::high_resolution_clock::now();
+    // printTime(start, end);
+    // printVector(record);
+    // printVector(record_budget);
+    // cout << "-------------------------------------------" << endl;
+    // cout << "-------------------------------------------" << endl;
 
-    cout << "uniform 1" << endl;
-    record = vector<double>(SeedingProcessTime::round, 0.);
-    record_budget = vector<double>(SeedingProcessTime::round, 0);
-    start = chrono::high_resolution_clock::now();
-    SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "uniform", 1);
-    end = chrono::high_resolution_clock::now();
-    printTime(start, end);
-    printVector(record);
-    printVector(record_budget);
-    cout << "-------------------------------------------" << endl;
-    cout << "-------------------------------------------" << endl;
+    // cout << "uniform 1" << endl;
+    // record = vector<double>(SeedingProcessTime::round, 0.);
+    // record_budget = vector<double>(SeedingProcessTime::round, 0);
+    // start = chrono::high_resolution_clock::now();
+    // SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "uniform", 1);
+    // end = chrono::high_resolution_clock::now();
+    // printTime(start, end);
+    // printVector(record);
+    // printVector(record_budget);
+    // cout << "-------------------------------------------" << endl;
+    // cout << "-------------------------------------------" << endl;
 
-    cout << "uniform 2" << endl;
-    record = vector<double>(SeedingProcessTime::round, 0.);
-    record_budget = vector<double>(SeedingProcessTime::round, 0);
-    start = chrono::high_resolution_clock::now();
-    SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "uniform", 2);
-    end = chrono::high_resolution_clock::now();
-    printTime(start, end);
-    printVector(record);
-    printVector(record_budget);
-    cout << "-------------------------------------------" << endl;
-    cout << "-------------------------------------------" << endl;
+    // cout << "uniform 2" << endl;
+    // record = vector<double>(SeedingProcessTime::round, 0.);
+    // record_budget = vector<double>(SeedingProcessTime::round, 0);
+    // start = chrono::high_resolution_clock::now();
+    // SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "uniform", 2);
+    // end = chrono::high_resolution_clock::now();
+    // printTime(start, end);
+    // printVector(record);
+    // printVector(record_budget);
+    // cout << "-------------------------------------------" << endl;
+    // cout << "-------------------------------------------" << endl;
 
     cout << "full" << endl;
     record = vector<double>(SeedingProcessTime::round, 0.);
     record_budget = vector<double>(SeedingProcessTime::round, 0);
-    start = chrono::high_resolution_clock::now();
+    auto start = chrono::high_resolution_clock::now();
     SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "full", -1);
-    end = chrono::high_resolution_clock::now();
+    auto end = chrono::high_resolution_clock::now();
     printTime(start, end);
     printVector(record);
     printVector(record_budget);
@@ -123,7 +123,7 @@ int main(int args, char **argv){
     Policy::rrsets_size = atoi(argv[8]);
     #endif
 
-    string path("data/"+name+".txt");
+    string path("/home/ritchie/Downloads/data/"+name+".txt");
     Network network(path, type, vnum);
     network.setICProb(.1);
 

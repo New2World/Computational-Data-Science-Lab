@@ -9,11 +9,12 @@
 class DiffusionState{
     void diffuseOneRound(const Network &network, mt19937& rand){
         vector<int> new_active_temp;
-        double prob;
+        double prob, rd;
         for(int cseed: new_active){
             for(int cseede: network.neighbor[cseed]){
                 prob = network.getProb(cseed, cseede);
-                if((double)rand()/rand.max() < prob){
+                rd = (double)rand()/rand.max();
+                if(rd < prob){
                     if(!state[cseede]){
                         state[cseede] = true;
                         anum++;
@@ -93,13 +94,10 @@ public:
     }
 
     void seed(vector<int> seed_set){
-        cout << seed_set.size() << " > " << budget_left << endl;
         if(seed_set.size() > budget_left && budget_limit){
             cout << "diffusionState.seed over budget: " << seed_set.size() << " - " << budget_left << endl;
             exit(1);
         }
-        if(budget_left == 0)
-            return;
         for(int i: seed_set){
             if(!state[i]){
                 state[i] = true;

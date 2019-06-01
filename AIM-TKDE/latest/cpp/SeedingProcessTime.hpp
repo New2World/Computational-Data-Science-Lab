@@ -82,9 +82,11 @@ class SeedingProcessTime{
         mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
         DiffusionState diffusionState(network, round, budget);
         double influence = 0.;
+        vector<int> seed_set;
         for(int i = 0;i < round;i++){
             // cout << "full running " << tid+1 << endl;
-            vector<int> seed_set;
+            seed_set.clear();
+            cout << "i: " << i << " budget left: " << diffusionState.budget_left << " new active: " << diffusionState.new_active.size() << endl;
             if(i == round-1 && diffusionState.budget_left > 0){
                 seed_set = policy.computeSeedSet(network, diffusionState, diffusionState.budget_left, rand);
                 diffusionState.seed(seed_set);

@@ -216,7 +216,7 @@ public:
         neighbor_reverse.clear();
     }
 
-    double getProbByIndex(int cseed, int cseede) const {
+    double getProb(int cseed, int cseede) const {
         if(type == "IC")
             return IC_prob;
         else if(type == "VIC"){
@@ -227,7 +227,7 @@ public:
                 return -1;
             }();
             if(index < 0){
-                cout << "error occurs in getProbByIndex" << endl;
+                cout << "error occurs in getProb" << endl;
                 exit(1);
             }
             return probability[cseed][index];
@@ -239,9 +239,5 @@ public:
         else
             printf("Invalid model\n");
             return 0.;
-    }
-
-    double getProb(int cseed, int cseede) const {
-        return getProbByIndex(cseed, cseede);
     }
 };
