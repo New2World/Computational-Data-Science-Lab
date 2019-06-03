@@ -60,7 +60,7 @@ int reSpreadOneRound(const Network & network, vector<int> &new_active, bool *sta
 
 int reSpreadOnce(const Network & network, int cindex, vector<int> &rrset, DiffusionState& diffusionState, mt19937& rand){
     bool state[diffusionState.vnum];
-    // memcpy(state, diffusionState.state, diffusionState.vnum);
+    memcpy(state, diffusionState.state, diffusionState.vnum);
     vector<int> new_active;
 
     state[cindex] = true;
@@ -158,9 +158,6 @@ double reverseGreedyLazy_k(const Network & network, DiffusionState& diffusionSta
     sortedMap mymap;
     for(pair<int,int> p: sortPair)
         mymap.push_back(p.first, p.second);
-    cout << "mymap 0: " << mymap.get(0) << " " << mymap.value_list[mymap.get(0)] << endl;
-    cout << "mymap 1: " << mymap.get(1) << " " << mymap.value_list[mymap.get(1)] << endl;
-    cout << "mymap 2: " << mymap.get(2) << " " << mymap.value_list[mymap.get(2)] << endl;
     int c_bound, t_bound, c_seed;
     bool sign;
     vector<int> c_seed_cover;

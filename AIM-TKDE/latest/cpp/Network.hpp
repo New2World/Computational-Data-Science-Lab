@@ -137,11 +137,10 @@ public:
             node2 = stoi(inStr[1]);
             if(type == "VIC"){
                 prob = stod(inStr[2]);
-                addNode(node1, node2);
                 probability[node1].push_back(prob);
             }
-            else
-                addNode(node1, node2);
+            addNode(node1, node2);
+            // cout << "add node: " << node1 << " - " << node2 << endl;
         }
         fclose(fd);
     }

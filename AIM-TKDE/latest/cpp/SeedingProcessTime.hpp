@@ -86,7 +86,6 @@ class SeedingProcessTime{
         for(int i = 0;i < round;i++){
             // cout << "full running " << tid+1 << endl;
             seed_set.clear();
-            cout << "i: " << i << " budget left: " << diffusionState.budget_left << " new active: " << diffusionState.new_active.size() << endl;
             if(i == round-1 && diffusionState.budget_left > 0){
                 seed_set = policy.computeSeedSet(network, diffusionState, diffusionState.budget_left, rand);
                 diffusionState.seed(seed_set);
@@ -107,7 +106,7 @@ public:
     static void MultiGo(const Network &network, int simutimes, int budget, vector<double> &record, vector<double> &record_budget, const string type, int d){
         printf("Multi Go\n");
         if(round == -1){
-            throw "round == -1";
+            cout << "round == -1" << endl;
             return;
         }
         double result = 0.;
