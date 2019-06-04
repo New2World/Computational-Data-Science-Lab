@@ -156,7 +156,7 @@ public:
             }
         }
         #endif
-        for(int i = 0;i < round;i++)
+        for(int i = 0;i < simutimes;i++)
             result += results[i];
         for(int i = 0;i < round;i++){
             for(int j = 0;j < simutimes;j++){
