@@ -19,7 +19,7 @@ using namespace std;
 #include "Network.hpp"
 #include "DiffusionState.hpp"
 
-// #define PARALLEL
+#define PARALLEL
 
 class SeedingProcessTime{
     static void goDynamic(const Network &network, GreedyPolicyDynamic policy, int round, int budget, vector<double> &record, vector<double> &record_budget, double *result, int tid){
