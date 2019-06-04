@@ -112,9 +112,9 @@ public:
         double result = 0.;
         double results[simutimes];
         vector<vector<double>> records(simutimes, vector<double>(round, 0.));
-        vector<vector<double>> records_budget(simutimes, vector<double>(round, 0));
+        vector<vector<double>> records_budget(simutimes, vector<double>(round, 0.));
         #ifdef PARALLEL
-        boost::asio::thread_pool pool(6);
+        boost::asio::thread_pool pool(10);
         for(int i = 0;i < simutimes;i++){
             printf("Simulation number %d\n", i+1);
             switch(type[0]){

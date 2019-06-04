@@ -12,7 +12,7 @@
 #include "DiffusionState.hpp"
 #include "SeedingProcessTime.hpp"
 
-#define DEBUG
+// #define DEBUG
 
 using namespace std;
 
