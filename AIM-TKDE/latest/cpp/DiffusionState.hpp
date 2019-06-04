@@ -8,10 +8,12 @@
 
 class DiffusionState{
     void diffuseOneRound(const Network &network, mt19937& rand){
+        int cseede;
         vector<int> new_active_temp;
         double prob, rd;
         for(int cseed: new_active){
-            for(int cseede: network.neighbor[cseed]){
+            for(int i = 0;i < network.outDegree[cseed];i++){
+                cseede = network.getNeighbor(cseed, i);
                 prob = network.getProb(cseed, cseede);
                 rd = (double)rand()/rand.max();
                 if(rd < prob){

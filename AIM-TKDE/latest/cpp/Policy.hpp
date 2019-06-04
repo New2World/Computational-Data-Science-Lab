@@ -36,10 +36,10 @@ int reSpreadOneRound(const Network & network, vector<int> &new_active, bool *sta
     int cseede;
     double prob;
     vector<int> new_active_temp;
-    vector<vector<int>> re_neighbor = network.neighbor_reverse;
 
     for(int cseed: new_active){
-        for(int cseede: re_neighbor[cseed]){
+        for(int i = 0;i < network.inDegree[cseed];i++){
+            cseede = network.getReverseNeighbor(cseed, i);
             prob = network.getProb(cseede, cseed);
             if(network.isSuccess(prob, rand))
                 new_active_temp.push_back(cseede);

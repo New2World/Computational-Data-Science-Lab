@@ -13,7 +13,17 @@
 using namespace std;
 
 class Network{
+    typedef struct _Edge {
+        int u, v;
+        double p;
+    } _Edge;
+
     void clearPointers(){
+        neighbor = nullptr;
+        neighbor_reverse = nullptr;
+        neighbor_ptr = nullptr;
+        neighbor_reverse_ptr = nullptr;
+        probability = nullptr;
         inDegree = nullptr;
         outDegree = nullptr;
         s_contri_order = nullptr;
@@ -28,19 +38,58 @@ class Network{
             delete [] ptr;
     }
 
-    void addNode(int n1, int n2){
-        neighbor[n1].push_back(n2);
-        neighbor_reverse[n2].push_back(n1);
-        inDegree[n2]++;
-        outDegree[n1]++;
+    void importRelation(string path){
+        _Edge *edge = new _Edge[30000000];
+        char line[256];
+        int u, v, tmp;
+        
+        FILE *fd = fopen(path.c_str(), "r");
+        while(NULL != fgets(line, 256, fd)){
+            vector<string> inStr;
+            boost::split(inStr, line, boost::is_any_of(" "));
+            u = stoi(inStr[0]);
+            v = stoi(inStr[1]);
+            edge[edgeNum].u = u;
+            edge[edgeNum].v = v;
+            edgeNum++;
+            inDegree[v]++;
+            outDegree[u]++;
+            if(type == "VIC")
+                edge[edgeNum].p = stod(inStr[2]);
+        }
+        fclose(fd);
+
+        neighbor = new int[edgeNum];
+        neighbor_reverse = new int[edgeNum];
+        probability = new double[edgeNum];
+        sort(edge, edge+edgeNum, [](const _Edge &a, const _Edge &b)-> bool {
+            if(a.u == b.u)
+                return a.v < b.v;
+            return a.u < b.u;
+        });
+        for(int i = 0;i < edgeNum;i++){
+            neighbor[i] = edge[i].v;
+            probability[i] = edge[i].p;
+        }
+
+        sort(edge, edge+edgeNum, [](const _Edge &a, const _Edge &b)-> bool {
+            if(a.v == b.v)
+                return a.u < b.u;
+            return a.v < b.v;
+        });
+        for(int i = 0;i < edgeNum;i++)
+            neighbor_reverse[i] = edge[i].u;
+        
+        delete [] edge;
     }
 
 public:
     int vertexNum, edgeNum;
-    vector<vector<int>> neighbor, neighbor_reverse;
-    vector<vector<double>> probability;
+    int *neighbor, *neighbor_reverse;
+    double *probability;
 
     vector<int> sorted_degree;
+    int *neighbor_ptr, *neighbor_reverse_ptr;
     int *inDegree, *outDegree;
     int *s_contri_order;
     double *threshold, *c_threshold, *s_contri;
@@ -49,7 +98,7 @@ public:
     bool is_s_contri;
 
     Network(){
-        neighbor.clear();
+        clearPointers();
         is_s_contri = false;
     }
 
@@ -59,11 +108,12 @@ public:
         this->path = path;
         this->type = type;
         this->vertexNum = vertexNum;
+        this->edgeNum = 0;
         is_s_contri = false;
-        neighbor.clear();
-        neighbor_reverse.clear();
         inDegree = new int[vertexNum];
         outDegree = new int[vertexNum];
+        neighbor_ptr = new int[vertexNum];
+        neighbor_reverse_ptr = new int[vertexNum];
         sorted_degree.clear();
 
         importRelation(path);
@@ -85,9 +135,16 @@ public:
         vertexNum = network.vertexNum;
         edgeNum = network.edgeNum;
         is_s_contri = network.is_s_contri;
-        neighbor = network.neighbor;
-        neighbor_reverse = network.neighbor_reverse;
-        probability = network.probability;
+        neighbor = new int[edgeNum];
+        neighbor_reverse = new int[edgeNum];
+        memcpy(neighbor, network.neighbor, edgeNum*sizeof(int));
+        memcpy(neighbor_reverse, network.neighbor_reverse, edgeNum*sizeof(int));
+        neighbor_ptr = new int[vertexNum];
+        neighbor_reverse_ptr = new int[vertexNum];
+        memcpy(neighbor_ptr, network.neighbor_ptr, vertexNum*sizeof(int));
+        memcpy(neighbor_reverse_ptr, network.neighbor_reverse_ptr, vertexNum*sizeof(int));
+        probability = new double[edgeNum];
+        memcpy(probability, network.probability, edgeNum*sizeof(double));
         sorted_degree = network.sorted_degree;
         IC_prob = network.IC_prob;
         s_contri_path = network.s_contri_path;
@@ -110,6 +167,11 @@ public:
     }
 
     ~Network(){
+        freeSpace(neighbor);
+        freeSpace(neighbor_reverse);
+        freeSpace(neighbor_ptr);
+        freeSpace(neighbor_reverse_ptr);
+        freeSpace(probability);
         freeSpace(inDegree);
         freeSpace(outDegree);
         freeSpace(s_contri);
@@ -118,31 +180,19 @@ public:
         freeSpace(c_threshold);
     }
 
-    void importRelation(string path){
-        for(int i = 0;i < vertexNum;i++){
-            neighbor.push_back(vector<int>());
-            neighbor_reverse.push_back(vector<int>());
-            probability.push_back(vector<double>());
-            inDegree[i] = 0;
-            outDegree[i] = 0;
-        }
-        char line[256];
-        int node1, node2;
-        double prob;
-        FILE *fd = fopen(path.c_str(), "r");
-        while(NULL != fgets(line, 256, fd)){
-            vector<string> inStr;
-            boost::split(inStr, line, boost::is_any_of(" "));
-            node1 = stoi(inStr[0]);
-            node2 = stoi(inStr[1]);
-            if(type == "VIC"){
-                prob = stod(inStr[2]);
-                probability[node1].push_back(prob);
-            }
-            addNode(node1, node2);
-            // cout << "add node: " << node1 << " - " << node2 << endl;
-        }
-        fclose(fd);
+    inline int getNeighbor(int i, int j) const {
+        if(i)   return neighbor[neighbor_ptr[i-1]+j];
+        return neighbor[j];
+    }
+
+    inline int getReverseNeighbor(int i, int j) const {
+        if(i)   return neighbor_reverse[neighbor_reverse_ptr[i-1]+j];
+        return neighbor_reverse[j];
+    }
+
+    inline double getProbability(int i, int j) const {
+        if(i)   return probability[neighbor_ptr[i-1]+j];
+        return probability[j];
     }
 
     void setICProb(double prob){
@@ -186,11 +236,12 @@ public:
     }
 
     void showData(){
-        int edgenum = 0;
-        for(int i = 0;i < vertexNum;i++)
-            for(int j = 0;j < neighbor[i].size();j++,edgenum++)
-                printf("%d %d\n", i, neighbor[i][j]);
-        printf("Edge number: %d\n", edgenum);
+        for(int i = 0;i < vertexNum;i++){
+            for(int j = 0;j < outDegree[i];j++){
+                printf("%d - %d\n", i, getNeighbor(i,j));
+            }
+        }
+        printf("Edge number: %d\n", edgeNum);
     }
 
     bool isSuccess(double prob, mt19937& rand) const {
@@ -199,29 +250,13 @@ public:
         return false;
     }
 
-    void changeToRelization(mt19937& rand){
-        vector<int> temp;
-        for(int i = 0;i < neighbor.size();i++){
-            for(int j = 0;j < neighbor[i].size();j++){
-                if(isSuccess(getProb(i,neighbor[i][j]), rand)){
-                    temp.push_back(neighbor[i][j]);
-                    neighbor[i].erase(neighbor[i].begin()+j);
-                    j--;
-                }
-            }
-            // for(int t: temp)
-            //     neighbor[i].erase(find(heighbor[i].begin(), neighbor[i].end(), t));
-        }
-        neighbor_reverse.clear();
-    }
-
     double getProb(int cseed, int cseede) const {
         if(type == "IC")
             return IC_prob;
         else if(type == "VIC"){
-            int index = [this, cseed, cseede]()->int{
-                for(int i = 0;i < neighbor[cseed].size();i++)
-                    if(neighbor[cseed][i] == cseede)
+            int index = [this, cseed, cseede]()-> int {
+                for(int i = 0;i < outDegree[cseed];i++)
+                    if(getNeighbor(cseed, i) == cseede)
                         return i;
                 return -1;
             }();
@@ -229,7 +264,7 @@ public:
                 cout << "error occurs in getProb" << endl;
                 exit(1);
             }
-            return probability[cseed][index];
+            return getProbability(cseed, index);
         }
         else if(type == "WC")
             return 1./inDegree[cseede];
