@@ -22,12 +22,11 @@ using namespace std;
 #define PARALLEL
 
 class SeedingProcessTime{
-    static void goDynamic(const Network &network, GreedyPolicyDynamic policy, int round, int budget, vector<double> &record, vector<double> &record_budget, double *result, int tid){
-        mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
+    static void goDynamic(const Network &network, GreedyPolicyDynamic policy, int round, int budget, vector<double> &record, vector<double> &record_budget, double *result, int rseed){
+        mt19937 rand(rseed);
         DiffusionState diffusionState(network, round, budget);
         double influence = 0.;
         for(int i = 0;i < round;i++){
-            // cout << "dynamic running " << tid+1 << endl;
             vector<int> seed_set;
             seed_set = policy.computeSeedSet(network, diffusionState, 0, rand);
             diffusionState.seed(seed_set);
@@ -38,12 +37,11 @@ class SeedingProcessTime{
         *result = influence;
     }
 
-    static void goUniform_d(const Network &network, GreedyPolicy_kd policy, int round, int d, int budget, vector<double> &record, vector<double> &record_budget, double *result, int tid){
-        mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
+    static void goUniform_d(const Network &network, GreedyPolicy_kd policy, int round, int d, int budget, vector<double> &record, vector<double> &record_budget, double *result, int rseed){
+        mt19937 rand(rseed);
         DiffusionState diffusionState(network, round, budget);
         double influence = 0.;
         for(int i = 0;i < round;i++){
-            // cout << "uniform_d running " << tid+1 << endl;
             vector<int> seed_set;
             if(i == round - 1 && diffusionState.budget_left > 0){
                 seed_set = policy.computeSeedSet(network, diffusionState, diffusionState.budget_left, rand);
@@ -60,12 +58,11 @@ class SeedingProcessTime{
         *result = influence;
     }
 
-    static void goStatic(const Network &network, GreedyPolicy_kd policy, int round, int budget, vector<double> &record, vector<double> &record_budget, double *result, int tid){
-        mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
+    static void goStatic(const Network &network, GreedyPolicy_kd policy, int round, int budget, vector<double> &record, vector<double> &record_budget, double *result, int rseed){
+        mt19937 rand(rseed);
         DiffusionState diffusionState(network, round, budget);
         double influence = 0.;
         for(int i = 0;i < round;i++){
-            // cout << "static running " << tid+1 << endl;
             vector<int> seed_set;
             if(i == 0){
                 seed_set = policy.computeSeedSet(network, diffusionState, budget, rand);
@@ -78,13 +75,12 @@ class SeedingProcessTime{
         *result = influence;
     }
 
-    static void goFull(const Network &network, GreedyPolicy_kd policy, int round, int budget, vector<double> &record, vector<double> &record_budget, double *result, int tid){
-        mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
+    static void goFull(const Network &network, GreedyPolicy_kd policy, int round, int budget, vector<double> &record, vector<double> &record_budget, double *result, int rseed){
+        mt19937 rand(rseed);
         DiffusionState diffusionState(network, round, budget);
         double influence = 0.;
         vector<int> seed_set;
         for(int i = 0;i < round;i++){
-            // cout << "full running " << tid+1 << endl;
             seed_set.clear();
             if(i == round-1 && diffusionState.budget_left > 0){
                 seed_set = policy.computeSeedSet(network, diffusionState, diffusionState.budget_left, rand);
@@ -111,6 +107,7 @@ public:
         }
         double result = 0.;
         double results[simutimes];
+        mt19937 rand_seed(chrono::high_resolution_clock::now().time_since_epoch().count());
         vector<vector<double>> records(simutimes, vector<double>(round, 0.));
         vector<vector<double>> records_budget(simutimes, vector<double>(round, 0.));
         #ifdef PARALLEL
@@ -119,16 +116,16 @@ public:
             printf("Simulation number %d\n", i+1);
             switch(type[0]){
             case 'd':
-                boost::asio::post(pool, boost::bind(goDynamic, network, GreedyPolicyDynamic(), round, budget, ref(records[i]), ref(records_budget[i]), results+i, i));
+                boost::asio::post(pool, boost::bind(goDynamic, network, GreedyPolicyDynamic(), round, budget, ref(records[i]), ref(records_budget[i]), results+i, rand_seed()));
                 break;
             case 's':
-                boost::asio::post(pool, boost::bind(goStatic, network, GreedyPolicy_kd(), round, budget, ref(records[i]), ref(records_budget[i]), results+i, i));
+                boost::asio::post(pool, boost::bind(goStatic, network, GreedyPolicy_kd(), round, budget, ref(records[i]), ref(records_budget[i]), results+i, rand_seed()));
                 break;
             case 'u':
-                boost::asio::post(pool, boost::bind(goUniform_d, network, GreedyPolicy_kd(), round, d, budget, ref(records[i]), ref(records_budget[i]), results+i, i));
+                boost::asio::post(pool, boost::bind(goUniform_d, network, GreedyPolicy_kd(), round, d, budget, ref(records[i]), ref(records_budget[i]), results+i, rand_seed()));
                 break;
             case 'f':
-                boost::asio::post(pool, boost::bind(goFull, network, GreedyPolicy_kd(), round, budget, ref(records[i]), ref(records_budget[i]), results+i, i));
+                boost::asio::post(pool, boost::bind(goFull, network, GreedyPolicy_kd(), round, budget, ref(records[i]), ref(records_budget[i]), results+i, rand_seed()));
                 break;
             default:
                 printf("Invalid model\n");
@@ -140,16 +137,16 @@ public:
             printf("Simulation number %d\n", i+1);
             switch(type[0]){
             case 'd':
-                goDynamic(network, GreedyPolicyDynamic(), round, budget, records[i], records_budget[i], results+i, i);
+                goDynamic(network, GreedyPolicyDynamic(), round, budget, records[i], records_budget[i], results+i, rand_seed());
                 break;
             case 's':
-                goStatic(network, GreedyPolicy_kd(), round, budget, records[i], records_budget[i], results+i, i);
+                goStatic(network, GreedyPolicy_kd(), round, budget, records[i], records_budget[i], results+i, rand_seed());
                 break;
             case 'u':
-                goUniform_d(network, GreedyPolicy_kd(), round, d, budget, records[i], records_budget[i], results+i, i);
+                goUniform_d(network, GreedyPolicy_kd(), round, d, budget, records[i], records_budget[i], results+i, rand_seed());
                 break;
             case 'f':
-                goFull(network, GreedyPolicy_kd(), round, budget, records[i], records_budget[i], results+i, i);
+                goFull(network, GreedyPolicy_kd(), round, budget, records[i], records_budget[i], results+i, rand_seed());
                 break;
             default:
                 printf("Invalid model\n");

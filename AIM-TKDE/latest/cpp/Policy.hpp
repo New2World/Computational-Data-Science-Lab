@@ -60,7 +60,7 @@ int reSpreadOneRound(const Network & network, vector<int> &new_active, bool *sta
 
 int reSpreadOnce(const Network & network, int cindex, vector<int> &rrset, DiffusionState& diffusionState, mt19937& rand){
     bool state[diffusionState.vnum];
-    memcpy(state, diffusionState.state, diffusionState.vnum);
+    memcpy(state, diffusionState.state, sizeof(state));
     vector<int> new_active;
 
     state[cindex] = true;
@@ -102,12 +102,8 @@ double getrrsets(const Network & network, vector<vector<int>> &rrsets, double si
     vector<int> rrset;
     for(int i = 0;i < size;i++){
         rrset.clear();
-        if(getrrset(network, rrset, diffusionState, rand) == 0){
+        if(getrrset(network, rrset, diffusionState, rand) == 0)
             rrsets[i] = rrset;
-            // cout << "rrset size: " << rrset.size() << endl;
-        }
-        // if(i % 5000 == 0)
-        //     cout << i << " < " << size << endl;
     }
     return t_set;
 }
@@ -174,7 +170,6 @@ double reverseGreedyLazy_k(const Network & network, DiffusionState& diffusionSta
                 }
             }
             t_bound = mymap.update(c_seed, c_seed_cover.size());
-            // cout << "t_bound: " << t_bound << " - c_bound: " << c_bound << endl;
             if(t_bound == 0){
                 result.push_back(c_seed);
                 sign = true;
@@ -202,7 +197,7 @@ double reverseGreedyLazy_k(const Network & network, DiffusionState& diffusionSta
 double reverseGreedyLazyTime_k(const Network & network, DiffusionState& diffusionState, vector<int> &result, int k, mt19937& rand){
     int index;
     double profit = 0.;
-    vector<vector<int>> rrsets;
+    vector<vector<int>> rrsets(Policy::rrsets_size);
     getrrsets(network, rrsets, Policy::rrsets_size, diffusionState, rand);
     map<int, vector<int>> nodes_cover_sets;
     bool nodes_cover_sets_key[network.vertexNum];
@@ -210,13 +205,11 @@ double reverseGreedyLazyTime_k(const Network & network, DiffusionState& diffusio
     for(int i = 0;i < rrsets.size();i++){
         for(int j = 0;j < rrsets[i].size();j++){
             index = rrsets[i][j];
-            if(nodes_cover_sets_key[index])
-                nodes_cover_sets[index].push_back(i);
-            else{
+            if(!nodes_cover_sets_key[index]){
                 nodes_cover_sets[index] = vector<int>();
-                nodes_cover_sets[index].push_back(i);
                 nodes_cover_sets_key[index] = true;
             }
+            nodes_cover_sets[index].push_back(i);
         }
         coverred_rrsets[i] = false;
     }
@@ -229,12 +222,15 @@ double reverseGreedyLazyTime_k(const Network & network, DiffusionState& diffusio
     sortedMap mymap;
     for(pair<int,int> p: sortPair)
         mymap.push_back(p.first, p.second);
+    int c_bound, t_bound, c_seed;
+    bool sign;
+    vector<int> c_seed_cover;
     for(int i = 0;i < k;i++){
-        bool sign = false;
-        int c_bound = mymap.size();
+        sign = false;
+        c_bound = mymap.size();
         while(c_bound > 0){
-            int c_seed = mymap.get(0), t_bound;
-            vector<int> c_seed_cover = nodes_cover_sets[c_seed];
+            c_seed = mymap.get(0);
+            c_seed_cover = nodes_cover_sets[c_seed];
             for(int j = 0;j < c_seed_cover.size();j++){
                 if(coverred_rrsets[c_seed_cover[j]]){
                     c_seed_cover.erase(c_seed_cover.begin()+j);
@@ -356,8 +352,9 @@ public:
         }
 
         double profit = -__DBL_MAX__, temp;
+        vector<int> temp_result;
         for(int k = 1;k < diffusionState.budget_left;k++){
-            vector<int> temp_result;
+            temp_result.clear();
             temp = select_k(network, diffusionState, temp_result, k, rand);
             if(temp > profit){
                 profit = temp;
