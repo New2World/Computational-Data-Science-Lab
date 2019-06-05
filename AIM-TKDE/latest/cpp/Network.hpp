@@ -79,6 +79,13 @@ class Network{
         });
         for(int i = 0;i < edgeNum;i++)
             neighbor_reverse[i] = edge[i].u;
+
+        memcpy(neighbor_ptr, outDegree, vertexNum*sizeof(int));
+        memcpy(neighbor_reverse_ptr, inDegree, vertexNum*sizeof(int));
+        for(int i = 1;i < vertexNum;i++){
+            neighbor_ptr[i] += neighbor_ptr[i-1];
+            neighbor_reverse_ptr[i] += neighbor_reverse_ptr[i-1];
+        }
         
         delete [] edge;
     }
