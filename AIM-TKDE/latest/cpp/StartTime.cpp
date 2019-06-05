@@ -24,8 +24,11 @@ void printVector(vector<T> vec){
 }
 
 void printTime(chrono::high_resolution_clock::time_point start, chrono::high_resolution_clock::time_point end){
-    auto duration = chrono::duration_cast<chrono::seconds>(end-start).count();
-    cout << "time elapsed in seconds: " << duration << endl;
+    auto duration = end-start;
+    auto hour = chrono::duration_cast<chrono::hours>(duration).count();
+    auto min = chrono::duration_cast<chrono::minutes>(duration).count();
+    auto sec = chrono::duration_cast<chrono::seconds>(duration).count();
+    cout << "time elapsed: " << hour << " hours " << min << " minutes " << sec << " seconds" << endl;
 }
 
 void run(int simutimes, int k, int vnum, Network network){
