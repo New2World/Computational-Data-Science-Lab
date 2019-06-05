@@ -113,7 +113,7 @@ public:
         #ifdef PARALLEL
         boost::asio::thread_pool pool(10);
         for(int i = 0;i < simutimes;i++){
-            printf("Simulation number %d\n", i+1);
+            // printf("Simulation number %d\n", i+1);
             switch(type[0]){
             case 'd':
                 boost::asio::post(pool, boost::bind(goDynamic, network, GreedyPolicyDynamic(), round, budget, ref(records[i]), ref(records_budget[i]), results+i, rand_seed()));
@@ -134,7 +134,7 @@ public:
         pool.join();
         #else
         for(int i = 0;i < simutimes;i++){
-            printf("Simulation number %d\n", i+1);
+            // printf("Simulation number %d\n", i+1);
             switch(type[0]){
             case 'd':
                 goDynamic(network, GreedyPolicyDynamic(), round, budget, records[i], records_budget[i], results+i, rand_seed());
