@@ -4,6 +4,8 @@ Adaptive influence maximization (AIM) is a method to select seed set after obser
 
 ## Run
 
+### Java
+
 ```bash
 $ javac *.java
 $ java adaptive/Start_time <dataset> <type> <vnum> <simutimes> <round> <simurest_times> <k>
@@ -13,6 +15,19 @@ _example_
 
 ```bash
 $ java adaptive/Start_time wiki WC 8300 100 5 100 20
+```
+
+### C++
+
+```bash
+$ make clean && make
+$ ./start.out <dataset> <type> <vnum> <simutimes> <round> <simurest_times> <k>
+```
+
+_example_
+
+```bash
+$ ./start.out wiki WC 8300 500 5 100 20
 ```
 
 ---
