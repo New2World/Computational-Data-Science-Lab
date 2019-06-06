@@ -26,7 +26,7 @@ void printTime(chrono::high_resolution_clock::time_point start, chrono::high_res
     auto hour = chrono::duration_cast<chrono::hours>(duration).count();
     auto min = chrono::duration_cast<chrono::minutes>(duration).count();
     auto sec = chrono::duration_cast<chrono::seconds>(duration).count();
-    cout << "time elapsed: " << hour << " hours " << min << " minutes " << sec << " seconds" << endl;
+    cout << "time elapsed: " << hour << " hours " << min%60 << " minutes " << sec%60 << " seconds" << endl;
 }
 
 void run(int simutimes, int k, int vnum, Network network){
