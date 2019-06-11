@@ -29,7 +29,7 @@ void printTime(chrono::high_resolution_clock::time_point start, chrono::high_res
     cout << "time elapsed: " << hour << " hours " << min%60 << " minutes " << sec%60 << " seconds" << endl;
 }
 
-void run(int simutimes, int k, int vnum, Network network){
+void run(int simutimes, int k, int vnum, Network network, int thread){
     // start timer
     auto launch = chrono::high_resolution_clock::now();
 
@@ -47,7 +47,7 @@ void run(int simutimes, int k, int vnum, Network network){
     record = vector<double>(SeedingProcessTime::round, 0.);
     record_budget = vector<double>(SeedingProcessTime::round, 0.);
     auto start = chrono::high_resolution_clock::now();
-    SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "dynamic", -1);
+    SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "dynamic", -1, thread);
     auto end = chrono::high_resolution_clock::now();
     printTime(start, end);
     printVector(record);
@@ -59,7 +59,7 @@ void run(int simutimes, int k, int vnum, Network network){
     record = vector<double>(SeedingProcessTime::round, 0.);
     record_budget = vector<double>(SeedingProcessTime::round, 0.);
     start = chrono::high_resolution_clock::now();
-    SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "static", -1);
+    SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "static", -1, thread);
     end = chrono::high_resolution_clock::now();
     printTime(start, end);
     printVector(record);
@@ -71,7 +71,7 @@ void run(int simutimes, int k, int vnum, Network network){
     record = vector<double>(SeedingProcessTime::round, 0.);
     record_budget = vector<double>(SeedingProcessTime::round, 0.);
     start = chrono::high_resolution_clock::now();
-    SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "uniform", 1);
+    SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "uniform", 1, thread);
     end = chrono::high_resolution_clock::now();
     printTime(start, end);
     printVector(record);
@@ -83,7 +83,7 @@ void run(int simutimes, int k, int vnum, Network network){
     record = vector<double>(SeedingProcessTime::round, 0.);
     record_budget = vector<double>(SeedingProcessTime::round, 0.);
     start = chrono::high_resolution_clock::now();
-    SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "uniform", 2);
+    SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "uniform", 2, thread);
     end = chrono::high_resolution_clock::now();
     printTime(start, end);
     printVector(record);
@@ -95,7 +95,7 @@ void run(int simutimes, int k, int vnum, Network network){
     record = vector<double>(SeedingProcessTime::round, 0.);
     record_budget = vector<double>(SeedingProcessTime::round, 0.);
     start = chrono::high_resolution_clock::now();
-    SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "full", -1);
+    SeedingProcessTime::MultiGo(network, simutimes, k, record, record_budget, "full", -1, thread);
     end = chrono::high_resolution_clock::now();
     printTime(start, end);
     printVector(record);
@@ -120,10 +120,11 @@ int main(int args, char **argv){
     SeedingProcessTime::round = atoi(argv[5]);
     Policy::simurest_times = atoi(argv[6]);
     int k = atoi(argv[7]);
+    int thread = atoi(argv[8]);
 
     string path("../data/"+name+".txt");
     Network network(path, type, vnum);
     network.setICProb(.1);
 
-    run(simutimes, k, vnum, network);
+    run(simutimes, k, vnum, network, thread);
 }

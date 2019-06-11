@@ -99,7 +99,7 @@ class SeedingProcessTime{
 public:
     static int round;
 
-    static void MultiGo(const Network &network, int simutimes, int budget, vector<double> &record, vector<double> &record_budget, const string type, int d){
+    static void MultiGo(const Network &network, int simutimes, int budget, vector<double> &record, vector<double> &record_budget, const string type, int d, int threads){
         printf("Multi Go\n");
         if(round == -1){
             cout << "round == -1" << endl;
@@ -111,7 +111,7 @@ public:
         vector<vector<double>> records(simutimes, vector<double>(round, 0.));
         vector<vector<double>> records_budget(simutimes, vector<double>(round, 0.));
         #ifdef PARALLEL
-        boost::asio::thread_pool pool(10);
+        boost::asio::thread_pool pool(threads);
         for(int i = 0;i < simutimes;i++){
             // printf("Simulation number %d\n", i+1);
             switch(type[0]){
