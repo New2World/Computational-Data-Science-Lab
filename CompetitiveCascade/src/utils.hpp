@@ -15,15 +15,20 @@
 
 #include <boost/math/special_functions/binomial.hpp>
 
+#include <boost/thread.hpp>
+#include <boost/bind/bind.hpp>
+#include <boost/asio/post.hpp>
+#include <boost/asio/thread_pool.hpp>
+
 #include "rtuple.hpp"
 #include "network.hpp"
 #include "diffusionstate.hpp"
 #include "sortmap.hpp"
 #include "tools.hpp"
 
-double computeG(DiffusionState_MIC &diffusionState, std::set<int> &S, std::vector<rTuple> &rtup, int n, std::string type, mt19937 &rand){
+double computeG(DiffusionState_MIC &diffusionState, std::set<int> &S, std::vector<rTuple> &rtup, int n, std::string type, double *result, mt19937 &rand){
     int count = 0;
-    for(rTuple rt: rtup){
+    for(rTuple &rt: rtup){
         switch(type[0]){
         case 'u':
             if(intersection(S, rt.upper)) count++;
@@ -38,7 +43,8 @@ double computeG(DiffusionState_MIC &diffusionState, std::set<int> &S, std::vecto
             std::cout << "invalid type" << std::endl;
         }
     }
-    return (double)n*count/rtup.size();
+    *result = (double)n*count/rtup.size();
+    return *result;
 }
 
 std::set<int> HighDegree_computeSeedSet(Network &network, DiffusionState_MIC &diffusionState, int k){
@@ -89,26 +95,39 @@ std::set<int> NaiveGreedy_computeSeedSet(const Network &network, DiffusionState_
 
 double Sandwich_greedyMid(const Network &network, DiffusionState_MIC &diffusionState, std::vector<rTuple> &rtup, std::set<int> &solution, int k, mt19937 &rand){
     std::set<int> candidate;
-    for(rTuple rt: rtup)
+    for(rTuple &rt: rtup)
         for(int v: rt.upper)
             if(candidate.find(v) == candidate.end())
                 candidate.insert(v);
-    int cmaxindex, node;
-    double cmaxvalue, tempvalue;
+    int cmaxindex, node, tid;
+    double cmaxvalue, tempvalue[candidate.size()];
     for(int i = 0;i < k;i++){
         cmaxindex = -1;
         cmaxvalue = -1.;
+        tid = 0;
+        boost::asio::thread_pool pool(10);
         for(int node: candidate){
             solution.insert(node);
-            tempvalue = computeG(diffusionState, solution, rtup, network.vertexNum, "mid", rand);
-            if(tempvalue > cmaxvalue){
-                cmaxindex = node;
-                cmaxvalue = tempvalue;
-            }
+            boost::asio::post(pool, boost::bind(computeG, ref(diffusionState), solution, ref(rtup), network.vertexNum, "mid", tempvalue+tid, ref(rand)));
+            // computeG(diffusionState, solution, rtup, network.vertexNum, "mid", tempvalue+tid, rand);
+            tid++;
+            // if(tempvalue > cmaxvalue){
+            //     cmaxindex = node;
+            //     cmaxvalue = tempvalue;
+            // }
             solution.erase(node);
+        }
+        pool.join();
+        std::set<int>::iterator it = candidate.begin();
+        for(int i = 0;i < candidate.size();i++, it++){
+            if(cmaxvalue < tempvalue[i]){
+                cmaxvalue = tempvalue[i];
+                cmaxindex = *it;
+            }
         }
         solution.insert(cmaxindex);
         candidate.erase(cmaxindex);
+        std::cout << "k = " << i+1 << std::endl;
     }
     return 0.;
 }
@@ -126,7 +145,7 @@ std::set<int> ReverseGreedy_computeSeedSet(const Network &network, DiffusionStat
 
 double Sandwich_greedy(std::vector<rTuple> &rtup, std::set<int> &solution, int k, std::string type){
     std::vector<std::set<int>> rrsets;
-    for(rTuple rt: rtup){
+    for(rTuple &rt: rtup){
         switch(type[0]){
         case 'u':
             rrsets.push_back(rt.upper);
@@ -160,6 +179,7 @@ double Sandwich_greedy(std::vector<rTuple> &rtup, std::set<int> &solution, int k
     sortedMap mymap;
     for(std::pair<int,int> p: sortPair)
         mymap.push_back(p.first, p.second);
+
     int c_bound, t_bound, c_seed;
     bool sign;
     std::set<int> c_seed_cover;
@@ -169,10 +189,19 @@ double Sandwich_greedy(std::vector<rTuple> &rtup, std::set<int> &solution, int k
         while(c_bound > 0){
             c_seed = mymap.get(0);
             c_seed_cover = nodes_cover_sets[c_seed];
-            for(int j: c_seed_cover){
-                if(coverred_rrsets[j])
-                    c_seed_cover.erase(j);
+            for(auto j = c_seed_cover.begin();j != c_seed_cover.end();){
+                std::set<int>::iterator temp_j = ++j;
+                j--;
+                if(coverred_rrsets[*j]){
+                    c_seed_cover.erase(*j);
+                    j = temp_j;
+                } else  j++;
             }
+            // std::cout << "greedy" << std::endl;
+            // for(int j: c_seed_cover){
+            //     if(coverred_rrsets[j])
+            //         c_seed_cover.erase(j);
+            // }
             t_bound = mymap.update(c_seed, c_seed_cover.size());
             if(t_bound == 0){
                 solution.insert(c_seed);
@@ -212,7 +241,7 @@ double Sandwich_computeLowerBound(const Network &network, DiffusionState_MIC &di
             diffusionState.getRTuples(network, rtup, (int)(l-rtup.size()), rand);
         S.clear();
         Sandwich_greedy(rtup, S, k, "lower");
-        g_lower = computeG(diffusionState, S, rtup, n, "lower", rand);
+        g_lower = computeG(diffusionState, S, rtup, n, "lower", &g_lower, rand);
         if(g_lower >= (1+eps0)*x)   return g_lower;
     }
     std::cout << "compute lower bound may wrong, opt too small" << std::endl;
@@ -238,10 +267,10 @@ int Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diffusio
     std::cout << "working on lower solution..." << std::endl;
     Sandwich_greedy(rtup, lower_solution, k, "lower");
     std::cout << "calculating upper G... " << std::endl;
-    double upper_g = computeG(diffusionState, upper_solution, rtup, network.vertexNum, "mid", rand);
+    double upper_g = computeG(diffusionState, upper_solution, rtup, network.vertexNum, "mid", &upper_g, rand);
     std::cout << "  upper G = " << upper_g << std::endl;
     std::cout << "calculating lower G... " << std::endl;
-    double lower_g = computeG(diffusionState, lower_solution, rtup, network.vertexNum, "mid", rand);
+    double lower_g = computeG(diffusionState, lower_solution, rtup, network.vertexNum, "mid", &lower_g, rand);
     std::cout << "  lower G = " << lower_g << std::endl;
     if(upper_g > lower_g)
         for(int upper_v: upper_solution)

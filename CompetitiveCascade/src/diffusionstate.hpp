@@ -45,8 +45,7 @@ class DiffusionState_MIC{
     }
 
     void diffuseOneRound(const Network &network, int *state, std::set<int> &new_active, mt19937 &rand){
-        int cseede, temp_state[vnum];
-        memcpy(temp_state, state, vnum*sizeof(int));
+        int cseede;
         std::set<int> new_active_temp;
         double prob, rd;
         for(int cseed: new_active){
@@ -54,7 +53,7 @@ class DiffusionState_MIC{
                 cseede = network.getNeighbor(cseed, i);
                 prob = network.getProb(cseed, cseede);
                 rd = (double)rand()/rand.max();
-                if(rd < prob && temp_state[cseede] == -1){
+                if(rd < prob && seed_state[cseede] == -1){
                     state[cseede] = priority(state[cseede], state[cseed], cseede);
                     if(new_active_temp.find(cseede) == new_active_temp.end())
                         new_active_temp.insert(cseede);
@@ -72,7 +71,7 @@ class DiffusionState_MIC{
         std::set<int> new_active_temp;
         for(int cseed: new_active){
             for(int cseede: rtup.relations[cseed]){
-                if(state[cseede] == -1){
+                if(temp_state[cseede] == -1){
                     state[cseede] = priority(state[cseede], state[cseed], cseede, 1);
                     if(new_active_temp.find(cseede) == new_active_temp.end())
                         new_active_temp.insert(cseede);
@@ -124,7 +123,7 @@ class DiffusionState_MIC{
 
     int reSpreadOnce(const Network &network, int cindex, rTuple &rtup, mt19937 &rand){
         int state[vnum];
-        memcpy(state, seed_state, sizeof(state));
+        memcpy(state, seed_state, vnum*sizeof(int));
         std::set<int> new_active;
         state[cindex] = -2;
         rtup.upper.insert(cindex);
@@ -132,13 +131,12 @@ class DiffusionState_MIC{
         new_active.insert(cindex);
         while(!new_active.empty())
             reSpreadOneRound(network, new_active, state, rtup, rand);
-        // printContainer(rtup.upper);
         return 0;
     }
 
     double getRTuple(const Network &network, rTuple &rtup, mt19937 &rand){
-        int cindex = rand()*vnum/rand.max()-1;
-        cindex = cindex<0?0:cindex;
+        int cindex = rand()%vnum;
+        rtup.clear();
         rtup.node_v = cindex;
         rtup.relations[cindex] = std::set<int>();
         if(seed_state[cindex] != -1){
@@ -236,8 +234,8 @@ public:
 
     double getRTuples(const Network &network, std::vector<rTuple> &rtup, double size, mt19937 &rand){
         int countdiff = 0;
+        rTuple rt;
         for(int i = 0;i < size;i++){
-            rTuple rt;
             getRTuple(network, rt, rand);
             rtup.push_back(rt);
             if(rt.isdiff)   countdiff++;
@@ -252,26 +250,17 @@ public:
         for(int i = 0;i < times;i++){
             memset(c_result, 0, sizeof(c_result));
             diffuse(network, c_result, vnum, rand);
-            // std::cout << c_result[cindex] << std::endl;
             for(int j = 0;j < cnum;j++)
                 result[j] += c_result[j];
         }
-        // for(int i = 0;i < cnum;i++)
-        //     result[i] /= times;
         return result[cindex]/times;
     }
 
     bool computeG(const std::set<int> &seed, rTuple &rtup){
         std::set<int> new_active;
         int state[vnum];
-        for(int i = 0;i < vnum;i++) state[i] = -1;
-        for(int i: rtup.upper){
-            state[i] = seed_state[i];
-            if(seed_state[i] > -1){
-                std::cout << "upper insert" << std::endl;
-                new_active.insert(i);
-            }
-        }
+        memset(state, -1, vnum*sizeof(int));
+        // for(int i = 0;i < vnum;i++) state[i] = -1;
         for(int i: rtup.seed){
             state[i] = seed_state[i];
             if(seed_state[i] > -1)
@@ -290,10 +279,11 @@ public:
         }
         for(int i = 0;i < 2*rtup.relations.size();i++){
             if(new_active.find(rtup.node_v) != new_active.end()){
-                if(state[rtup.node_v] == cnum) return true;
-                else    return false;
-            } else
-                if(new_active.empty())  return false;
+                if(state[rtup.node_v] == cnum)
+                    return true;
+                return false;
+            } else if(new_active.empty())
+                return false;
             diffuseOneRound(new_active, state, rtup);
         }
         std::cout << "ERROR: unusual exit from DiffusionState_MIC.computeG" << std::endl;

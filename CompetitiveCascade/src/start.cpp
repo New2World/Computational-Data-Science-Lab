@@ -19,14 +19,13 @@ void testInfluence(DiffusionState_MIC &diffusionState, const Network &network, c
     int cindex;
     set<int> seedset;
     set<int>::iterator iter;
-    for(int i = 0;i < 1;i++){
+    for(int i = 0;i < 10;i++){
         iter = solution.begin();
         for(int j = 0;j < i*5;j++, iter++);
         for(int j = 0;j < 5;j++, iter++)
             seedset.insert(*iter);
         cindex = diffusionState.seed(seedset);
-        cout << "seed set size:    " << seedset.size() << endl;
-        cout << "expect influence: " << diffusionState.expInfluenceComplete(network, 100, cindex, rand) << endl;
+        cout << seedset.size() << " " << diffusionState.expInfluenceComplete(network, 1000, cindex, rand) << endl;
         diffusionState.removeSeed(cindex);
     }
 }
@@ -41,16 +40,16 @@ void test(const Network &network, DiffusionState_MIC &diffu, mt19937 &rand){
         diffu.seed(seed);
     }
     vector<rTuple> rtup;
-    diffu.getRTuples(network, rtup, 1000000, rand);
+    cout << "count diff: " << diffu.getRTuples(network, rtup, 1000000, rand) << endl;
 
     for(int i = 4000;i < 4100;i++)
         seedset.insert(i);
     int cindex = diffu.seed(seedset);
     cout << diffu.expInfluenceComplete(network, 30000, cindex, rand) << endl;
     diffu.removeSeed(cindex);
-    cout << computeG(diffu, seedset, rtup, network.vertexNum, "upper", rand) << endl;
-    cout << computeG(diffu, seedset, rtup, network.vertexNum, "mid", rand) << endl;
-    cout << computeG(diffu, seedset, rtup, network.vertexNum, "lower", rand) << endl;
+    // cout << computeG(diffu, seedset, rtup, network.vertexNum, "upper", rand) << endl;
+    // cout << computeG(diffu, seedset, rtup, network.vertexNum, "mid", rand) << endl;
+    // cout << computeG(diffu, seedset, rtup, network.vertexNum, "lower", rand) << endl;
 }
 
 int main(int args, char **argv){
@@ -67,28 +66,28 @@ int main(int args, char **argv){
 
     DiffusionState_MIC diffusionState(network);
 
-    test(network, diffusionState, rand);
-    // for(int j = 0;j < 4;j++){
-    //     set<int> seed;
-    //     for(int i = j*tenpercent;i < j*tenpercent+tenpercent;i++)
-    //         seed.insert(i);
-    //     diffusionState.seed(seed);
-    // }
-    // set<int> sandwich;
-    // int l = Sandwich_computeSeedSet(network, diffusionState, k, eps, N, sandwich, rand);
+    // test(network, diffusionState, rand);
+    for(int j = 0;j < 4;j++){
+        set<int> seed;
+        for(int i = j*tenpercent;i < j*tenpercent+tenpercent;i++)
+            seed.insert(i);
+        diffusionState.seed(seed);
+    }
+    set<int> sandwich;
+    int l = Sandwich_computeSeedSet(network, diffusionState, k, eps, N, sandwich, rand);
 
     // set<int> naivegreedy = NaiveGreedy_computeSeedSet(network, diffusionState, k, eps, N, 1, rand);
 
-    // set<int> reversegreedy = ReverseGreedy_computeSeedSet(network, diffusionState, k, 100, rand);
+    set<int> reversegreedy = ReverseGreedy_computeSeedSet(network, diffusionState, k, 10000, rand);
 
-    // set<int> highdegree = HighDegree_computeSeedSet(network, diffusionState, k);
+    set<int> highdegree = HighDegree_computeSeedSet(network, diffusionState, k);
 
-    // cout << "---------- Testing Sandwich ----------" << endl;
-    // testInfluence(diffusionState, network, sandwich, rand);
+    cout << "---------- Testing Sandwich ----------" << endl;
+    testInfluence(diffusionState, network, sandwich, rand);
 
-    // cout << endl << "---------- Testing Sandwich ----------" << endl;
-    // testInfluence(diffusionState, network, reversegreedy, rand);
+    cout << endl << "---------- Testing Reverse ----------" << endl;
+    testInfluence(diffusionState, network, reversegreedy, rand);
 
-    // cout << endl << "---------- Testing Sandwich ----------" << endl;
-    // testInfluence(diffusionState, network, highdegree, rand);
+    cout << endl << "---------- Testing High Degree ----------" << endl;
+    testInfluence(diffusionState, network, highdegree, rand);
 }

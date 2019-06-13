@@ -15,7 +15,18 @@ public:
     bool isdiff;
     std::set<int> upper, lower, seed;
     std::map<int,std::set<int>> relations;
-    rTuple(){
+    rTuple(){clear();}
+    rTuple(const rTuple &rt){
+        node_v = rt.node_v;
+        isdiff = rt.isdiff;
+        upper = rt.upper;
+        lower = rt.lower;
+        relations = rt.relations;
+    }
+    rTuple &operator = (const rTuple &)=delete;
+
+    void clear(){
+        node_v = -1;
         upper.clear();
         lower.clear();
         seed.clear();

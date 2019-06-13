@@ -1,9 +1,9 @@
 _MAIN_=start.cpp
-PARALLEL_LAGS=-lboost_thread -lboost_system -lpthread
+PARALLELFLAGS=-lboost_thread -lboost_system -lpthread
 CXXFLAGS=-std=c++11 -O3
 
 start.out: $(_MAIN_)
-	$(CXX) -o $@ $^ $(CXXFLAGS)
+	$(CXX) -o $@ $^ $(PARALLELFLAGS) $(CXXFLAGS)
 
 all: start.out
 
