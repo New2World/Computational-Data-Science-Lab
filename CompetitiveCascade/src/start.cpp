@@ -52,6 +52,14 @@ void test(const Network &network, DiffusionState_MIC &diffu, mt19937 &rand){
     // cout << computeG(diffu, seedset, rtup, network.vertexNum, "lower", rand) << endl;
 }
 
+void printTime(chrono::high_resolution_clock::time_point start, chrono::high_resolution_clock::time_point end){
+    auto duration = end-start;
+    auto hour = chrono::duration_cast<chrono::hours>(duration).count();
+    auto min = chrono::duration_cast<chrono::minutes>(duration).count();
+    auto sec = chrono::duration_cast<chrono::seconds>(duration).count();
+    cout << "time elapsed: " << hour << " hours " << min%60 << " minutes " << sec%60 << " seconds" << endl;
+}
+
 int main(int args, char **argv){
     string name = string(argv[1]);
     string type = string(argv[2]);
@@ -63,6 +71,7 @@ int main(int args, char **argv){
     double eps = .3, N = 10000.;
     int tenpercent = (int)(vnum * .1);
     mt19937 rand(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+    auto start = std::chrono::high_resolution_clock::now();
 
     DiffusionState_MIC diffusionState(network);
 
@@ -78,7 +87,7 @@ int main(int args, char **argv){
 
     // set<int> naivegreedy = NaiveGreedy_computeSeedSet(network, diffusionState, k, eps, N, 1, rand);
 
-    set<int> reversegreedy = ReverseGreedy_computeSeedSet(network, diffusionState, k, 10000, rand);
+    set<int> reversegreedy = ReverseGreedy_computeSeedSet(network, diffusionState, k, l, rand);
 
     set<int> highdegree = HighDegree_computeSeedSet(network, diffusionState, k);
 
@@ -90,4 +99,8 @@ int main(int args, char **argv){
 
     cout << endl << "---------- Testing High Degree ----------" << endl;
     testInfluence(diffusionState, network, highdegree, rand);
+
+    auto end = std::chrono::high_resolution_clock::now();
+
+    printTime(start, end);
 }
