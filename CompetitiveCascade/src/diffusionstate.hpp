@@ -256,7 +256,7 @@ public:
         return result[cindex]/times;
     }
 
-    bool computeG(const std::set<int> &seed, rTuple &rtup){
+    bool computeMid_g(const std::set<int> &seed, rTuple &rtup){
         std::set<int> new_active;
         int state[vnum];
         memset(state, -1, vnum*sizeof(int));
@@ -270,7 +270,6 @@ public:
                 exit(1);
             }
         }
-        int index = cnum;
         for(int i: seed){
             if(rtup.upper.find(i) != rtup.upper.end()){
                 state[i] = cnum;
@@ -286,7 +285,34 @@ public:
                 return false;
             diffuseOneRound(new_active, state, rtup);
         }
-        std::cout << "ERROR: unusual exit from DiffusionState_MIC.computeG" << std::endl;
+        std::cout << "ERROR: unusual exit from DiffusionState_MIC.compute_g" << std::endl;
         exit(1);
+    }
+
+    bool compute_g(const std::set<int> &seed, rTuple &rtup, std::string type){
+        switch(type[0]){
+        case 'u':
+            if(intersection(seed, rtup.upper)) return 1;
+            return -1;
+        case 'm':
+            if(intersection(seed, rtup.lower)) return 2;
+            if(intersection(seed, rtup.upper)){
+                if(computeMid_g(seed, rtup))   return 1;
+                return -1;
+            }
+            return -2;
+        case 'l':
+            if(intersection(seed, rtup.lower))  return 2;
+            return -2;
+        }
+    }
+
+    double computeG(std::set<int> &S, std::vector<rTuple> &rtup, int n, std::string type, double *result, mt19937 &rand){
+        int count = 0;
+        for(rTuple &rt: rtup)
+            if(compute_g(S, rt, type) > 0)
+                count++;
+        *result = (double)n*count/rtup.size();
+        return *result;
     }
 };
