@@ -12,6 +12,7 @@
 #include "network.hpp"
 #include "diffusionstate.hpp"
 #include "utils.hpp"
+#include "tools.hpp"
 
 using namespace std;
 
@@ -30,27 +31,27 @@ void testInfluence(DiffusionState_MIC &diffusionState, const Network &network, c
     }
 }
 
-void test(const Network &network, DiffusionState_MIC &diffu, mt19937 &rand){
-    set<int> seedset;
-    int tenpercent = 830;
-    for(int j = 0;j < 4;j++){
-        set<int> seed;
-        for(int i = j*tenpercent;i < j*tenpercent+tenpercent;i++)
-            seed.insert(i);
-        diffu.seed(seed);
-    }
-    vector<rTuple> rtup;
-    cout << "count diff: " << diffu.getRTuples(network, rtup, 1000000, rand) << endl;
+// void test(const Network &network, DiffusionState_MIC &diffu, mt19937 &rand){
+//     set<int> seedset;
+//     int tenpercent = 830;
+//     for(int j = 0;j < 4;j++){
+//         set<int> seed;
+//         for(int i = j*tenpercent;i < j*tenpercent+tenpercent;i++)
+//             seed.insert(i);
+//         diffu.seed(seed);
+//     }
+//     vector<rTuple> rtup;
+//     cout << "count diff: " << diffu.getRTuples(network, rtup, 1000000, rand) << endl;
 
-    for(int i = 4000;i < 4100;i++)
-        seedset.insert(i);
-    int cindex = diffu.seed(seedset);
-    cout << diffu.expInfluenceComplete(network, 30000, cindex, rand) << endl;
-    diffu.removeSeed(cindex);
-    // cout << computeG(diffu, seedset, rtup, network.vertexNum, "upper", rand) << endl;
-    // cout << computeG(diffu, seedset, rtup, network.vertexNum, "mid", rand) << endl;
-    // cout << computeG(diffu, seedset, rtup, network.vertexNum, "lower", rand) << endl;
-}
+//     for(int i = 4000;i < 4100;i++)
+//         seedset.insert(i);
+//     int cindex = diffu.seed(seedset);
+//     cout << diffu.expInfluenceComplete(network, 30000, cindex, rand) << endl;
+//     diffu.removeSeed(cindex);
+//     // cout << computeG(diffu, seedset, rtup, network.vertexNum, "upper", rand) << endl;
+//     // cout << computeG(diffu, seedset, rtup, network.vertexNum, "mid", rand) << endl;
+//     // cout << computeG(diffu, seedset, rtup, network.vertexNum, "lower", rand) << endl;
+// }
 
 void printTime(chrono::high_resolution_clock::time_point start, chrono::high_resolution_clock::time_point end){
     auto duration = end-start;
@@ -75,7 +76,6 @@ int main(int args, char **argv){
 
     DiffusionState_MIC diffusionState(network);
 
-    // test(network, diffusionState, rand);
     for(int j = 0;j < 4;j++){
         set<int> seed;
         for(int i = j*tenpercent;i < j*tenpercent+tenpercent;i++)
@@ -87,7 +87,7 @@ int main(int args, char **argv){
 
     // set<int> naivegreedy = NaiveGreedy_computeSeedSet(network, diffusionState, k, eps, N, 1, rand);
 
-    set<int> reversegreedy = ReverseGreedy_computeSeedSet(network, diffusionState, k, l, rand);
+    set<int> reversegreedy = ReverseGreedy_computeSeedSet(network, diffusionState, k, 1000, rand);
 
     set<int> highdegree = HighDegree_computeSeedSet(network, diffusionState, k);
 

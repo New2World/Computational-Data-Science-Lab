@@ -93,43 +93,98 @@ std::set<int> NaiveGreedy_computeSeedSet(const Network &network, DiffusionState_
     return solution;
 }
 
+void __parallel(DiffusionState_MIC &diffusionState, const std::set<int> &seed, std::vector<rTuple> &rtup, const std::map<int,int> &coverred, std::set<int> &type1, std::set<int> &type2, std::set<int> &utype1, double *result){
+    int ret, temp = 0;
+    int cmaxindex = -1;
+    double cmaxvalue = -1.;
+    for(std::pair<int,int> p: coverred){
+        ret = diffusionState.compute_g(seed, rtup[p.first], "mid", nullptr);
+        switch(p.second){
+        case 0:
+            switch(ret){
+            case 2:
+                temp++;
+                type2.insert(p.first);
+                break;
+            case 1:
+                temp++;
+                type1.insert(p.first);
+                break;
+            }
+            break;
+        case 1:
+            switch(ret){
+            case -1:
+                temp--;
+                utype1.insert(p.first);
+                break;
+            }
+            break;
+        }
+    }
+    *result = temp;
+}
+
 double Sandwich_greedyMid(const Network &network, DiffusionState_MIC &diffusionState, std::vector<rTuple> &rtup, std::set<int> &solution, int k, mt19937 &rand){
     std::set<int> candidate;
-    for(rTuple &rt: rtup)
+    int tid = 0;
+    std::map<int,int> coverred_state;
+    for(rTuple &rt: rtup){
         for(int v: rt.upper)
             if(candidate.find(v) == candidate.end())
                 candidate.insert(v);
-    int cmaxindex, node, tid;
-    double cmaxvalue, tempvalue[candidate.size()];
+        coverred_state[tid++] = 0;
+    }
+    int cmaxindex, node;
+    double cmaxvalue, profit = 0.;
+    double *results = new double[candidate.size()];
     for(int i = 0;i < k;i++){
         cmaxindex = -1;
         cmaxvalue = -1.;
         tid = 0;
+        std::vector<std::set<int>> type1s(candidate.size()), type2s(candidate.size()), utype1s(candidate.size());
         boost::asio::thread_pool pool(10);
         for(int node: candidate){
             solution.insert(node);
-            boost::asio::post(pool, boost::bind(&DiffusionState_MIC::computeG, &diffusionState, solution, ref(rtup), network.vertexNum, "mid", tempvalue+tid, ref(rand)));
-            // computeG(diffusionState, solution, rtup, network.vertexNum, "mid", tempvalue+tid, rand);
+            auto bind_fn = boost::bind(__parallel, ref(diffusionState), solution, ref(rtup), ref(coverred_state), ref(type1s[tid]), ref(type2s[tid]), ref(utype1s[tid]), results+tid);
+            boost::asio::post(pool, bind_fn);
             tid++;
-            // if(tempvalue > cmaxvalue){
-            //     cmaxindex = node;
-            //     cmaxvalue = tempvalue;
-            // }
             solution.erase(node);
         }
         pool.join();
         std::set<int>::iterator it = candidate.begin();
-        for(int i = 0;i < candidate.size();i++, it++){
-            if(cmaxvalue < tempvalue[i]){
-                cmaxvalue = tempvalue[i];
+        std::set<int> type1, type2, utype1;
+        for(int j = 0;j < candidate.size();j++, it++){
+            if(cmaxvalue < results[j]){
+                cmaxvalue = results[j];
                 cmaxindex = *it;
+                type1 = type1s[j];
+                type2 = type2s[j];
+                utype1 = utype1s[j];
             }
         }
+        profit += cmaxvalue;
         solution.insert(cmaxindex);
         candidate.erase(cmaxindex);
-        std::cout << "k = " << i+1 << std::endl;
+        for(int j: type2)   coverred_state.erase(j);
+        for(int j: type1){
+            if(coverred_state[j] != 0){
+                std::cout << "ERROR: setting type 1 wrong, != 0" << std::endl;
+                exit(1);
+            }
+            coverred_state[j] = 1;
+        }
+        for(int j: utype1){
+            if(coverred_state[j] != 1){
+                std::cout << "ERROR: setting type 1 wrong, != 1" << std::endl;
+                exit(1);
+            }
+            coverred_state[j] = 0;
+        }
+        std::cout << "greedy mid #" << i+1 << std::endl;
     }
-    return 0.;
+    delete [] results;
+    return profit;
 }
 
 std::set<int> ReverseGreedy_computeSeedSet(const Network &network, DiffusionState_MIC &diffusionState, int k, int l, mt19937 &rand){
@@ -173,7 +228,7 @@ double Sandwich_greedy(std::vector<rTuple> &rtup, std::set<int> &solution, int k
     std::vector<std::pair<int,int>> sortPair;
     for(auto i = nodes_cover_sets.begin();i != nodes_cover_sets.end();i++)
         sortPair.push_back(std::make_pair(i->first, i->second.size()));
-    sort(sortPair.begin(), sortPair.end(), [](const std::pair<int,int> a, const std::pair<int,int> b)-> bool {
+    std::sort(sortPair.begin(), sortPair.end(), [](const std::pair<int,int> a, const std::pair<int,int> b)-> bool {
         return a.second > b.second;
     });
     sortedMap mymap;
