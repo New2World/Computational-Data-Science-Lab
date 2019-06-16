@@ -76,7 +76,7 @@ int main(int args, char **argv){
 
     DiffusionState_MIC diffusionState(network);
 
-    for(int j = 0;j < 4;j++){
+    for(int j = 0;j < 9;j++){
         set<int> seed;
         for(int i = j*tenpercent;i < j*tenpercent+tenpercent;i++)
             seed.insert(i);
@@ -87,7 +87,7 @@ int main(int args, char **argv){
 
     // set<int> naivegreedy = NaiveGreedy_computeSeedSet(network, diffusionState, k, eps, N, 1, rand);
 
-    set<int> reversegreedy = ReverseGreedy_computeSeedSet(network, diffusionState, k, 1000, rand);
+    set<int> reversegreedy = ReverseGreedy_computeSeedSet(network, diffusionState, k, l, rand);
 
     set<int> highdegree = HighDegree_computeSeedSet(network, diffusionState, k);
 

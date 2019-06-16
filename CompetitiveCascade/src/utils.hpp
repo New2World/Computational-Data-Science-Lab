@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include <random>
+#include <chrono>
 
 #include <string>
 #include <iostream>
@@ -49,6 +50,7 @@
 
 std::set<int> HighDegree_computeSeedSet(Network &network, DiffusionState_MIC &diffusionState, int k){
     std::cout << "========== High degree running ==========" << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
     network.sortByDegree();
     int node;
     std::set<int> result;
@@ -62,12 +64,15 @@ std::set<int> HighDegree_computeSeedSet(Network &network, DiffusionState_MIC &di
             }
         }
     }
+    auto end = std::chrono::high_resolution_clock::now();
+    printTime(start, end);
     std::cout << "========== High degree finish ==========" << std::endl << std::endl;
     return result;
 }
 
 std::set<int> NaiveGreedy_computeSeedSet(const Network &network, DiffusionState_MIC &diffusionState, int k, double epsilon_1, double N, int times, mt19937 &rand){
     std::cout << "========== Naive greedy running ==========" << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
     std::set<int> solution;
     int cmaxindex, cindex, *state = new int[network.vertexNum];
     double cmaxvalue, tempvalue;
@@ -89,6 +94,8 @@ std::set<int> NaiveGreedy_computeSeedSet(const Network &network, DiffusionState_
             solution.erase(j);
         }
     }
+    auto end = std::chrono::high_resolution_clock::now();
+    printTime(start, end);
     std::cout << "========== Naive greedy finish ==========" << std::endl << std::endl;
     return solution;
 }
@@ -189,11 +196,14 @@ double Sandwich_greedyMid(const Network &network, DiffusionState_MIC &diffusionS
 
 std::set<int> ReverseGreedy_computeSeedSet(const Network &network, DiffusionState_MIC &diffusionState, int k, int l, mt19937 &rand){
     std::cout << "========== Reverse greedy running ==========" << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
     std::vector<rTuple> rtup;
     std::cout << "l " << l << " " << diffusionState.getRTuples(network, rtup, l, rand) << std::endl;
     std::set<int> mid_solution;
     std::cout << "working on mid-solution..." << std::endl;
     Sandwich_greedyMid(network, diffusionState, rtup, mid_solution, k, rand);
+    auto end = std::chrono::high_resolution_clock::now();
+    printTime(start, end);
     std::cout << "========== Reverse greedy finish ==========" << std::endl << std::endl;
     return mid_solution;
 }
@@ -311,6 +321,7 @@ double Sandwich_decideL(int n, int k, double low_bound, double eps1, double eps2
 
 int Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diffusionState, int k, double eps1, double N, std::set<int> &solution, mt19937 &rand){
     std::cout << "========== Sandwich running ==========" << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
     double eps0 = eps1, eps2 = (eps1*log(N))/(log(network.vertexNum)+log(N));
     double low_bound = Sandwich_computeLowerBound(network, diffusionState, k, eps0, N, rand);
     int l = (int)Sandwich_decideL(network.vertexNum, k, low_bound, eps1, eps2, N);
@@ -333,6 +344,8 @@ int Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diffusio
     else
         for(int lower_v: lower_solution)
             solution.insert(lower_v);
+    auto end = std::chrono::high_resolution_clock::now();
+    printTime(start, end);
     std::cout << "========== Sandwich finish ==========" << std::endl << std::endl;
     return l;
 }
