@@ -53,12 +53,14 @@ class DiffusionState_MIC{
         int cseede;
         std::set<int> new_active_temp;
         double prob, rd;
+        int *temp_state = new int[vnum];
+        memcpy(temp_state, state, vnum*sizeof(int));
         for(int cseed: new_active){
             for(int i = 0;i < network.outDegree[cseed];i++){
                 cseede = network.getNeighbor(cseed, i);
                 prob = network.getProb(cseed, cseede);
                 rd = (double)rand()/rand.max();
-                if(rd < prob && seed_state[cseede] == -1){
+                if(rd < prob && temp_state[cseede] == -1){
                     state[cseede] = priority(state[cseede], state[cseed], cseede);
                     if(new_active_temp.find(cseede) == new_active_temp.end())
                         new_active_temp.insert(cseede);
@@ -204,7 +206,7 @@ public:
         std::set<int> new_active(seednodes);
         for(int i = 0;i < round;i++){
             diffuseOneRound(network, state, new_active, rand);
-            if(new_active.size() == 0)  break;
+            if(new_active.empty())  break;
         }
         for(int i = 0;i < vnum;i++)
             if(state[i] == cindex)
@@ -330,10 +332,12 @@ public:
 
     double computeG(std::set<int> &S, std::vector<rTuple> &rtup, int n, std::string type, double *result, mt19937 &rand){
         int count = 0;
+        double output;
         for(rTuple &rt: rtup)
             if(compute_g(S, rt, type, nullptr) > 0)
                 count++;
-        *result = (double)n*count/rtup.size();
-        return *result;
+        output = (double)n*count/rtup.size();
+        if(result)  *result = output;
+        return output;
     }
 };
