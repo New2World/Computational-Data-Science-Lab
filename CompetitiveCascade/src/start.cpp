@@ -67,7 +67,7 @@ int main(int args, char **argv){
     int vnum = atoi(argv[3]);
     string path = "../data/"+name+".txt";
     Network network(path, type, vnum);
-    network.setICProb(1);
+    network.setICProb(.1);
     int k = 50;
     double eps = .3, N = 10000.;
     int tenpercent = (int)(vnum * .1);
@@ -76,7 +76,7 @@ int main(int args, char **argv){
 
     DiffusionState_MIC diffusionState(network);
 
-    for(int j = 0;j < 9;j++){
+    for(int j = 0;j < 4;j++){
         set<int> seed;
         for(int i = j*tenpercent;i < j*tenpercent+tenpercent;i++)
             seed.insert(i);
