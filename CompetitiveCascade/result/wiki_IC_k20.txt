@@ -1,0 +1,59 @@
+import ../data/wiki.txt IC
+========== Sandwich running ==========
+l 215914 23264
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 3 seconds
+========== Sandwich finish ==========
+
+========== Reverse greedy running ==========
+r_tuple size: 215914
+working on mid-solution...
+greedy mid #1: 1618
+greedy mid #2: 2846
+greedy mid #3: 3883
+greedy mid #4: 4751
+greedy mid #5: 5509
+greedy mid #6: 6194
+greedy mid #7: 6807
+greedy mid #8: 7326
+greedy mid #9: 7813
+greedy mid #10: 8266
+greedy mid #11: 8685
+greedy mid #12: 9077
+greedy mid #13: 9454
+greedy mid #14: 9821
+greedy mid #15: 10170
+greedy mid #16: 10487
+greedy mid #17: 10783
+greedy mid #18: 11069
+greedy mid #19: 11343
+greedy mid #20: 11604
+time elapsed: 0 hours 1 minutes 44 seconds
+========== Reverse greedy finish ==========
+
+========== High degree running ==========
+time elapsed: 0 hours 0 minutes 0 seconds
+========== High degree finish ==========
+
+---------- Testing Sandwich ----------
+4 61.417 1
+8 111.973 1
+12 162.258 1
+16 186.045 1
+20 227.622 1
+
+---------- Testing Reverse ----------
+4 50.453 0
+8 95.846 0
+12 142.279 0
+16 186.167 0
+20 227.481 0
+
+---------- Testing High Degree ----------
+4 51.505 0
+8 96.534 0
+12 142.026 0
+16 185.352 0
+20 226.282 0
+time elapsed: 0 hours 2 minutes 27 seconds

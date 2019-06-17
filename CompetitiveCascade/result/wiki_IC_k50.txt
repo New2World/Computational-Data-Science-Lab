@@ -1,0 +1,104 @@
+import ../data/wiki.txt IC
+========== Sandwich running ==========
+l 301407 32508
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 6 seconds
+========== Sandwich finish ==========
+
+========== Reverse greedy running ==========
+r_tuple size: 301407
+working on mid-solution...
+greedy mid #1: 2185
+greedy mid #2: 3921
+greedy mid #3: 5400
+greedy mid #4: 6702
+greedy mid #5: 7775
+greedy mid #6: 8718
+greedy mid #7: 9570
+greedy mid #8: 10330
+greedy mid #9: 11016
+greedy mid #10: 11627
+greedy mid #11: 12194
+greedy mid #12: 12735
+greedy mid #13: 13241
+greedy mid #14: 13720
+greedy mid #15: 14178
+greedy mid #16: 14621
+greedy mid #17: 15047
+greedy mid #18: 15463
+greedy mid #19: 15831
+greedy mid #20: 16188
+greedy mid #21: 16535
+greedy mid #22: 16863
+greedy mid #23: 17167
+greedy mid #24: 17459
+greedy mid #25: 17747
+greedy mid #26: 18024
+greedy mid #27: 18285
+greedy mid #28: 18538
+greedy mid #29: 18780
+greedy mid #30: 19015
+greedy mid #31: 19247
+greedy mid #32: 19469
+greedy mid #33: 19684
+greedy mid #34: 19884
+greedy mid #35: 20076
+greedy mid #36: 20266
+greedy mid #37: 20455
+greedy mid #38: 20640
+greedy mid #39: 20822
+greedy mid #40: 21000
+greedy mid #41: 21173
+greedy mid #42: 21344
+greedy mid #43: 21511
+greedy mid #44: 21676
+greedy mid #45: 21836
+greedy mid #46: 21993
+greedy mid #47: 22147
+greedy mid #48: 22299
+greedy mid #49: 22449
+greedy mid #50: 22597
+time elapsed: 0 hours 10 minutes 22 seconds
+========== Reverse greedy finish ==========
+
+========== High degree running ==========
+time elapsed: 0 hours 0 minutes 0 seconds
+========== High degree finish ==========
+
+---------- Testing Sandwich ----------
+5 56.397 1
+10 97.224 1
+15 139.598 1
+20 173.451 1
+25 213.454 1
+30 254.96 1
+35 268.402 1
+40 305.139 1
+45 330.457 1
+50 350.544 1
+
+---------- Testing Reverse ----------
+5 55.119 0
+10 89.541 0
+15 114.717 0
+20 154.461 0
+25 190.266 0
+30 230.25 0
+35 267.27 0
+40 304.954 0
+45 327.509 0
+50 348.335 0
+
+---------- Testing High Degree ----------
+5 54.078 0
+10 89.728 0
+15 135.56 0
+20 164.74 0
+25 199.894 0
+30 233.695 0
+35 262.822 0
+40 301.284 0
+45 329.232 0
+50 352.752 0
+time elapsed: 0 hours 11 minutes 46 seconds
