@@ -1,6 +1,7 @@
 #include <set>
 #include <vector>
 #include <string>
+#include <utility>
 #include <iostream>
 
 #include <random>
@@ -88,9 +89,14 @@ int main(int args, char **argv){
     testInfluence(diffusionState, network, reverse_result, rand);
 
     cout << endl << "---------- Testing High Degree ----------" << endl;
-    testInfluence(diffusionState, network, highdegree_result, rand);
+    for(pair<int,set<int>> p: highdegree_result.seedset){
+        cout << p.first << endl;
+        printContainer(p.second);
+    }
+    // testInfluence(diffusionState, network, highdegree_result, rand);
 
     auto end = std::chrono::high_resolution_clock::now();
 
     printTime(start, end);
+    return 0;
 }

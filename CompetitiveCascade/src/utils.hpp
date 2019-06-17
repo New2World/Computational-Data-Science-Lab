@@ -67,11 +67,11 @@ Results HighDegree_computeSeedSet(Network &network, DiffusionState_MIC &diffusio
     Results result;
     for(int i = 0;i < 10;i++){
         int k = i*5+5;
-        std::set<int> solution;
+        std::set<int> temp_solution;
         std::set<int>::iterator iter = solution.begin();
         for(int j = 0;j < k;j++, iter++)
-            solution.insert(*iter);
-        result.seedset[k] = solution;
+            temp_solution.insert(*iter);
+        result.seedset[k] = temp_solution;
         result.supp[k] = 0.;
     }
     auto end = std::chrono::high_resolution_clock::now();
