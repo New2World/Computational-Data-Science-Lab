@@ -175,7 +175,7 @@ public:
         _max = 13;
         seed_state = nullptr;
         seed_state = new int[vnum];
-        for(int i = 0;i < vnum;i++) seed_state[i] = -1;
+        memset(seed_state, -1, vnum*sizeof(int));
         
         readPriority(1);
         readPriority(3);
@@ -244,12 +244,20 @@ public:
 
     double getRTuples(const Network &network, std::vector<rTuple> &rtup, double size, mt19937 &rand){
         int countdiff = 0;
+        int rtup_size = rtup.size();
         rTuple rt;
-        for(int i = 0;i < size;i++){
-            getRTuple(network, rt, rand);
-            rtup.push_back(rt);
-            if(rt.isdiff)   countdiff++;
+        if(rtup.empty())    rtup = std::vector<rTuple>(size);
+        else    rtup.resize(size+rtup.size());
+        int new_size = rtup.size();
+        boost::asio::thread_pool pool(10);
+        for(int i = rtup_size;i < new_size;i++){
+            auto bind_fn = boost::bind(&DiffusionState_MIC::getRTuple, this, ref(network), ref(rtup[i]), ref(rand));
+            boost::asio::post(pool, bind_fn);
         }
+        pool.join();
+        for(int i = rtup_size;i < new_size;i++)
+            if(rtup[i].isdiff)
+                countdiff++;
         return (double)countdiff;
     }
 

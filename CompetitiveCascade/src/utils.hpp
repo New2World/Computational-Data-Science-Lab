@@ -331,10 +331,11 @@ double Sandwich_computeLowerBound(const Network &network, DiffusionState_MIC &di
     std::vector<rTuple> rtup;
     std::set<int> S;
     double lambda = (n*(2+eps0)*log(N*boost::math::binomial_coefficient<double>(n,k)*log2(n)))/(eps0*eps0);
-    double x, l, g_lower;
+    double x, l, g_lower, pw = 2.;
     for(int i = 1;i < (int)log2(n-1.);i++){
-        x = n/pow(2., i);
+        x = n/pw;
         l = lambda/x;
+        pw *= 2;
         if(rtup.size() < l)
             diffusionState.getRTuples(network, rtup, (int)(l-rtup.size()), rand);
         S.clear();

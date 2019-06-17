@@ -42,7 +42,7 @@ class Network{
     }
 
     void importRelation(string path){
-        _Edge *edge = new _Edge[30000000];
+        _Edge *edge = new _Edge[50000000];
         char line[256];
         int u, v, tmp;
         // set<int> nodeSet;
