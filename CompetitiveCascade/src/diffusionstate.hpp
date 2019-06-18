@@ -49,12 +49,12 @@ class DiffusionState_MIC{
         return b;
     }
 
-    void diffuseOneRound(const Network &network, int *state, std::set<int> &new_active, mt19937 &rand){
+    void diffuseOneRound(const Network &network, short *state, std::set<int> &new_active, mt19937 &rand){
         int cseede;
         std::set<int> new_active_temp;
         double prob, rd;
-        int *temp_state = new int[vnum];
-        memcpy(temp_state, state, vnum*sizeof(int));
+        short *temp_state = new short[vnum];
+        memcpy(temp_state, state, vnum*sizeof(short));
         for(int cseed: new_active){
             for(int i = 0;i < network.outDegree[cseed];i++){
                 cseede = network.getNeighbor(cseed, i);
@@ -72,9 +72,9 @@ class DiffusionState_MIC{
             new_active.insert(i);
     }
 
-    void diffuseOneRound(std::set<int> &new_active, int *state, rTuple &rtup){
-        int *temp_state = new int[vnum];
-        memcpy(temp_state, state, vnum*sizeof(int));
+    void diffuseOneRound(std::set<int> &new_active, short *state, rTuple &rtup){
+        short *temp_state = new short[vnum];
+        memcpy(temp_state, state, vnum*sizeof(short));
         std::set<int> new_active_temp;
         for(int cseed: new_active){
             for(int cseede: rtup.relations[cseed]){
@@ -91,7 +91,7 @@ class DiffusionState_MIC{
             new_active.insert(i);
     }
 
-    int reSpreadOneRound(const Network &network, std::set<int> &new_active, int *state, rTuple &rtup, mt19937 &rand){
+    int reSpreadOneRound(const Network &network, std::set<int> &new_active, short *state, rTuple &rtup, mt19937 &rand){
         int cseede;
         double prob, rd;
         std::set<int> new_active_temp;
@@ -130,8 +130,8 @@ class DiffusionState_MIC{
     }
 
     int reSpreadOnce(const Network &network, int cindex, rTuple &rtup, mt19937 &rand){
-        int *state = new int[vnum];
-        memcpy(state, seed_state, vnum*sizeof(int));
+        short *state = new short[vnum];
+        memcpy(state, seed_state, vnum*sizeof(short));
         std::set<int> new_active;
         state[cindex] = -2;
         rtup.upper.insert(cindex);
@@ -164,7 +164,7 @@ class DiffusionState_MIC{
 
 public:
     int cnum, vnum, _max;
-    int *seed_state;
+    short *seed_state;
     std::set<int> seednodes;
     std::map<int,std::set<int>> seedsets;
     std::map<int,std::vector<std::vector<int>>> caspriority;
@@ -174,8 +174,8 @@ public:
         vnum = network.vertexNum;
         _max = 13;
         seed_state = nullptr;
-        seed_state = new int[vnum];
-        memset(seed_state, -1, vnum*sizeof(int));
+        seed_state = new short[vnum];
+        memset(seed_state, -1, vnum*sizeof(short));
         
         readPriority(1);
         readPriority(3);
@@ -188,8 +188,8 @@ public:
         _max = diffusionState._max;
         vnum = diffusionState.vnum;
         seed_state = nullptr;
-        seed_state = new int[vnum];
-        memcpy(seed_state, diffusionState.seed_state, vnum*sizeof(int));
+        seed_state = new short[vnum];
+        memcpy(seed_state, diffusionState.seed_state, vnum*sizeof(short));
         seednodes = diffusionState.seednodes;
         seedsets = diffusionState.seedsets;
         caspriority = diffusionState.caspriority;
@@ -201,8 +201,8 @@ public:
     }
 
     void diffuse(const Network &network, int *result, int cindex, int round, mt19937 &rand){
-        int *state = new int[vnum];
-        memcpy(state, seed_state, vnum*sizeof(int));
+        short *state = new short[vnum];
+        memcpy(state, seed_state, vnum*sizeof(short));
         std::set<int> new_active(seednodes);
         for(int i = 0;i < round;i++){
             diffuseOneRound(network, state, new_active, rand);
@@ -278,8 +278,8 @@ public:
 
     bool computeMid_g(const std::set<int> &seed, rTuple &rtup){
         std::set<int> new_active;
-        int *state = new int[vnum];
-        memset(state, -1, vnum*sizeof(int));
+        short *state = new short[vnum];
+        memset(state, -1, vnum*sizeof(short));
         for(int i: rtup.seed){
             state[i] = seed_state[i];
             if(seed_state[i] > -1)
