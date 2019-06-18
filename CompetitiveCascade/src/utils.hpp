@@ -160,7 +160,7 @@ void Sandwich_greedyMid(const Network &network, DiffusionState_MIC &diffusionSta
         cmaxvalue = -1.;
         tid = 0;
         std::vector<std::set<int>> type1s(candidate.size()), type2s(candidate.size()), utype1s(candidate.size());
-        boost::asio::thread_pool pool(10);
+        boost::asio::thread_pool pool(70);
         for(int node: candidate){
             solution.insert(node);
             auto bind_fn = boost::bind(__parallel, ref(diffusionState), solution, ref(rtup), ref(coverred_state), ref(type1s[tid]), ref(type2s[tid]), ref(utype1s[tid]), results+tid);

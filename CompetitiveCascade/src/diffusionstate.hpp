@@ -250,7 +250,7 @@ public:
         if(rtup.empty())    rtup = std::vector<rTuple>(size);
         else    rtup.resize(size+rtup.size());
         int new_size = rtup.size();
-        boost::asio::thread_pool pool(10);
+        boost::asio::thread_pool pool(70);
         for(int i = rtup_size;i < new_size;i++){
             auto bind_fn = boost::bind(&DiffusionState_MIC::getRTuple, this, ref(network), ref(rtup[i]), ref(rand));
             boost::asio::post(pool, bind_fn);
@@ -265,7 +265,7 @@ public:
     double expInfluenceComplete(const Network &network, int times, int cindex, mt19937 &rand){
         int c_result[times];
         double result = 0.;
-        boost::asio::thread_pool pool(10);
+        boost::asio::thread_pool pool(70);
         memset(c_result, 0, times*sizeof(int));
         for(int i = 0;i < times;i++){
             auto bind_fn = boost::bind(&DiffusionState_MIC::diffuse, this, ref(network), c_result+i, cindex, vnum, ref(rand));
