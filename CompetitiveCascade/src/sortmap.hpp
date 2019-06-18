@@ -57,17 +57,15 @@ public:
     }
     int insert(int n, double v, int l, int r){
         int mid = -1;
-        if(v <= value_list[node_order[r-1]]){
-            node_order.insert(node_order.begin()+r, n);
-            _size++;
-            return r;
-        }
-        else if(v >= value_list[node_order[l]]){
+        if(v >= value_list[node_order[l]]){
             node_order.insert(node_order.begin()+l, n);
             _size++;
             return l;
-        }
-        else if(r-l < 10){
+        } else if (v <= value_list[node_order[r-1]]){
+            node_order.insert(node_order.begin()+r, n);
+            _size++;
+            return r;
+        } else if(r-l < 10){
             for(int i = l;i < r;i++){
                 if(v >= value_list[node_order[i]]){
                     node_order.insert(node_order.begin()+i, n);
@@ -76,8 +74,7 @@ public:
                 }
             }
             cout << "something wrong when insert" << endl;
-        }
-        else{
+        } else{
             mid = (l+r)>>1;
             if(v >= value_list[node_order[mid]])
                 return insert(n, v, l, mid);

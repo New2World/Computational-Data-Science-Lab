@@ -62,8 +62,8 @@ int main(int args, char **argv){
     network.setICProb(.1);
     double eps = .3, N = 10000.;
     int tenpercent = (int)(vnum * .1);
-    mt19937 rand(std::chrono::high_resolution_clock::now().time_since_epoch().count());
-    auto start = std::chrono::high_resolution_clock::now();
+    mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
+    auto start = chrono::high_resolution_clock::now();
 
     DiffusionState_MIC diffusionState(network);
 
@@ -92,7 +92,7 @@ int main(int args, char **argv){
     cout << endl << "---------- Testing High Degree ----------" << endl;
     testInfluence(diffusionState, network, highdegree_result, rand, k, span);
 
-    auto end = std::chrono::high_resolution_clock::now();
+    auto end = chrono::high_resolution_clock::now();
 
     printTime(start, end);
     return 0;
