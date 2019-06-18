@@ -67,6 +67,7 @@ class DiffusionState_MIC{
                 }
             }
         }
+        delete [] temp_state;
         new_active.clear();
         for(int i: new_active_temp)
             new_active.insert(i);
