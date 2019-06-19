@@ -33,3 +33,7 @@ time elapsed: 0 hours 0 minutes 0 seconds
 25 2654.4 0
 30 3069.57 0
 35 3813.41 0
+40 4486.35 0
+45 5279.52 0
+50 5946.23 0
+time elapsed: 7 hours 53 minutes 12 seconds
