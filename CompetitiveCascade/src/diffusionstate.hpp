@@ -21,7 +21,11 @@
 #include "rtuple.hpp"
 #include "tools.hpp"
 
+#define THREAD 70
+
 class DiffusionState_MIC{
+    short *temp_state_1, *temp_state_2;
+
     void readPriority(int num){
         std::string path = "../data/perms/"+std::to_string(num)+"_perms.txt";
         char line[50];
@@ -54,7 +58,7 @@ class DiffusionState_MIC{
         std::set<int> new_active_temp;
         double prob, rd;
         short *temp_state = new short[vnum];
-        memcpy(temp_state, state, vnum*sizeof(short));
+        for(int i = 0;i < vnum;i++) temp_state[i] = state[i];
         for(int cseed: new_active){
             for(int i = 0;i < network.outDegree[cseed];i++){
                 cseede = network.getNeighbor(cseed, i);
@@ -74,19 +78,17 @@ class DiffusionState_MIC{
     }
 
     void diffuseOneRound(std::set<int> &new_active, short *state, rTuple &rtup){
-        short *temp_state = new short[vnum];
-        memcpy(temp_state, state, vnum*sizeof(short));
+        for(int i = 0;i < vnum;i++) temp_state_2[i] = state[i];
         std::set<int> new_active_temp;
         for(int cseed: new_active){
             for(int cseede: rtup.relations[cseed]){
-                if(temp_state[cseede] == -1){
+                if(temp_state_2[cseede] == -1){
                     state[cseede] = priority(state[cseede], state[cseed], cseede, 1);
                     if(new_active_temp.find(cseede) == new_active_temp.end())
                         new_active_temp.insert(cseede);
                 }
             }
         }
-        delete [] temp_state;
         new_active.clear();
         for(int i: new_active_temp)
             new_active.insert(i);
@@ -130,21 +132,19 @@ class DiffusionState_MIC{
         return 0;
     }
 
-    int reSpreadOnce(const Network &network, int cindex, rTuple &rtup, mt19937 &rand){
-        short *state = new short[vnum];
-        memcpy(state, seed_state, vnum*sizeof(short));
+    int reSpreadOnce(const Network &network, int cindex, rTuple &rtup, mt19937 &rand, short *temp_state){
+        for(int i = 0;i < vnum;i++) temp_state[i] = seed_state[i];
         std::set<int> new_active;
-        state[cindex] = -2;
+        temp_state[cindex] = -2;
         rtup.upper.insert(cindex);
         rtup.lower.insert(cindex);
         new_active.insert(cindex);
         while(!new_active.empty())
-            reSpreadOneRound(network, new_active, state, rtup, rand);
-        delete [] state;
+            reSpreadOneRound(network, new_active, temp_state, rtup, rand);
         return 0;
     }
 
-    double getRTuple(const Network &network, rTuple &rtup, mt19937 &rand){
+    double getRTuple(const Network &network, rTuple &rtup, mt19937 &rand, short *temp_state){
         int cindex = rand()%vnum;
         rtup.clear();
         rtup.node_v = cindex;
@@ -156,16 +156,21 @@ class DiffusionState_MIC{
         switch(network.type[0]){
         case 'I':
         case 'W':
-            return reSpreadOnce(network, cindex, rtup, rand);
+            return reSpreadOnce(network, cindex, rtup, rand, temp_state);
         default:
             std::cout << "invalid model" << std::endl;
         }
         return 0;
     }
 
+    template <typename T>
+    void freeSpace(T *p){
+        if(p)   delete [] p;
+    }
+
 public:
-    int cnum, vnum, _max;
     short *seed_state;
+    int cnum, vnum, _max;
     std::set<int> seednodes;
     std::map<int,std::set<int>> seedsets;
     std::map<int,std::vector<std::vector<int>>> caspriority;
@@ -175,7 +180,11 @@ public:
         vnum = network.vertexNum;
         _max = 13;
         seed_state = nullptr;
+        temp_state_1 = nullptr;
+        temp_state_2 = nullptr;
         seed_state = new short[vnum];
+        temp_state_1 = new short[vnum*THREAD];
+        temp_state_2 = new short[vnum*THREAD];
         memset(seed_state, -1, vnum*sizeof(short));
         
         readPriority(1);
@@ -189,30 +198,33 @@ public:
         _max = diffusionState._max;
         vnum = diffusionState.vnum;
         seed_state = nullptr;
+        temp_state_1 = nullptr;
+        temp_state_2 = nullptr;
         seed_state = new short[vnum];
         memcpy(seed_state, diffusionState.seed_state, vnum*sizeof(short));
+        temp_state_1 = new short[vnum*THREAD];
+        temp_state_2 = new short[vnum*THREAD];
         seednodes = diffusionState.seednodes;
         seedsets = diffusionState.seedsets;
         caspriority = diffusionState.caspriority;
     }
 
     ~DiffusionState_MIC(){
-        if(seed_state)
-            delete [] seed_state;
+        freeSpace(seed_state);
+        freeSpace(temp_state_1);
+        freeSpace(temp_state_2);
     }
 
-    void diffuse(const Network &network, int *result, int cindex, int round, mt19937 &rand){
-        short *state = new short[vnum];
-        memcpy(state, seed_state, vnum*sizeof(short));
+    void diffuse(const Network &network, int *result, int cindex, int round, mt19937 &rand, short *temp_state){
+        for(int i = 0;i < vnum;i++) temp_state[i] = seed_state[i];
         std::set<int> new_active(seednodes);
         for(int i = 0;i < round;i++){
-            diffuseOneRound(network, state, new_active, rand);
+            diffuseOneRound(network, temp_state, new_active, rand);
             if(new_active.empty())  break;
         }
         for(int i = 0;i < vnum;i++)
-            if(state[i] == cindex)
+            if(temp_state[i] == cindex)
                 (*result)++;
-        delete [] state;
     }
 
     int seed(const std::set<int> &seed_set){
@@ -250,12 +262,14 @@ public:
         if(rtup.empty())    rtup = std::vector<rTuple>(size);
         else    rtup.resize(size+rtup.size());
         int new_size = rtup.size();
-        boost::asio::thread_pool pool(70);
-        for(int i = rtup_size;i < new_size;i++){
-            auto bind_fn = boost::bind(&DiffusionState_MIC::getRTuple, this, ref(network), ref(rtup[i]), ref(rand));
-            boost::asio::post(pool, bind_fn);
+        boost::asio::thread_pool pool(THREAD);
+        for(int i = rtup_size;i < new_size;){
+            for(int j = 0;j < THREAD && i < new_size;j++, i++){
+                auto bind_fn = boost::bind(&DiffusionState_MIC::getRTuple, this, ref(network), ref(rtup[i]), ref(rand), temp_state_1+vnum*j);
+                boost::asio::post(pool, bind_fn);
+            }
+            pool.join();
         }
-        pool.join();
         for(int i = rtup_size;i < new_size;i++)
             if(rtup[i].isdiff)
                 countdiff++;
@@ -263,60 +277,55 @@ public:
     }
 
     double expInfluenceComplete(const Network &network, int times, int cindex, mt19937 &rand){
-        int c_result[times];
+        int c_result[THREAD];
         double result = 0.;
-        boost::asio::thread_pool pool(70);
-        memset(c_result, 0, times*sizeof(int));
-        for(int i = 0;i < times;i++){
-            auto bind_fn = boost::bind(&DiffusionState_MIC::diffuse, this, ref(network), c_result+i, cindex, vnum, ref(rand));
-            boost::asio::post(pool, bind_fn);
+        boost::asio::thread_pool pool(THREAD);
+        memset(c_result, 0, THREAD*sizeof(int));
+        for(int i = 0;i < times;){
+            for(int j = 0;j < THREAD && i < times;j++,i++){
+                auto bind_fn = boost::bind(&DiffusionState_MIC::diffuse, this, ref(network), c_result+j, cindex, vnum, ref(rand), temp_state_1+vnum*j);
+                boost::asio::post(pool, bind_fn);
+            }
+            pool.join();
+            for(int j = 0;j < THREAD;j++){
+                result += c_result[j];
+                c_result[j] = 0;
+            }
         }
-        pool.join();
-        for(int i = 0;i < times;i++)
-            result += c_result[i];
         return result/times;
     }
 
-    bool computeMid_g(const std::set<int> &seed, rTuple &rtup){
+    bool computeMid_g(const std::set<int> &seed, rTuple &rtup, short *temp_state){
         std::set<int> new_active;
-        short *state = new short[vnum];
-        memset(state, -1, vnum*sizeof(short));
+        memset(temp_state, -1, vnum*sizeof(short));
         for(int i: rtup.seed){
-            state[i] = seed_state[i];
+            temp_state[i] = seed_state[i];
             if(seed_state[i] > -1)
                 new_active.insert(i);
             else{
                 std::cout << "ERROR: seed state" << std::endl;
-                delete [] state;
                 exit(1);
             }
         }
         for(int i: seed){
             if(rtup.upper.find(i) != rtup.upper.end()){
-                state[i] = cnum;
+                temp_state[i] = cnum;
                 new_active.insert(i);
             }
         }
         for(int i = 0;i < 2*rtup.relations.size();i++){
             if(new_active.find(rtup.node_v) != new_active.end()){
-                if(state[rtup.node_v] == cnum){
-                    delete [] state;
-                    return true;
-                }
-                delete [] state;
+                if(temp_state[rtup.node_v] == cnum)   return true;
                 return false;
-            } else if(new_active.empty()){
-                delete [] state;
+            } else if(new_active.empty())
                 return false;
-            }
-            diffuseOneRound(new_active, state, rtup);
+            diffuseOneRound(new_active, temp_state, rtup);
         }
         std::cout << "ERROR: unusual exit from DiffusionState_MIC.compute_g" << std::endl;
-        delete [] state;
         exit(1);
     }
 
-    int compute_g(const std::set<int> &seed, rTuple &rtup, std::string type, int *result){
+    int compute_g(const std::set<int> &seed, rTuple &rtup, const std::string &type, int *result, int tid){
         int temp = 0;
         switch(type[0]){
         case 'u':
@@ -326,7 +335,7 @@ public:
         case 'm':
             if(intersection(seed, rtup.lower))  temp = 2;
             else if(intersection(seed, rtup.upper)){
-                if(computeMid_g(seed, rtup))    temp = 1;
+                if(computeMid_g(seed, rtup, temp_state_1+vnum*tid))    temp = 1;
                 else    temp = -1;
             } else  temp = -2;
             break;
@@ -339,11 +348,11 @@ public:
         return temp;
     }
 
-    double computeG(std::set<int> &S, std::vector<rTuple> &rtup, int n, std::string type, double *result, mt19937 &rand){
+    double computeG(std::set<int> &S, std::vector<rTuple> &rtup, int n, const std::string &type, double *result, mt19937 &rand){
         int count = 0;
         double output;
         for(rTuple &rt: rtup)
-            if(compute_g(S, rt, type, nullptr) > 0)
+            if(compute_g(S, rt, type, nullptr, 0) > 0)
                 count++;
         output = (double)n*count/rtup.size();
         if(result)  *result = output;

@@ -27,7 +27,7 @@ void printContainer(const T &container){
     std::cout << std::endl;
 }
 
-void printTime(std::chrono::high_resolution_clock::time_point start, std::chrono::high_resolution_clock::time_point end){
+void printTime(const std::chrono::high_resolution_clock::time_point &start, const std::chrono::high_resolution_clock::time_point &end){
     auto duration = end-start;
     auto hour = std::chrono::duration_cast<std::chrono::hours>(duration).count();
     auto min = std::chrono::duration_cast<std::chrono::minutes>(duration).count();
