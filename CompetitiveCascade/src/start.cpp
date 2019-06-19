@@ -60,13 +60,14 @@ int main(int args, char **argv){
     string path = "../data/"+name+".txt";
     Network network(path, type, vnum);
     network.setICProb(.1);
-    double eps = .3, N = 10000.;
-    int tenpercent = (int)(vnum * .1);
+    double eps = .3, N = 10000., partial = .1;
+    int tenpercent = (int)(vnum * partial);
     mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
     auto start = chrono::high_resolution_clock::now();
 
     DiffusionState_MIC diffusionState(network);
 
+    cout << "seed set: " << partial * 100 << "%" << endl;
     for(int j = 0;j < 4;j++){
         set<int> seed;
         for(int i = j*tenpercent;i < j*tenpercent+tenpercent;i++)
