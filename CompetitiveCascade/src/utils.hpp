@@ -330,10 +330,11 @@ double Sandwich_greedy(std::vector<rTuple> &rtup, std::set<int> &solution, int k
     return coverred;
 }
 
-double Sandwich_computeLowerBound(const Network &network, DiffusionState_MIC &diffusionState, int k, double eps0, double N, int p, mt19937 &rand){
+double Sandwich_computeLowerBound(const Network &network, DiffusionState_MIC &diffusionState, int k, double eps1, double N, int p, mt19937 &rand){
     int n = network.vertexNum;
     std::vector<rTuple> rtup;
     std::set<int> S;
+    double eps0 = sqrt(eps1);
     double lambda = (n*(2+eps0)*log(N*boost::math::binomial_coefficient<double>(n,k)*log2(n)))/(eps0*eps0);
     double x, l, g_lower, pw = p;
     for(int i = 1;i < (int)log2(n-1.)/log2(p);i++){
