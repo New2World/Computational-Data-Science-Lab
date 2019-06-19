@@ -27,7 +27,7 @@
 #include "sortmap.hpp"
 #include "tools.hpp"
 
-#define THREAD 70
+#define THREAD 10
 
 // double computeG(DiffusionState_MIC &diffusionState, std::set<int> &S, std::vector<rTuple> &rtup, int n, std::string type, double *result, mt19937 &rand){
 //     int count = 0;
@@ -161,9 +161,9 @@ void Sandwich_greedyMid(const Network &network, DiffusionState_MIC &diffusionSta
         double cmaxvalue = -1.;
         tid = 0;
         std::vector<std::set<int>> type1s(candidate.size()), type2s(candidate.size()), utype1s(candidate.size());
-        boost::asio::thread_pool pool(THREAD);
         std::set<int>::iterator iter = candidate.begin();
         while(iter != candidate.end()){
+            boost::asio::thread_pool pool(THREAD);
             for(int j = 0;j < THREAD && iter != candidate.end();j++, iter++){
                 solution.insert(*iter);
                 auto bind_fn = boost::bind(__parallel, ref(diffusionState), solution, ref(rtup), ref(coverred_state), ref(type1s[tid]), ref(type2s[tid]), ref(utype1s[tid]), results+tid, j);

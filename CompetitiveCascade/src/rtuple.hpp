@@ -35,10 +35,12 @@ public:
     }
 
     void _stat(){
+        std::cout << "----------" << std::endl;
         std::cout << "node_v: " << node_v << std::endl;
         std::cout << "upper:" << std::endl;
         printContainer(upper);
         std::cout << "lower:" << std::endl;
+        std::cout << "----------" << std::endl;
         printContainer(lower);
     }
 };

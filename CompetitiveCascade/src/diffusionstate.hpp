@@ -21,7 +21,7 @@
 #include "rtuple.hpp"
 #include "tools.hpp"
 
-#define THREAD 70
+#define THREAD 10
 
 class DiffusionState_MIC{
     short *temp_state_1, *temp_state_2;
@@ -260,12 +260,11 @@ public:
     double getRTuples(const Network &network, std::vector<rTuple> &rtup, double size, mt19937 &rand){
         int countdiff = 0;
         int rtup_size = rtup.size();
-        rTuple rt;
         if(rtup.empty())    rtup = std::vector<rTuple>(size);
         else    rtup.resize(size+rtup.size());
         int new_size = rtup.size();
-        boost::asio::thread_pool pool(THREAD);
         for(int i = rtup_size;i < new_size;){
+            boost::asio::thread_pool pool(THREAD);
             for(int j = 0;j < THREAD && i < new_size;j++, i++){
                 auto bind_fn = boost::bind(&DiffusionState_MIC::getRTuple, this, ref(network), ref(rtup[i]), ref(rand), j);
                 boost::asio::post(pool, bind_fn);
@@ -281,9 +280,9 @@ public:
     double expInfluenceComplete(const Network &network, int times, int cindex, mt19937 &rand){
         int c_result[THREAD];
         double result = 0.;
-        boost::asio::thread_pool pool(THREAD);
         memset(c_result, 0, THREAD*sizeof(int));
         for(int i = 0;i < times;){
+            boost::asio::thread_pool pool(THREAD);
             for(int j = 0;j < THREAD && i < times;j++,i++){
                 auto bind_fn = boost::bind(&DiffusionState_MIC::diffuse, this, ref(network), c_result+j, cindex, vnum, ref(rand), temp_state_1+vnum*j);
                 boost::asio::post(pool, bind_fn);

@@ -15,10 +15,9 @@ bool intersection(const std::set<int> &l1, const std::set<int> &l2){
 
 template <typename T>
 void printContainer(const T &container){
-    if(container.size() < 0)    return;
     if(container.size() == 1)
         std::cout << *container.begin();
-    else{
+    else if(!container.empty()){
         auto it = container.begin();
         std::cout << *(it++);
         for(;it != container.end();it++)
