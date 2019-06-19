@@ -57,6 +57,7 @@ int main(int args, char **argv){
     int vnum = atoi(argv[3]);
     int k = atoi(argv[4]);
     int span = atoi(argv[5]);
+    int base = atoi(argv[6]);
     string path = "../data/"+name+".txt";
     Network network(path, type, vnum);
     network.setICProb(.1);
@@ -76,7 +77,7 @@ int main(int args, char **argv){
     }
     vector<rTuple> rtup;
     Results sandwich_result, reverse_result, highdegree_result;
-    sandwich_result = Sandwich_computeSeedSet(network, diffusionState, k, eps, N, rtup, rand, span);
+    sandwich_result = Sandwich_computeSeedSet(network, diffusionState, k, eps, N, rtup, base, rand, span);
 
     // set<int> naivegreedy = NaiveGreedy_computeSeedSet(network, diffusionState, k, eps, N, 1, rand);
 

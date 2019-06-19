@@ -330,21 +330,22 @@ double Sandwich_greedy(std::vector<rTuple> &rtup, std::set<int> &solution, int k
     return coverred;
 }
 
-double Sandwich_computeLowerBound(const Network &network, DiffusionState_MIC &diffusionState, int k, double eps0, double N, mt19937 &rand){
+double Sandwich_computeLowerBound(const Network &network, DiffusionState_MIC &diffusionState, int k, double eps0, double N, int p, mt19937 &rand){
     int n = network.vertexNum;
     std::vector<rTuple> rtup;
     std::set<int> S;
     double lambda = (n*(2+eps0)*log(N*boost::math::binomial_coefficient<double>(n,k)*log2(n)))/(eps0*eps0);
-    double x, l, g_lower, pw = 2.;
-    for(int i = 1;i < (int)log2(n-1.);i++){
+    double x, l, g_lower, pw = p;
+    for(int i = 1;i < (int)log2(n-1.)/log2(p);i++){
         x = n/pw;
         l = lambda/x;
-        pw *= 2;
+        pw *= p;
         if(rtup.size() < l)
             diffusionState.getRTuples(network, rtup, (int)(l-rtup.size()), rand);
         S.clear();
         Sandwich_greedy(rtup, S, k, "lower");
         g_lower = diffusionState.computeG(S, rtup, n, "lower", &g_lower, rand);
+        std::cout << g_lower << " " << (1+eps0)*x << std::endl;
         if(g_lower >= (1+eps0)*x)   return g_lower;
     }
     std::cout << "compute lower bound may wrong, opt too small" << std::endl;
@@ -357,11 +358,12 @@ double Sandwich_decideL(int n, int k, double low_bound, double eps1, double eps2
     return (l1>l2?l1:l2)/low_bound;
 }
 
-int Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diffusionState, int k, double eps1, double N, std::set<int> &solution, mt19937 &rand){
+int Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diffusionState, int k, double eps1, double N, std::set<int> &solution, int p, mt19937 &rand){
     std::cout << "========== Sandwich running ==========" << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
     double eps0 = eps1, eps2 = (eps1*log(N))/(log(network.vertexNum)+log(N));
-    double low_bound = Sandwich_computeLowerBound(network, diffusionState, k, eps0, N, rand);
+    eps2 = eps1;
+    double low_bound = Sandwich_computeLowerBound(network, diffusionState, k, eps1, N, p, rand);
     int l = (int)Sandwich_decideL(network.vertexNum, k, low_bound, eps1, eps2, N);
     std::vector<rTuple> rtup;
     std::cout << "l " << l << " " << diffusionState.getRTuples(network, rtup, l, rand) << std::endl;
@@ -388,11 +390,12 @@ int Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diffusio
     return l;
 }
 
-Results Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diffusionState, int k, double eps1, double N, std::vector<rTuple> &rtup, mt19937 &rand, int span){
+Results Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diffusionState, int k, double eps1, double N, std::vector<rTuple> &rtup, int p, mt19937 &rand, int span){
     std::cout << "========== Sandwich running ==========" << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
     double eps0 = eps1, eps2 = (eps1*log(N))/(log(network.vertexNum)+log(N));
-    double low_bound = Sandwich_computeLowerBound(network, diffusionState, k, eps0, N, rand);
+    eps2 = eps1;
+    double low_bound = Sandwich_computeLowerBound(network, diffusionState, k, eps1, N, p, rand);
     int l = (int)Sandwich_decideL(network.vertexNum, k, low_bound, eps1, eps2, N);
     std::cout << "l " << l << " " << diffusionState.getRTuples(network, rtup, l, rand) << std::endl;
     std::set<int> upper_solution, lower_solution;

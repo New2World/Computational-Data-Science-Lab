@@ -77,12 +77,13 @@ class DiffusionState_MIC{
             new_active.insert(i);
     }
 
-    void diffuseOneRound(std::set<int> &new_active, short *state, rTuple &rtup){
-        for(int i = 0;i < vnum;i++) temp_state_2[i] = state[i];
+    void diffuseOneRound(std::set<int> &new_active, short *state, rTuple &rtup, int tid){
+        int base = tid * vnum;
+        for(int i = 0;i < vnum;i++) temp_state_2[base+i] = state[i];
         std::set<int> new_active_temp;
         for(int cseed: new_active){
             for(int cseede: rtup.relations[cseed]){
-                if(temp_state_2[cseede] == -1){
+                if(temp_state_2[base+cseede] == -1){
                     state[cseede] = priority(state[cseede], state[cseed], cseede, 1);
                     if(new_active_temp.find(cseede) == new_active_temp.end())
                         new_active_temp.insert(cseede);
@@ -132,19 +133,20 @@ class DiffusionState_MIC{
         return 0;
     }
 
-    int reSpreadOnce(const Network &network, int cindex, rTuple &rtup, mt19937 &rand, short *temp_state){
-        for(int i = 0;i < vnum;i++) temp_state[i] = seed_state[i];
+    int reSpreadOnce(const Network &network, int cindex, rTuple &rtup, mt19937 &rand, int tid){
+        int base = vnum * tid;
+        for(int i = 0;i < vnum;i++) temp_state_1[base+i] = seed_state[i];
         std::set<int> new_active;
-        temp_state[cindex] = -2;
+        temp_state_1[base+cindex] = -2;
         rtup.upper.insert(cindex);
         rtup.lower.insert(cindex);
         new_active.insert(cindex);
         while(!new_active.empty())
-            reSpreadOneRound(network, new_active, temp_state, rtup, rand);
+            reSpreadOneRound(network, new_active, temp_state_1+base, rtup, rand);
         return 0;
     }
 
-    double getRTuple(const Network &network, rTuple &rtup, mt19937 &rand, short *temp_state){
+    double getRTuple(const Network &network, rTuple &rtup, mt19937 &rand, int tid){
         int cindex = rand()%vnum;
         rtup.clear();
         rtup.node_v = cindex;
@@ -156,7 +158,7 @@ class DiffusionState_MIC{
         switch(network.type[0]){
         case 'I':
         case 'W':
-            return reSpreadOnce(network, cindex, rtup, rand, temp_state);
+            return reSpreadOnce(network, cindex, rtup, rand, tid);
         default:
             std::cout << "invalid model" << std::endl;
         }
@@ -265,7 +267,7 @@ public:
         boost::asio::thread_pool pool(THREAD);
         for(int i = rtup_size;i < new_size;){
             for(int j = 0;j < THREAD && i < new_size;j++, i++){
-                auto bind_fn = boost::bind(&DiffusionState_MIC::getRTuple, this, ref(network), ref(rtup[i]), ref(rand), temp_state_1+vnum*j);
+                auto bind_fn = boost::bind(&DiffusionState_MIC::getRTuple, this, ref(network), ref(rtup[i]), ref(rand), j);
                 boost::asio::post(pool, bind_fn);
             }
             pool.join();
@@ -295,11 +297,11 @@ public:
         return result/times;
     }
 
-    bool computeMid_g(const std::set<int> &seed, rTuple &rtup, short *temp_state){
+    bool computeMid_g(const std::set<int> &seed, rTuple &rtup, int tid){
         std::set<int> new_active;
-        memset(temp_state, -1, vnum*sizeof(short));
+        int base = vnum * tid;
         for(int i: rtup.seed){
-            temp_state[i] = seed_state[i];
+            temp_state_1[base+i] = seed_state[i];
             if(seed_state[i] > -1)
                 new_active.insert(i);
             else{
@@ -309,17 +311,17 @@ public:
         }
         for(int i: seed){
             if(rtup.upper.find(i) != rtup.upper.end()){
-                temp_state[i] = cnum;
+                temp_state_1[base+i] = cnum;
                 new_active.insert(i);
             }
         }
         for(int i = 0;i < 2*rtup.relations.size();i++){
             if(new_active.find(rtup.node_v) != new_active.end()){
-                if(temp_state[rtup.node_v] == cnum)   return true;
+                if(temp_state_1[base+rtup.node_v] == cnum)   return true;
                 return false;
             } else if(new_active.empty())
                 return false;
-            diffuseOneRound(new_active, temp_state, rtup);
+            diffuseOneRound(new_active, temp_state_1+base, rtup, tid);
         }
         std::cout << "ERROR: unusual exit from DiffusionState_MIC.compute_g" << std::endl;
         exit(1);
@@ -335,7 +337,7 @@ public:
         case 'm':
             if(intersection(seed, rtup.lower))  temp = 2;
             else if(intersection(seed, rtup.upper)){
-                if(computeMid_g(seed, rtup, temp_state_1+vnum*tid))    temp = 1;
+                if(computeMid_g(seed, rtup, tid))    temp = 1;
                 else    temp = -1;
             } else  temp = -2;
             break;
