@@ -22,7 +22,7 @@ void printContainer(const T &container){
         std::cout << *(it++);
         for(;it != container.end();it++)
             std::cout << " " << *it;
-    }
+    } else  std::cout << "empty" << std::endl;
     std::cout << std::endl;
 }
 

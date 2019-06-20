@@ -216,7 +216,7 @@ public:
     }
 
     void diffuse(const Network &network, int *result, int cindex, int round, mt19937 &rand, int tid){
-        auto start = std::chrono::high_resolution_clock::now();
+        // auto start = std::chrono::high_resolution_clock::now();
         int base = vnum * tid;
         for(int i = 0;i < vnum;i++) temp_state_1[base+i] = seed_state[i];
         std::set<int> new_active(seednodes);
@@ -227,7 +227,8 @@ public:
         for(int i = 0;i < vnum;i++)
             if(temp_state_1[base+i] == cindex)
                 (*result)++;
-        printTime(start, std::chrono::high_resolution_clock::now());
+        // auto end = std::chrono::high_resolution_clock::now();
+        // printTime(start, end);
     }
 
     int seed(const std::set<int> &seed_set){
