@@ -215,11 +215,10 @@ public:
         freeSpace(temp_state_2);
     }
 
-    void diffuse(const Network &network, int *result, int cindex, int round, mt19937 &rand, int tid){
+    void diffuse(const Network &network, std::set<int> &new_active, int *result, int cindex, int round, mt19937 &rand, int tid){
         // auto start = std::chrono::high_resolution_clock::now();
         int base = vnum * tid;
         for(int i = 0;i < vnum;i++) temp_state_1[base+i] = seed_state[i];
-        std::set<int> new_active(seednodes);
         for(int i = 0;i < round;i++){
             diffuseOneRound(network, temp_state_1+base, new_active, rand, tid);
             if(new_active.empty())  break;
@@ -283,10 +282,12 @@ public:
         int c_result[THREAD];
         double result = 0.;
         memset(c_result, 0, THREAD*sizeof(int));
+        std::set<int> new_active;
         for(int i = 0;i < times;){
             boost::asio::thread_pool pool(THREAD);
             for(int j = 0;j < THREAD && i < times;j++,i++){
-                auto bind_fn = boost::bind(&DiffusionState_MIC::diffuse, this, ref(network), c_result+j, cindex, vnum, ref(rand), j);
+                new_active = seednodes;
+                auto bind_fn = boost::bind(&DiffusionState_MIC::diffuse, this, ref(network), ref(new_active), c_result+j, cindex, vnum, ref(rand), j);
                 boost::asio::post(pool, bind_fn);
             }
             pool.join();
