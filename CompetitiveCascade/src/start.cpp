@@ -33,13 +33,13 @@ void testInfluence(DiffusionState_MIC &diffusionState, const Network &network, R
     }
 }
 
-void test(const Network &network, DiffusionState_MIC &diffu){
+void test(const Network &network, DiffusionState_MIC &diffu, vector<int> nodes){
     set<int> seedset;
     int tenpercent = 830;
     for(int j = 0;j < 4;j++){
         set<int> seed;
         for(int i = j*tenpercent;i < j*tenpercent+tenpercent;i++)
-            seed.insert(i);
+            seed.insert(nodes[i]);
         diffu.seed(seed);
     }
     vector<rTuple> rtup;
@@ -48,7 +48,7 @@ void test(const Network &network, DiffusionState_MIC &diffu){
     //     rt._stat();
 
     for(int i = 4000;i < 4100;i++)
-        seedset.insert(i);
+        seedset.insert(nodes[i]);
     int cindex = diffu.seed(seedset);
     cout << diffu.expInfluenceComplete(network, 3000, cindex) << endl;
     diffu.removeSeed(cindex);
@@ -73,14 +73,19 @@ int main(int args, char **argv){
 
     DiffusionState_MIC diffusionState(network, string(argv[6]), rand);
 
-    // test(network, diffusionState);
+    vector<int> shuffle_node(vnum);
+    for(int i = 0;i < vnum;i++)
+        shuffle_node[i] = i;
+    shuffle(shuffle_node.begin(), shuffle_node.end(), rand);
+
+    // test(network, diffusionState, shuffle_node);
     // return 0;
 
     cout << "seed set: " << partial * 100 << "%" << endl;
     for(int j = 0;j < 4;j++){
         set<int> seed;
         for(int i = j*tenpercent;i < j*tenpercent+tenpercent;i++)
-            seed.insert(i);
+            seed.insert(shuffle_node[i]);
         diffusionState.seed(seed);
     }
     vector<rTuple> rtup;

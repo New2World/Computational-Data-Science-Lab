@@ -51,75 +51,96 @@ class DiffusionState_MIC{
         fclose(fd);
     }
 
-    int pri_rand(int a, int b, int tid){
-        if((double)randn[tid]()/randn[tid].max() > .5)  return a;
-        return b;
+    int pri_rand(std::set<std::pair<int,short>> pri, int tid){
+        int n = randn[tid]() % pri.size();
+        for(std::pair<int,short> p: pri){
+            if(n == 0)
+                return p.second;
+            --n;
+        }
     }
 
-    int pri_cas(int a, int b, int node, int shift){
-        std::vector<int> priority = caspriority[cnum+shift][node%_max];
-        if(priority[a] > priority[b])   return a;
-        return b;
+    int pri_cas(std::set<std::pair<int,short>> pri, int node, int shift){
+        std::vector<int> prior = caspriority[cnum+shift][node%_max];
+        int maxpri = -1;
+        for(std::pair<int,short> p: pri)
+            if(prior[p.second] > prior[maxpri])
+                maxpri = p.second;
+        return maxpri;
     }
 
-    int priority(int a, int b, int na, int tid, int shift=0){
+    int pri_nei(std::set<std::pair<int,short>> pri){
+        int maxpri = -1, minnode = vnum;
+        for(std::pair<int,short> p: pri){
+            if(p.first < minnode){
+                minnode = p.first;
+                maxpri = p.second;
+            }
+        }
+        return maxpri;
+    }
+
+    int priority(std::set<std::pair<int,short>> pri, int n, int tid, int shift=0){
         switch(pri_type[0]){
         case 'c':
-            return pri_cas(a, b, na, shift);
+            return pri_cas(pri, n, shift);
         case 'r':
-            return pri_rand(a, b, tid);
+            return pri_rand(pri, tid);
+        case 'n':
+            return pri_nei(pri);
         }
     }
 
     void diffuseOneRound(const Network &network, short *state, int tid){
-        int cseede, pri_nd, base = vnum * tid;
+        int cseede, base = vnum * tid;
         double prob, rd;
         new_active_temp[tid].clear();
+        std::map<int,std::set<std::pair<int,short>>> cas_pri;
         for(int i = 0;i < vnum;i++) temp_state_2[base+i] = state[i];
         for(int cseed: new_active[tid]){
-            if(pri_type == "neighbor"){
-                int nei_nd;
-                for(int i = 0;i < network.outDegree[cseed];i++){
-                    nei_nd = network.getNeighbor(cseed, i);
-                    if(state[nei_nd] < 0)   continue;
-                    pri_nd = std::min(pri_nd, nei_nd);
-                }
-            }
             for(int i = 0;i < network.outDegree[cseed];i++){
                 cseede = network.getNeighbor(cseed, i);
                 prob = network.getProb(cseed, cseede);
                 rd = (double)randn[tid]()/randn[tid].max();
                 if(rd < prob && temp_state_2[base+cseede] == -1){
-                    if(pri_type == "neighbor")
-                        state[cseede] = state[pri_nd];
-                    else
-                        state[cseede] = priority(state[cseede], state[cseed], cseede, tid);
+                    if(cas_pri.find(cseede) == cas_pri.end())
+                        cas_pri[cseede] = std::set<std::pair<int,short>>();
+                    cas_pri[cseede].insert(std::make_pair(cseed, state[cseed]));
+                    // state[cseede] = priority(state[cseede], state[cseed], cseede, tid);
                     if(new_active_temp[tid].find(cseede) == new_active_temp[tid].end())
                         new_active_temp[tid].insert(cseede);
                 }
             }
         }
         new_active[tid].clear();
-        for(int i: new_active_temp[tid])
+        for(int i: new_active_temp[tid]){
             new_active[tid].insert(i);
+            state[i] = priority(cas_pri[i], i, tid);
+        }
     }
 
     void diffuseOneRound(short *state, rTuple &rtup, int tid){
         int base = tid * vnum;
         new_active_temp[tid].clear();
+        std::map<int,std::set<std::pair<int,short>>> cas_pri;
         for(int i = 0;i < vnum;i++) temp_state_2[base+i] = state[i];
         for(int cseed: new_active[tid]){
             for(int cseede: rtup.relations[cseed]){
                 if(temp_state_2[base+cseede] == -1){
-                    state[cseede] = priority(state[cseede], state[cseed], cseede, tid, 1);
+                    if(cas_pri.find(cseede) == cas_pri.end())
+                        cas_pri[cseede] = std::set<std::pair<int,short>>();
+                    cas_pri[cseede].insert(std::make_pair(cseed, state[cseed]));
+                    // state[cseede] = priority(state[cseede], state[cseed], cseede, tid, 1);
                     if(new_active_temp[tid].find(cseede) == new_active_temp[tid].end())
                         new_active_temp[tid].insert(cseede);
                 }
             }
         }
         new_active[tid].clear();
-        for(int i: new_active_temp[tid])
+        for(int i: new_active_temp[tid]){
             new_active[tid].insert(i);
+            state[i] = priority(cas_pri[i], i, tid, 1);
+        }
     }
 
     int reSpreadOneRound(const Network &network, short *state, rTuple &rtup, int tid){
