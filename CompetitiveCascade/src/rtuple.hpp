@@ -40,7 +40,7 @@ public:
         std::cout << "upper:" << std::endl;
         printContainer(upper);
         std::cout << "lower:" << std::endl;
-        std::cout << "----------" << std::endl;
         printContainer(lower);
+        std::cout << "----------" << std::endl;
     }
 };

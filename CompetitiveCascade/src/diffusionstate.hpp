@@ -21,7 +21,7 @@
 #include "rtuple.hpp"
 #include "tools.hpp"
 
-#define THREAD 10
+#define THREAD 6
 
 class DiffusionState_MIC{
     short *temp_state_1, *temp_state_2;

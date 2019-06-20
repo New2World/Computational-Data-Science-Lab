@@ -46,7 +46,7 @@ void test(const Network &network, DiffusionState_MIC &diffu, mt19937 &rand){
     for(int i = 4000;i < 4100;i++)
         seedset.insert(i);
     int cindex = diffu.seed(seedset);
-    cout << diffu.expInfluenceComplete(network, 30000, cindex, rand) << endl;
+    cout << diffu.expInfluenceComplete(network, 3000, cindex, rand) << endl;
     diffu.removeSeed(cindex);
     cout << diffu.computeG(seedset, rtup, network.vertexNum, "upper", nullptr, rand) << endl;
     cout << diffu.computeG(seedset, rtup, network.vertexNum, "mid", nullptr, rand) << endl;
@@ -70,8 +70,9 @@ int main(int args, char **argv){
 
     DiffusionState_MIC diffusionState(network);
 
-    test(network, diffusionState, rand);
-    return 0;
+    // test(network, diffusionState, rand);
+    // return 0;
+
     cout << "seed set: " << partial * 100 << "%" << endl;
     for(int j = 0;j < 4;j++){
         set<int> seed;
