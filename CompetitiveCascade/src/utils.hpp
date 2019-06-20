@@ -27,7 +27,7 @@
 #include "sortmap.hpp"
 #include "tools.hpp"
 
-#define THREAD 6
+#define THREAD 70
 
 // double computeG(DiffusionState_MIC &diffusionState, std::set<int> &S, std::vector<rTuple> &rtup, int n, std::string type, double *result, mt19937 &rand){
 //     int count = 0;

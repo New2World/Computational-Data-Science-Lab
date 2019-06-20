@@ -87,15 +87,15 @@ int main(int args, char **argv){
 
     // set<int> naivegreedy = NaiveGreedy_computeSeedSet(network, diffusionState, k, eps, N, 1, rand);
 
-    reverse_result = ReverseGreedy_computeSeedSet(network, diffusionState, k, rtup, rand, span);
+    // reverse_result = ReverseGreedy_computeSeedSet(network, diffusionState, k, rtup, rand, span);
 
     highdegree_result = HighDegree_computeSeedSet(network, diffusionState, k, span);
 
     cout << "---------- Testing Sandwich ----------" << endl;
     testInfluence(diffusionState, network, sandwich_result, rand, k, span);
 
-    cout << endl << "---------- Testing Reverse ----------" << endl;
-    testInfluence(diffusionState, network, reverse_result, rand, k, span);
+    // cout << endl << "---------- Testing Reverse ----------" << endl;
+    // testInfluence(diffusionState, network, reverse_result, rand, k, span);
 
     cout << endl << "---------- Testing High Degree ----------" << endl;
     testInfluence(diffusionState, network, highdegree_result, rand, k, span);
