@@ -26,6 +26,8 @@
 
 class DiffusionState_MIC{
     short *temp_state_1, *temp_state_2;
+    std::string pri_type;
+    std::vector<std::mt19937> randn;
     std::set<int> new_active[THREAD], new_active_temp[THREAD];
 
     void readPriority(int num){
@@ -49,13 +51,34 @@ class DiffusionState_MIC{
         fclose(fd);
     }
 
-    int priority(int a, int b, int node, int shift=0){
+    int pri_rand(int a, int b, int tid){
+        if((double)randn[tid]()/randn[tid].max() > .5)  return a;
+        return b;
+    }
+
+    int pri_cas(int a, int b, int node, int shift){
         std::vector<int> priority = caspriority[cnum+shift][node%_max];
         if(priority[a] > priority[b])   return a;
         return b;
     }
 
-    void diffuseOneRound(const Network &network, short *state, mt19937 &rand, int tid){
+    int pri_nei(int a, int b, int na, int nb){
+        if(na < nb) return a;
+        return b;
+    }
+
+    int priority(int a, int b, int na, int nb, int tid, int shift=0){
+        switch(pri_type[0]){
+        case 'c':
+            return pri_cas(a, b, na, shift);
+        case 'r':
+            return pri_rand(a, b, tid);
+        case 'n':
+            return pri_nei(a, b, na, nb);
+        }
+    }
+
+    void diffuseOneRound(const Network &network, short *state, int tid){
         int cseede, base = vnum * tid;
         double prob, rd;
         new_active_temp[tid].clear();
@@ -64,9 +87,9 @@ class DiffusionState_MIC{
             for(int i = 0;i < network.outDegree[cseed];i++){
                 cseede = network.getNeighbor(cseed, i);
                 prob = network.getProb(cseed, cseede);
-                rd = (double)rand()/rand.max();
+                rd = (double)randn[tid]()/randn[tid].max();
                 if(rd < prob && temp_state_2[base+cseede] == -1){
-                    state[cseede] = priority(state[cseede], state[cseed], cseede);
+                    state[cseede] = priority(state[cseede], state[cseed], cseede, cseed, tid);
                     if(new_active_temp[tid].find(cseede) == new_active_temp[tid].end())
                         new_active_temp[tid].insert(cseede);
                 }
@@ -84,7 +107,7 @@ class DiffusionState_MIC{
         for(int cseed: new_active[tid]){
             for(int cseede: rtup.relations[cseed]){
                 if(temp_state_2[base+cseede] == -1){
-                    state[cseede] = priority(state[cseede], state[cseed], cseede, 1);
+                    state[cseede] = priority(state[cseede], state[cseed], cseede, cseed, tid, 1);
                     if(new_active_temp[tid].find(cseede) == new_active_temp[tid].end())
                         new_active_temp[tid].insert(cseede);
                 }
@@ -95,7 +118,7 @@ class DiffusionState_MIC{
             new_active[tid].insert(i);
     }
 
-    int reSpreadOneRound(const Network &network, short *state, rTuple &rtup, mt19937 &rand, int tid){
+    int reSpreadOneRound(const Network &network, short *state, rTuple &rtup, int tid){
         int cseede;
         double prob, rd;
         new_active_temp[tid].clear();
@@ -103,7 +126,7 @@ class DiffusionState_MIC{
             for(int j = 0;j < network.inDegree[cseed];j++){
                 cseede = network.getReverseNeighbor(cseed, j);
                 prob = network.getProb(cseede, cseed);
-                if((double)rand()/rand.max() < prob && state[cseede] != -2){
+                if((double)randn[tid]()/randn[tid].max() < prob && state[cseede] != -2){
                     if(rtup.relations.find(cseede) == rtup.relations.end()){
                         rtup.relations[cseede] = std::set<int>();
                         new_active_temp[tid].insert(cseede);
@@ -133,7 +156,7 @@ class DiffusionState_MIC{
         return 0;
     }
 
-    int reSpreadOnce(const Network &network, int cindex, rTuple &rtup, mt19937 &rand, int tid){
+    int reSpreadOnce(const Network &network, int cindex, rTuple &rtup, int tid){
         int base = vnum * tid;
         for(int i = 0;i < vnum;i++) temp_state_1[base+i] = seed_state[i];
         temp_state_1[base+cindex] = -2;
@@ -142,12 +165,12 @@ class DiffusionState_MIC{
         rtup.lower.insert(cindex);
         new_active[tid].insert(cindex);
         while(!new_active[tid].empty())
-            reSpreadOneRound(network, temp_state_1+base, rtup, rand, tid);
+            reSpreadOneRound(network, temp_state_1+base, rtup, tid);
         return 0;
     }
 
-    double getRTuple(const Network &network, rTuple &rtup, mt19937 &rand, int tid){
-        int cindex = rand()%vnum;
+    double getRTuple(const Network &network, rTuple &rtup, int tid){
+        int cindex = randn[tid]()%vnum;
         rtup.clear();
         rtup.node_v = cindex;
         rtup.relations[cindex] = std::set<int>();
@@ -155,7 +178,7 @@ class DiffusionState_MIC{
             rtup.seed.insert(cindex);
             return 0;
         }
-        return reSpreadOnce(network, cindex, rtup, rand, tid);
+        return reSpreadOnce(network, cindex, rtup, tid);
     }
 
     template <typename T>
@@ -170,7 +193,7 @@ public:
     std::map<int,std::set<int>> seedsets;
     std::map<int,std::vector<std::vector<int>>> caspriority;
 
-    DiffusionState_MIC(const Network &network){
+    DiffusionState_MIC(const Network &network, const std::string pri_type, mt19937 &rand){
         cnum = 0;
         vnum = network.vertexNum;
         _max = 13;
@@ -180,6 +203,9 @@ public:
         seed_state = new short[vnum];
         temp_state_1 = new short[vnum*THREAD];
         temp_state_2 = new short[vnum*THREAD];
+        this->pri_type = pri_type;
+        for(int i = 0;i < THREAD;i++)
+            randn.push_back(mt19937(rand()));
         memset(seed_state, -1, vnum*sizeof(short));
         
         readPriority(1);
@@ -202,6 +228,9 @@ public:
         seednodes = diffusionState.seednodes;
         seedsets = diffusionState.seedsets;
         caspriority = diffusionState.caspriority;
+        pri_type = diffusionState.pri_type;
+        for(int i = 0;i < THREAD;i++)
+            randn.push_back(mt19937(diffusionState.randn[i]));
     }
 
     ~DiffusionState_MIC(){
@@ -210,12 +239,12 @@ public:
         freeSpace(temp_state_2);
     }
 
-    void diffuse(const Network &network, int *result, int cindex, int round, mt19937 &rand, int tid){
+    void diffuse(const Network &network, int *result, int cindex, int round, int tid){
         // auto start = std::chrono::high_resolution_clock::now();
         int base = vnum * tid;
         for(int i = 0;i < vnum;i++) temp_state_1[base+i] = seed_state[i];
         for(int i = 0;i < round;i++){
-            diffuseOneRound(network, temp_state_1+base, rand, tid);
+            diffuseOneRound(network, temp_state_1+base, tid);
             if(new_active[tid].empty())  break;
         }
         for(int i = 0;i < vnum;i++)
@@ -253,7 +282,7 @@ public:
         cnum--;
     }
 
-    double getRTuples(const Network &network, std::vector<rTuple> &rtup, double size, mt19937 &rand){
+    double getRTuples(const Network &network, std::vector<rTuple> &rtup, double size){
         int countdiff = 0;
         int rtup_size = rtup.size();
         if(rtup.empty())    rtup = std::vector<rTuple>(size);
@@ -262,7 +291,7 @@ public:
         for(int i = rtup_size;i < new_size;){
             boost::asio::thread_pool pool(THREAD);
             for(int j = 0;j < THREAD && i < new_size;j++, i++){
-                auto bind_fn = boost::bind(&DiffusionState_MIC::getRTuple, this, ref(network), ref(rtup[i]), ref(rand), j);
+                auto bind_fn = boost::bind(&DiffusionState_MIC::getRTuple, this, ref(network), ref(rtup[i]), j);
                 boost::asio::post(pool, bind_fn);
             }
             pool.join();
@@ -273,7 +302,7 @@ public:
         return (double)countdiff;
     }
 
-    double expInfluenceComplete(const Network &network, int times, int cindex, mt19937 &rand){
+    double expInfluenceComplete(const Network &network, int times, int cindex){
         int c_result[THREAD];
         double result = 0.;
         memset(c_result, 0, THREAD*sizeof(int));
@@ -281,7 +310,7 @@ public:
             boost::asio::thread_pool pool(THREAD);
             for(int j = 0;j < THREAD && i < times;j++,i++){
                 new_active[j] = seednodes;
-                auto bind_fn = boost::bind(&DiffusionState_MIC::diffuse, this, ref(network), c_result+j, cindex, vnum, ref(rand), j);
+                auto bind_fn = boost::bind(&DiffusionState_MIC::diffuse, this, ref(network), c_result+j, cindex, vnum, j);
                 boost::asio::post(pool, bind_fn);
             }
             pool.join();
@@ -346,7 +375,7 @@ public:
         return temp;
     }
 
-    double computeG(std::set<int> &S, std::vector<rTuple> &rtup, int n, const std::string &type, double *result, mt19937 &rand){
+    double computeG(std::set<int> &S, std::vector<rTuple> &rtup, int n, const std::string &type, double *result){
         int count = 0;
         double output;
         for(rTuple &rt: rtup)
