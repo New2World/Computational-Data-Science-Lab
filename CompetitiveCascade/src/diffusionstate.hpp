@@ -62,34 +62,38 @@ class DiffusionState_MIC{
         return b;
     }
 
-    int pri_nei(int a, int b, int na, int nb){
-        if(na < nb) return a;
-        return b;
-    }
-
-    int priority(int a, int b, int na, int nb, int tid, int shift=0){
+    int priority(int a, int b, int na, int tid, int shift=0){
         switch(pri_type[0]){
         case 'c':
             return pri_cas(a, b, na, shift);
         case 'r':
             return pri_rand(a, b, tid);
-        case 'n':
-            return pri_nei(a, b, na, nb);
         }
     }
 
     void diffuseOneRound(const Network &network, short *state, int tid){
-        int cseede, base = vnum * tid;
+        int cseede, pri_nd, base = vnum * tid;
         double prob, rd;
         new_active_temp[tid].clear();
         for(int i = 0;i < vnum;i++) temp_state_2[base+i] = state[i];
         for(int cseed: new_active[tid]){
+            if(pri_type == "neighbor"){
+                int nei_nd;
+                for(int i = 0;i < network.outDegree[cseed];i++){
+                    nei_nd = network.getNeighbor(cseed, i);
+                    if(state[nei_nd] < 0)   continue;
+                    pri_nd = std::min(pri_nd, nei_nd);
+                }
+            }
             for(int i = 0;i < network.outDegree[cseed];i++){
                 cseede = network.getNeighbor(cseed, i);
                 prob = network.getProb(cseed, cseede);
                 rd = (double)randn[tid]()/randn[tid].max();
                 if(rd < prob && temp_state_2[base+cseede] == -1){
-                    state[cseede] = priority(state[cseede], state[cseed], cseede, cseed, tid);
+                    if(pri_type == "neighbor")
+                        state[cseede] = state[pri_nd];
+                    else
+                        state[cseede] = priority(state[cseede], state[cseed], cseede, tid);
                     if(new_active_temp[tid].find(cseede) == new_active_temp[tid].end())
                         new_active_temp[tid].insert(cseede);
                 }
@@ -107,7 +111,7 @@ class DiffusionState_MIC{
         for(int cseed: new_active[tid]){
             for(int cseede: rtup.relations[cseed]){
                 if(temp_state_2[base+cseede] == -1){
-                    state[cseede] = priority(state[cseede], state[cseed], cseede, cseed, tid, 1);
+                    state[cseede] = priority(state[cseede], state[cseed], cseede, tid, 1);
                     if(new_active_temp[tid].find(cseede) == new_active_temp[tid].end())
                         new_active_temp[tid].insert(cseede);
                 }
