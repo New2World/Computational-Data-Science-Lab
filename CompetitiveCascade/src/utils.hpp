@@ -334,7 +334,7 @@ double Sandwich_greedy(std::vector<rTuple> &rtup, std::set<int> &solution, int k
                 sign = true;
                 for(int j: c_seed_cover){
                     if(coverred_rrsets[j]){
-                        cout << "greedy update may wrong" << endl;
+                        std::cout << "greedy update may wrong" << std::endl;
                         exit(1);
                     }
                     else{
@@ -347,7 +347,7 @@ double Sandwich_greedy(std::vector<rTuple> &rtup, std::set<int> &solution, int k
             if(t_bound < c_bound)   c_bound = t_bound;
         }
         if(!sign){
-            cout << "greedy lazy: no node selected" << endl;
+            std::cout << "greedy lazy: no node selected" << std::endl;
             exit(1);
         }
     }

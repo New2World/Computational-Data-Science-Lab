@@ -234,7 +234,7 @@ public:
                 new_seed.insert(i);
             }
             else
-                cout << "diffusionState.seed: seeding an active node" << endl;
+                std::cout << "diffusionState.seed: seeding an active node" << std::endl;
         }
         seedsets[cnum++] = new_seed;
         return cnum-1;
