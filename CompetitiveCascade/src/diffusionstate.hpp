@@ -155,14 +155,7 @@ class DiffusionState_MIC{
             rtup.seed.insert(cindex);
             return 0;
         }
-        switch(network.type[0]){
-        case 'I':
-        case 'W':
-            return reSpreadOnce(network, cindex, rtup, rand, tid);
-        default:
-            std::cout << "invalid model" << std::endl;
-        }
-        return 0;
+        return reSpreadOnce(network, cindex, rtup, rand, tid);
     }
 
     template <typename T>

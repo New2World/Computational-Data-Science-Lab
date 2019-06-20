@@ -184,6 +184,8 @@ void Sandwich_greedyMid(const Network &network, DiffusionState_MIC &diffusionSta
                 utype1 = utype1s[j];
             }
         }
+        if(cmaxvalue < 0)
+            break;
         profit += cmaxvalue;
         if(coverred)    coverred[i] = profit;
         solution.insert(cmaxindex);
@@ -208,7 +210,7 @@ void Sandwich_greedyMid(const Network &network, DiffusionState_MIC &diffusionSta
     delete [] results;
 }
 
-std::set<int> ReverseGreedy_computeSeedSet(const Network &network, DiffusionState_MIC &diffusionState, int k, int l, mt19937 &rand){
+Results ReverseGreedy_computeSeedSet(const Network &network, DiffusionState_MIC &diffusionState, int k, int l, mt19937 &rand, int span){
     std::cout << "========== Reverse greedy running ==========" << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
     std::vector<rTuple> rtup;
@@ -216,10 +218,26 @@ std::set<int> ReverseGreedy_computeSeedSet(const Network &network, DiffusionStat
     std::set<int> mid_solution;
     std::cout << "working on mid-solution..." << std::endl;
     Sandwich_greedyMid(network, diffusionState, rtup, mid_solution, k, nullptr, rand);
+    Results result;
+    bool flag = true;
+    for(int i = 0;i < k/span && flag;i++){
+        int k = i*span+span;
+        std::set<int> solution;
+        std::set<int>::iterator iter = mid_solution.begin();
+        for(int j = 0;j < k;j++, iter++){
+            if(iter == mid_solution.end()){
+                flag = false;
+                break;
+            }
+            solution.insert(*iter);
+        }
+        result.seedset[k] = solution;
+        result.supp[k] = 0.;
+    }
     auto end = std::chrono::high_resolution_clock::now();
     printTime(start, end);
     std::cout << "========== Reverse greedy finish ==========" << std::endl << std::endl;
-    return mid_solution;
+    return result;
 }
 
 Results ReverseGreedy_computeSeedSet(const Network &network, DiffusionState_MIC &diffusionState, int k, std::vector<rTuple> &rtup, mt19937 &rand, int span){
@@ -230,12 +248,18 @@ Results ReverseGreedy_computeSeedSet(const Network &network, DiffusionState_MIC 
     std::cout << "working on mid-solution..." << std::endl;
     Sandwich_greedyMid(network, diffusionState, rtup, mid_solution, k, nullptr, rand);
     Results result;
-    for(int i = 0;i < k/span;i++){
+    bool flag = true;
+    for(int i = 0;i < k/span && flag;i++){
         int k = i*span+span;
         std::set<int> solution;
         std::set<int>::iterator iter = mid_solution.begin();
-        for(int j = 0;j < k;j++, iter++)
+        for(int j = 0;j < k;j++, iter++){
+            if(iter == mid_solution.end()){
+                flag = false;
+                break;
+            }
             solution.insert(*iter);
+        }
         result.seedset[k] = solution;
         result.supp[k] = 0.;
     }
@@ -334,7 +358,7 @@ double Sandwich_computeLowerBound(const Network &network, DiffusionState_MIC &di
     int n = network.vertexNum;
     std::vector<rTuple> rtup;
     std::set<int> S;
-    double eps0 = sqrt(eps1);
+    double eps0 = 100 * eps1;
     double lambda = (n*(2+eps0)*log(N*boost::math::binomial_coefficient<double>(n,k)*log2(n)))/(eps0*eps0);
     double x, l, g_lower, pw = p;
     for(int i = 1;i < (int)log2(n-1.)/log2(p);i++){
@@ -353,19 +377,21 @@ double Sandwich_computeLowerBound(const Network &network, DiffusionState_MIC &di
     exit(1);
 }
 
-double Sandwich_decideL(int n, int k, double low_bound, double eps1, double eps2, double N){
+double Sandwich_decideL(int n, int k, double low_bound, double eps1, double eps2, double N, double *l2){
     double l1 = ((2+eps1)*n*log(N+boost::math::binomial_coefficient<double>(n,k)))/(eps1*eps1);
-    double l2 = 2*n*log(N)/(eps2*eps2);
-    return (l1>l2?l1:l2)/low_bound;
+    *l2 = 2*n*log(N)/(eps2*eps2);
+    return (l1>*l2?l1:*l2)/low_bound;
 }
 
-int Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diffusionState, int k, double eps1, double N, std::set<int> &solution, int p, mt19937 &rand){
+int Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diffusionState, int k, double eps1, double N, std::set<int> &solution, int p, mt19937 &rand, double *l2){
     std::cout << "========== Sandwich running ==========" << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
     double eps0 = eps1, eps2 = (eps1*log(N))/(log(network.vertexNum)+log(N));
     eps2 = eps1;
     double low_bound = Sandwich_computeLowerBound(network, diffusionState, k, eps1, N, p, rand);
-    int l = (int)Sandwich_decideL(network.vertexNum, k, low_bound, eps1, eps2, N);
+    int l = (int)Sandwich_decideL(network.vertexNum, k, low_bound, eps1, eps2, N, l2);
+    *l2 /= low_bound;
+    std::cout << "l2  " << l2 << std::endl;
     std::vector<rTuple> rtup;
     std::cout << "l " << l << " " << diffusionState.getRTuples(network, rtup, l, rand) << std::endl;
     std::set<int> upper_solution, lower_solution;
@@ -391,13 +417,14 @@ int Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diffusio
     return l;
 }
 
-Results Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diffusionState, int k, double eps1, double N, std::vector<rTuple> &rtup, int p, mt19937 &rand, int span){
+Results Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diffusionState, int k, double eps1, double N, std::vector<rTuple> &rtup, int p, mt19937 &rand, int span, double *l2){
     std::cout << "========== Sandwich running ==========" << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
     double eps0 = eps1, eps2 = (eps1*log(N))/(log(network.vertexNum)+log(N));
     eps2 = eps1;
     double low_bound = Sandwich_computeLowerBound(network, diffusionState, k, eps1, N, p, rand);
-    int l = (int)Sandwich_decideL(network.vertexNum, k, low_bound, eps1, eps2, N);
+    int l = (int)Sandwich_decideL(network.vertexNum, k, low_bound, eps1, eps2, N, l2);
+    *l2 /= low_bound;
     std::cout << "l " << l << " " << diffusionState.getRTuples(network, rtup, l, rand) << std::endl;
     std::set<int> upper_solution, lower_solution;
     std::cout << "working on upper solution..." << std::endl;

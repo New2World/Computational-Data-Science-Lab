@@ -20,9 +20,13 @@ using namespace std;
 void testInfluence(DiffusionState_MIC &diffusionState, const Network &network, Results &result, mt19937 &rand, int k, int span){
     int cindex;
     set<int> seedset;
-    for(int i = 0;i < k/span;i++){
+    bool flag = true;
+    for(int i = 0;i < k/span && flag;i++){
         int k = i*span+span;
         seedset = result.seedset[k];
+        if(seedset.size() != k)
+            flag = false;
+        if(seedset.empty()) break;
         cindex = diffusionState.seed(seedset);
         cout << seedset.size() << " " << diffusionState.expInfluenceComplete(network, 1000, cindex, rand) << " " << result.supp[k] << endl;
         diffusionState.removeSeed(cindex);
@@ -63,7 +67,7 @@ int main(int args, char **argv){
     string path = "../data/"+name+".txt";
     Network network(path, type, vnum);
     network.setICProb(.1);
-    double eps = .3, N = 10000., partial = .1;
+    double eps = .3, N = 10000., partial = .05;
     int tenpercent = (int)(vnum * partial);
     mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
     auto start = chrono::high_resolution_clock::now();
@@ -82,20 +86,21 @@ int main(int args, char **argv){
     }
     vector<rTuple> rtup;
 
+    double l2;
     Results sandwich_result, reverse_result, highdegree_result;
-    sandwich_result = Sandwich_computeSeedSet(network, diffusionState, k, eps, N, rtup, base, rand, span);
+    sandwich_result = Sandwich_computeSeedSet(network, diffusionState, k, eps, N, rtup, base, rand, span, &l2);
 
     // set<int> naivegreedy = NaiveGreedy_computeSeedSet(network, diffusionState, k, eps, N, 1, rand);
 
-    // reverse_result = ReverseGreedy_computeSeedSet(network, diffusionState, k, rtup, rand, span);
+    reverse_result = ReverseGreedy_computeSeedSet(network, diffusionState, k, l2, rand, span);
 
     highdegree_result = HighDegree_computeSeedSet(network, diffusionState, k, span);
 
     cout << "---------- Testing Sandwich ----------" << endl;
     testInfluence(diffusionState, network, sandwich_result, rand, k, span);
 
-    // cout << endl << "---------- Testing Reverse ----------" << endl;
-    // testInfluence(diffusionState, network, reverse_result, rand, k, span);
+    cout << endl << "---------- Testing Reverse ----------" << endl;
+    testInfluence(diffusionState, network, reverse_result, rand, k, span);
 
     cout << endl << "---------- Testing High Degree ----------" << endl;
     testInfluence(diffusionState, network, highdegree_result, rand, k, span);
