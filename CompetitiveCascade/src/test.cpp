@@ -33,53 +33,38 @@ void testInfluence(DiffusionState_MIC &diffusionState, const Network &network, R
     }
 }
 
-void test(const Network &network, DiffusionState_MIC &diffu, vector<int> nodes){
-    set<int> seedset;
-    int tenpercent = 830;
-    for(int j = 0;j < 4;j++){
-        set<int> seed;
-        for(int i = j*tenpercent;i < j*tenpercent+tenpercent;i++)
-            seed.insert(nodes[i]);
-        diffu.seed(seed);
-    }
-    vector<rTuple> rtup;
-    cout << "count diff: " << diffu.getRTuples(network, rtup, 100000) << endl;
-    // for(rTuple rt: rtup)
-    //     rt._stat();
-
-    for(int i = 4000;i < 4100;i++)
-        seedset.insert(nodes[i]);
-    int cindex = diffu.seed(seedset);
-    cout << diffu.expInfluenceComplete(network, 30000, cindex) << endl;
-    diffu.removeSeed(cindex);
-    cout << diffu.computeG(seedset, rtup, network.vertexNum, "upper", nullptr) << endl;
-    cout << diffu.computeG(seedset, rtup, network.vertexNum, "mid", nullptr) << endl;
-    cout << diffu.computeG(seedset, rtup, network.vertexNum, "lower", nullptr) << endl;
-}
-
 int main(int args, char **argv){
     string name = string(argv[1]);
     string type = string(argv[2]);
     int vnum = atoi(argv[3]);
-    int k = atoi(argv[4]);
-    int span = atoi(argv[5]);
+    string pri = string(argv[4]);
+    int l = atoi(argv[5]);
+    int k = 50;
+    int span = 5;
     string path = "../data/"+name+".txt";
     Network network(path, type, vnum);
     network.setICProb(.1);
     double eps = .3, N = 10000., partial = .005;
     int tenpercent = (int)(vnum * partial);
+    int shuffle_node[vnum];
     mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
     auto start = chrono::high_resolution_clock::now();
 
-    DiffusionState_MIC diffusionState(network, string(argv[6]), rand);
+    DiffusionState_MIC diffusionState(network, pri, rand);
 
-    vector<int> shuffle_node(vnum);
-    for(int i = 0;i < vnum;i++)
-        shuffle_node[i] = i;
-    shuffle(shuffle_node.begin(), shuffle_node.end(), rand);
+    // vector<int> shuffle_node(vnum);
+    // for(int i = 0;i < vnum;i++)
+    //     shuffle_node[i] = i;
+    // shuffle(shuffle_node.begin(), shuffle_node.end(), rand);
 
-    test(network, diffusionState, shuffle_node);
-    return 0;
+    int n;
+    path = "../data/"+name+"_node.txt";
+    FILE *fd = fopen(path.c_str(),"r");
+    for(int i = 0;i < vnum;i++){
+        fscanf(fd, "%d", &n);
+        shuffle_node[i] = n;
+    }
+    fclose(fd);
 
     cout << "seed set: " << partial * 100 << "%" << endl;
     for(int j = 0;j < 4;j++){
@@ -92,36 +77,31 @@ int main(int args, char **argv){
 
     double l2;
     Results sandwich_result, reverse_result, highdegree_result;
-    sandwich_result = Sandwich_computeSeedSet(network, diffusionState, k, eps, N, rtup, 2, span, &l2);
+    sandwich_result = Sandwich_computeSeedSet(network, diffusionState, k, l, rtup, span);
 
     // set<int> naivegreedy = NaiveGreedy_computeSeedSet(network, diffusionState, k, eps, N, 1);
 
     reverse_result = ReverseGreedy_computeSeedSet(network, diffusionState, k, rtup, span);
 
-    highdegree_result = HighDegree_computeSeedSet(network, diffusionState, k, span);
-
-    FILE *fd;
-    string fname = "inner/sandwich_"+name+"_"+string(argv[6])+".txt";
-    fd = fopen(fname.c_str(), "w");
-    sandwich_result.writeToFile(fd);
-    fclose(fd);
-    fname = "inner/reverse_"+name+"_"+string(argv[6])+".txt";
-    fd = fopen(fname.c_str(), "w");
-    reverse_result.writeToFile(fd);
-    fclose(fd);
-    fname = "inner/highdegree_"+name+"_"+string(argv[6])+".txt";
-    fd = fopen(fname.c_str(), "w");
-    highdegree_result.writeToFile(fd);
-    fclose(fd);
+    // FILE *fd;
+    // string fname = "inner/sandwich_"+name+"_"+pri+".txt";
+    // fd = fopen(fname.c_str(), "w");
+    // sandwich_result.writeToFile(fd);
+    // fclose(fd);
+    // fname = "inner/reverse_"+name+"_"+pri+".txt";
+    // fd = fopen(fname.c_str(), "w");
+    // reverse_result.writeToFile(fd);
+    // fclose(fd);
+    // fname = "inner/highdegree_"+name+"_"+pri+".txt";
+    // fd = fopen(fname.c_str(), "w");
+    // highdegree_result.writeToFile(fd);
+    // fclose(fd);
 
     cout << "---------- Testing Sandwich ----------" << endl;
     testInfluence(diffusionState, network, sandwich_result, k, span);
 
     cout << endl << "---------- Testing Reverse ----------" << endl;
     testInfluence(diffusionState, network, reverse_result, k, span);
-
-    cout << endl << "---------- Testing High Degree ----------" << endl;
-    testInfluence(diffusionState, network, highdegree_result, k, span);
 
     auto end = chrono::high_resolution_clock::now();
 
