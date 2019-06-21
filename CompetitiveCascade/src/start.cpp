@@ -96,9 +96,21 @@ int main(int args, char **argv){
 
     // set<int> naivegreedy = NaiveGreedy_computeSeedSet(network, diffusionState, k, eps, N, 1);
 
-    reverse_result = ReverseGreedy_computeSeedSet(network, diffusionState, k, l2, span);
+    reverse_result = ReverseGreedy_computeSeedSet(network, diffusionState, k, rtup, span);
 
     highdegree_result = HighDegree_computeSeedSet(network, diffusionState, k, span);
+
+    FILE *fd;
+
+    fd = fopen("../result/sandwich_result.txt", "w");
+    sandwich_result.writeToFile(fd);
+    fclose(fd);
+    fd = fopen("../result/reverse_result.txt", "w");
+    reverse_result.writeToFile(fd);
+    fclose(fd);
+    fd = fopen("../result/highdegree_result.txt", "w");
+    highdegree_result.writeToFile(fd);
+    fclose(fd);
 
     cout << "---------- Testing Sandwich ----------" << endl;
     testInfluence(diffusionState, network, sandwich_result, k, span);

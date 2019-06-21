@@ -41,4 +41,34 @@ struct Results{
     Results()=default;
     Results(const Results &)=default;
     Results &operator = (const Results &)=default;
+
+    void writeToFile(FILE *fd){
+        fprintf(fd, "%d\n", seedset.size());
+        for(pair<int,set<int>> p: seedset){
+            fprintf(fd, "%d\n", p.first);
+            for(int s: p.second)
+                fprintf(fd, "%d ", s);
+            fprintf(fd, "\n");
+        }
+        for(pair<int,double> p: supp)
+            fprintf(fd, "%llf\n", p.second);
+    }
+
+    void readFromFile(FILE *fd){
+        int sz, k, v;
+        double vv;
+        fscanf(fd, "%d", &sz);
+        for(int i = 0;i < sz;i++){
+            fscanf(fd, "%d", &k);
+            seedset[k] = std::set<int>();
+            for(int j = 0;j < k;j++){
+                fscanf(fd, "%d", &v);
+                seedset[k].insert(v);
+            }
+        }
+        for(int i = 0;i < sz;i++){
+            fscanf(fd, "%f", &vv);
+            supp[k] = vv;
+        }
+    }
 };

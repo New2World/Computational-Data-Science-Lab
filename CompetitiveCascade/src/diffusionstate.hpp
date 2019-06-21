@@ -22,7 +22,7 @@
 #include "rtuple.hpp"
 #include "tools.hpp"
 
-#define THREAD 70
+#define THREAD 7
 
 class DiffusionState_MIC{
     short *temp_state_1, *temp_state_2;
