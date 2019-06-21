@@ -5,6 +5,7 @@
 #include <set>
 #include <map>
 #include <vector>
+#include <bitset>
 #include <string>
 #include <random>
 #include <iostream>
@@ -13,22 +14,22 @@
 #include <boost/asio/post.hpp>
 #include <boost/thread.hpp>
 #include <boost/bind/bind.hpp>
+#include <boost/thread/mutex.hpp>
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/pool/pool.hpp>
 
 #include "network.hpp"
 #include "rtuple.hpp"
 #include "tools.hpp"
-
-#define THREAD 7
+#include "macro.hpp"
 
 class DiffusionState_MIC{
     short *temp_state_1, *temp_state_2;
     std::string pri_type;
     std::vector<std::mt19937> randn;
     std::set<int> new_active[THREAD], new_active_temp[THREAD];
+    boost::mutex mt;
 
     void readPriority(int num){
         std::string path = "../data/perms/"+std::to_string(num)+"_perms.txt";
@@ -194,16 +195,30 @@ class DiffusionState_MIC{
         return 0;
     }
 
-    double getRTuple(const Network &network, rTuple &rtup, int tid){
+    double getRTuple(const Network &network, rTuple &rtup){
+        int tid = -1;
+        mt.lock();
+        tid = scheduler._Find_first();
+        if(tid >= THREAD)
+            std::cout << "get r tuple" << std::endl;
+        scheduler.flip(tid);
+        mt.unlock();
         int cindex = randn[tid]()%vnum;
         rtup.clear();
         rtup.node_v = cindex;
         rtup.relations[cindex] = std::set<int>();
         if(seed_state[cindex] != -1){
             rtup.seed.insert(cindex);
+            mt.lock();
+            scheduler.flip(tid);
+            mt.unlock();
             return 0;
         }
-        return reSpreadOnce(network, cindex, rtup, tid);
+        int ret = reSpreadOnce(network, cindex, rtup, tid);
+        mt.lock();
+        scheduler.flip(tid);
+        mt.unlock();
+        return ret;
     }
 
     template <typename T>
@@ -217,6 +232,7 @@ public:
     std::set<int> seednodes;
     std::map<int,std::set<int>> seedsets;
     std::map<int,std::vector<std::vector<int>>> caspriority;
+    std::bitset<THREAD> scheduler;
 
     DiffusionState_MIC(const Network &network, const std::string pri_type, mt19937 &rand){
         cnum = 0;
@@ -264,8 +280,16 @@ public:
         freeSpace(temp_state_2);
     }
 
-    void diffuse(const Network &network, int *result, int cindex, int round, int tid){
+    void diffuse(const Network &network, int *result, int cindex, int round){
         // auto start = std::chrono::high_resolution_clock::now();
+        int tid = -1;
+        mt.lock();
+        tid = scheduler._Find_first();
+        if(tid >= THREAD)
+            std::cout << "diffuse" << std::endl;
+        scheduler.flip(tid);
+        mt.unlock();
+        new_active[tid] = seednodes;
         int base = vnum * tid;
         for(int i = 0;i < vnum;i++) temp_state_1[base+i] = seed_state[i];
         for(int i = 0;i < round;i++){
@@ -274,7 +298,10 @@ public:
         }
         for(int i = 0;i < vnum;i++)
             if(temp_state_1[base+i] == cindex)
-                (*result)++;
+                result[tid]++;
+        mt.lock();
+        scheduler.flip(tid);
+        mt.unlock();
         // auto end = std::chrono::high_resolution_clock::now();
         // printTime(start, end);
     }
@@ -313,14 +340,13 @@ public:
         if(rtup.empty())    rtup = std::vector<rTuple>(size);
         else    rtup.resize(size+rtup.size());
         int new_size = rtup.size();
-        for(int i = rtup_size;i < new_size;){
-            boost::asio::thread_pool pool(THREAD);
-            for(int j = 0;j < THREAD && i < new_size;j++, i++){
-                auto bind_fn = boost::bind(&DiffusionState_MIC::getRTuple, this, ref(network), ref(rtup[i]), j);
-                boost::asio::post(pool, bind_fn);
-            }
-            pool.join();
+        boost::asio::thread_pool pool(THREAD);
+        allSet(scheduler);
+        for(int i = rtup_size;i < new_size;i++){
+            auto bind_fn = boost::bind(&DiffusionState_MIC::getRTuple, this, ref(network), ref(rtup[i]));
+            boost::asio::post(pool, bind_fn);
         }
+        pool.join();
         for(int i = rtup_size;i < new_size;i++)
             if(rtup[i].isdiff)
                 countdiff++;
@@ -331,18 +357,16 @@ public:
         int c_result[THREAD];
         double result = 0.;
         memset(c_result, 0, THREAD*sizeof(int));
-        for(int i = 0;i < times;){
-            boost::asio::thread_pool pool(THREAD);
-            for(int j = 0;j < THREAD && i < times;j++,i++){
-                new_active[j] = seednodes;
-                auto bind_fn = boost::bind(&DiffusionState_MIC::diffuse, this, ref(network), c_result+j, cindex, vnum, j);
-                boost::asio::post(pool, bind_fn);
-            }
-            pool.join();
-            for(int j = 0;j < THREAD;j++){
-                result += c_result[j];
-                c_result[j] = 0;
-            }
+        boost::asio::thread_pool pool(THREAD);
+        allSet(scheduler);
+        for(int i = 0;i < times;i++){
+            auto bind_fn = boost::bind(&DiffusionState_MIC::diffuse, this, ref(network), c_result, cindex, vnum);
+            boost::asio::post(pool, bind_fn);
+        }
+        pool.join();
+        for(int j = 0;j < THREAD;j++){
+            result += c_result[j];
+            c_result[j] = 0;
         }
         return result/times;
     }

@@ -6,6 +6,8 @@
 #include <chrono>
 #include <vector>
 
+#include "macro.hpp"
+
 bool intersection(const std::set<int> &l1, const std::set<int> &l2){
     for(int v: l1)
         if(l2.find(v) != l2.end())
@@ -24,6 +26,11 @@ void printContainer(const T &container){
             std::cout << " " << *it;
     } else  std::cout << "empty" << std::endl;
     std::cout << std::endl;
+}
+
+void allSet(std::bitset<THREAD> &bs){
+    for(int i = 0;i < THREAD;i++)
+        bs.set(i, true);
 }
 
 void printTime(const std::chrono::high_resolution_clock::time_point &start, const std::chrono::high_resolution_clock::time_point &end){

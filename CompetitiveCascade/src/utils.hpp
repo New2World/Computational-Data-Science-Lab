@@ -3,6 +3,7 @@
 #include <set>
 #include <map>
 #include <vector>
+#include <bitset>
 #include <utility>
 #include <algorithm>
 
@@ -20,14 +21,14 @@
 #include <boost/bind/bind.hpp>
 #include <boost/asio/post.hpp>
 #include <boost/asio/thread_pool.hpp>
+#include <boost/thread/mutex.hpp>
 
 #include "rtuple.hpp"
 #include "network.hpp"
 #include "diffusionstate.hpp"
 #include "sortmap.hpp"
 #include "tools.hpp"
-
-#define THREAD 7
+#include "macro.hpp"
 
 // double computeG(DiffusionState_MIC &diffusionState, std::set<int> &S, std::vector<rTuple> &rtup, int n, std::string type, double *result){
 //     int count = 0;
@@ -49,6 +50,9 @@
 //     *result = (double)n*count/rtup.size();
 //     return *result;
 // }
+
+std::bitset<THREAD> scheduler;
+boost::mutex mt;
 
 Results HighDegree_computeSeedSet(Network &network, DiffusionState_MIC &diffusionState, int k, int span){
     std::cout << "========== High degree running ==========" << std::endl;
@@ -112,10 +116,17 @@ std::set<int> NaiveGreedy_computeSeedSet(const Network &network, DiffusionState_
     return solution;
 }
 
-void __parallel(DiffusionState_MIC &diffusionState, const std::set<int> &seed, std::vector<rTuple> &rtup, const std::map<int,int> &coverred, std::set<int> &type1, std::set<int> &type2, std::set<int> &utype1, double *result, int tid){
+void __parallel(DiffusionState_MIC &diffusionState, const std::set<int> &seed, std::vector<rTuple> &rtup, const std::map<int,int> &coverred, std::set<int> &type1, std::set<int> &type2, std::set<int> &utype1, double *result){
     int ret, temp = 0;
     int cmaxindex = -1;
+    int tid = -1;
     double cmaxvalue = -1.;
+    mt.lock();
+    tid = scheduler._Find_first();
+    if(tid >= THREAD)
+        std::cout << "parallel" << std::endl;
+    scheduler.flip(tid);
+    mt.unlock();
     for(std::pair<int,int> p: coverred){
         ret = diffusionState.compute_g(seed, rtup[p.first], "mid", nullptr, tid);
         switch(p.second){
@@ -142,6 +153,9 @@ void __parallel(DiffusionState_MIC &diffusionState, const std::set<int> &seed, s
         }
     }
     *result = temp;
+    mt.lock();
+    scheduler.flip(tid);
+    mt.unlock();
 }
 
 void Sandwich_greedyMid(const Network &network, DiffusionState_MIC &diffusionState, std::vector<rTuple> &rtup, std::set<int> &solution, int k, double *coverred){
@@ -161,18 +175,16 @@ void Sandwich_greedyMid(const Network &network, DiffusionState_MIC &diffusionSta
         double cmaxvalue = -1.;
         tid = 0;
         std::vector<std::set<int>> type1s(candidate.size()), type2s(candidate.size()), utype1s(candidate.size());
-        std::set<int>::iterator iter = candidate.begin();
-        while(iter != candidate.end()){
-            boost::asio::thread_pool pool(THREAD);
-            for(int j = 0;j < THREAD && iter != candidate.end();j++, iter++){
-                solution.insert(*iter);
-                auto bind_fn = boost::bind(__parallel, ref(diffusionState), solution, ref(rtup), ref(coverred_state), ref(type1s[tid]), ref(type2s[tid]), ref(utype1s[tid]), results+tid, j);
-                boost::asio::post(pool, bind_fn);
-                tid++;
-                solution.erase(*iter);
-            }
-            pool.join();
+        boost::asio::thread_pool pool(THREAD);
+        allSet(scheduler);
+        for(int v: candidate){
+            solution.insert(v);
+            auto bind_fn = boost::bind(__parallel, ref(diffusionState), solution, ref(rtup), ref(coverred_state), ref(type1s[tid]), ref(type2s[tid]), ref(utype1s[tid]), results+tid);
+            boost::asio::post(pool, bind_fn);
+            tid++;
+            solution.erase(v);
         }
+        pool.join();
         std::set<int>::iterator it = candidate.begin();
         std::set<int> type1, type2, utype1;
         for(int j = 0;j < candidate.size();j++, it++){
