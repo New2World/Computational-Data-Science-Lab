@@ -50,7 +50,7 @@ struct Results{
     Results &operator = (const Results &)=default;
 
     void writeToFile(FILE *fd){
-        fprintf(fd, "%d\n", seedset.size());
+        fprintf(fd, "%lu\n", seedset.size());
         for(pair<int,set<int>> p: seedset){
             fprintf(fd, "%d\n", p.first);
             for(int s: p.second)

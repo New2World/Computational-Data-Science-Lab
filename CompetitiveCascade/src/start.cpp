@@ -43,14 +43,14 @@ void test(const Network &network, DiffusionState_MIC &diffu, vector<int> nodes){
         diffu.seed(seed);
     }
     vector<rTuple> rtup;
-    cout << "count diff: " << diffu.getRTuples(network, rtup, 10000) << endl;
+    cout << "count diff: " << diffu.getRTuples(network, rtup, 100000) << endl;
     // for(rTuple rt: rtup)
     //     rt._stat();
 
     for(int i = 4000;i < 4100;i++)
         seedset.insert(nodes[i]);
     int cindex = diffu.seed(seedset);
-    cout << diffu.expInfluenceComplete(network, 3000, cindex) << endl;
+    cout << diffu.expInfluenceComplete(network, 30000, cindex) << endl;
     diffu.removeSeed(cindex);
     cout << diffu.computeG(seedset, rtup, network.vertexNum, "upper", nullptr) << endl;
     cout << diffu.computeG(seedset, rtup, network.vertexNum, "mid", nullptr) << endl;
@@ -78,8 +78,8 @@ int main(int args, char **argv){
         shuffle_node[i] = i;
     shuffle(shuffle_node.begin(), shuffle_node.end(), rand);
 
-    // test(network, diffusionState, shuffle_node);
-    // return 0;
+    test(network, diffusionState, shuffle_node);
+    return 0;
 
     cout << "seed set: " << partial * 100 << "%" << endl;
     for(int j = 0;j < 4;j++){
@@ -100,17 +100,16 @@ int main(int args, char **argv){
 
     highdegree_result = HighDegree_computeSeedSet(network, diffusionState, k, span);
 
-    FILE *fd;
-
-    fd = fopen("../result/sandwich_result.txt", "w");
-    sandwich_result.writeToFile(fd);
-    fclose(fd);
-    fd = fopen("../result/reverse_result.txt", "w");
-    reverse_result.writeToFile(fd);
-    fclose(fd);
-    fd = fopen("../result/highdegree_result.txt", "w");
-    highdegree_result.writeToFile(fd);
-    fclose(fd);
+    // FILE *fd;
+    // fd = fopen("../result/sandwich_result.txt", "w");
+    // sandwich_result.writeToFile(fd);
+    // fclose(fd);
+    // fd = fopen("../result/reverse_result.txt", "w");
+    // reverse_result.writeToFile(fd);
+    // fclose(fd);
+    // fd = fopen("../result/highdegree_result.txt", "w");
+    // highdegree_result.writeToFile(fd);
+    // fclose(fd);
 
     cout << "---------- Testing Sandwich ----------" << endl;
     testInfluence(diffusionState, network, sandwich_result, k, span);

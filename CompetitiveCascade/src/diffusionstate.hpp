@@ -374,6 +374,7 @@ public:
     bool computeMid_g(const std::set<int> &seed, rTuple &rtup, int tid){
         new_active[tid].clear();
         int base = vnum * tid;
+        for(int i = 0;i < vnum;i++) temp_state_1[base+i] = -1;
         for(int i: rtup.seed){
             temp_state_1[base+i] = seed_state[i];
             if(seed_state[i] > -1)
