@@ -51,7 +51,7 @@ struct Results{
             fprintf(fd, "\n");
         }
         for(pair<int,double> p: supp)
-            fprintf(fd, "%llf\n", p.second);
+            fprintf(fd, "%lf\n", p.second);
     }
 
     void readFromFile(FILE *fd){
@@ -67,7 +67,7 @@ struct Results{
             }
         }
         for(int i = 0;i < sz;i++){
-            fscanf(fd, "%f", &vv);
+            fscanf(fd, "%lf", &vv);
             supp[k] = vv;
         }
     }
