@@ -1,0 +1,89 @@
+import ../data/wiki.txt IC
+seed set: 0.5%
+========== Sandwich running ==========
+l 10000 1968
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 0 seconds
+========== Sandwich finish ==========
+
+========== Reverse greedy running ==========
+r_tuple size: 10000
+working on mid-solution...
+greedy mid #1: 429
+greedy mid #2: 717
+greedy mid #3: 903
+greedy mid #4: 1048
+greedy mid #5: 1138
+greedy mid #6: 1216
+greedy mid #7: 1272
+greedy mid #8: 1319
+greedy mid #9: 1354
+greedy mid #10: 1389
+greedy mid #11: 1420
+greedy mid #12: 1450
+greedy mid #13: 1474
+greedy mid #14: 1498
+greedy mid #15: 1521
+greedy mid #16: 1542
+greedy mid #17: 1560
+greedy mid #18: 1578
+greedy mid #19: 1595
+greedy mid #20: 1611
+greedy mid #21: 1626
+greedy mid #22: 1640
+greedy mid #23: 1654
+greedy mid #24: 1668
+greedy mid #25: 1681
+greedy mid #26: 1693
+greedy mid #27: 1705
+greedy mid #28: 1717
+greedy mid #29: 1729
+greedy mid #30: 1740
+greedy mid #31: 1750
+greedy mid #32: 1760
+greedy mid #33: 1770
+greedy mid #34: 1779
+greedy mid #35: 1788
+greedy mid #36: 1797
+greedy mid #37: 1806
+greedy mid #38: 1814
+greedy mid #39: 1822
+greedy mid #40: 1830
+greedy mid #41: 1838
+greedy mid #42: 1845
+greedy mid #43: 1852
+greedy mid #44: 1859
+greedy mid #45: 1866
+greedy mid #46: 1873
+greedy mid #47: 1880
+greedy mid #48: 1887
+greedy mid #49: 1894
+greedy mid #50: 1901
+time elapsed: 0 hours 2 minutes 5 seconds
+========== Reverse greedy finish ==========
+
+---------- Testing Sandwich ----------
+5 574.041 0.673358
+10 711.494 0.715257
+15 850.948 0.750341
+20 980.113 0.794393
+25 1090.87 0.817986
+30 1132.29 0.837767
+35 1172.82 0.858216
+40 1215.44 0.867352
+45 1245.72 0.872544
+50 1264.46 0.875413
+
+---------- Testing Reverse ----------
+5 516.127 0
+10 699.372 0
+15 805.584 0
+20 975.013 0
+25 1060.56 0
+30 1108.38 0
+35 1178.23 0
+40 1207.19 0
+45 1235.47 0
+50 1254.93 0
+time elapsed: 0 hours 2 minutes 14 seconds
