@@ -17,20 +17,23 @@
 
 using namespace std;
 
-void testInfluence(DiffusionState_MIC &diffusionState, const Network &network, Results &result, int k, int span){
+void testRTuple(DiffusionState_MIC &diffusionState, const Network &network, Results &sandwich_result, Results &reverse_result, int k){
     int cindex;
-    set<int> seedset;
-    bool flag = true;
-    for(int i = 0;i < k/span && flag;i++){
-        int k = i*span+span;
-        seedset = result.seedset[k];
-        if(seedset.size() != k)
-            flag = false;
-        if(seedset.empty()) break;
-        cindex = diffusionState.seed(seedset);
-        cout << seedset.size() << " " << diffusionState.expInfluenceComplete(network, 3000, cindex) << " " << result.supp[k] << endl;
+    double sandwich_influence = -1., reverse_influence = -1.;
+    set<int> sandwich_seedset, reverse_seedset;
+    sandwich_seedset = sandwich_result.seedset[k];
+    reverse_seedset = reverse_result.seedset[k];
+    if(sandwich_seedset.size() == k){
+        cindex = diffusionState.seed(sandwich_seedset);
+        sandwich_influence = diffusionState.expInfluenceComplete(network, 3000, cindex);
         diffusionState.removeSeed(cindex);
     }
+    if(reverse_seedset.size() == k){
+        cindex = diffusionState.seed(reverse_seedset);
+        reverse_influence = diffusionState.expInfluenceComplete(network, 3000, cindex);
+        diffusionState.removeSeed(cindex);
+    }
+    cout << sandwich_influence << "    " << reverse_influence << endl;
 }
 
 int main(int args, char **argv){
@@ -38,13 +41,14 @@ int main(int args, char **argv){
     string type = string(argv[2]);
     int vnum = atoi(argv[3]);
     string pri = string(argv[4]);
-    int l = atoi(argv[5]);
     int k = 50;
-    int span = 5;
+    int from = atoi(argv[5]);
+    int to = atoi(argv[6]);
+    int span = atoi(argv[7]);
     string path = "../data/"+name+".txt";
     Network network(path, type, vnum);
     network.setICProb(.1);
-    double eps = .3, N = 10000., partial = .005;
+    double eps = .3, N = 10000., partial = .05;
     int tenpercent = (int)(vnum * partial);
     int shuffle_node[vnum];
     mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
@@ -75,13 +79,14 @@ int main(int args, char **argv){
     }
     vector<rTuple> rtup;
 
-    double l2;
-    Results sandwich_result, reverse_result, highdegree_result;
-    sandwich_result = Sandwich_computeSeedSet(network, diffusionState, k, l, rtup, span);
+    Results sandwich_result, reverse_result;
 
-    // set<int> naivegreedy = NaiveGreedy_computeSeedSet(network, diffusionState, k, eps, N, 1);
-
-    reverse_result = ReverseGreedy_computeSeedSet(network, diffusionState, k, rtup, span);
+    cout << "sandwich    reverse" << endl;
+    for(int l = from;l <= to;l += span){
+        sandwich_result = Sandwich_computeSeedSet(network, diffusionState, k, l, rtup, span);
+        reverse_result = ReverseGreedy_computeSeedSet(network, diffusionState, k, rtup, span);
+        testRTuple(diffusionState, network, sandwich_result, reverse_result, k);
+    }
 
     // FILE *fd;
     // string fname = "inner/sandwich_"+name+"_"+pri+".txt";
@@ -97,14 +102,7 @@ int main(int args, char **argv){
     // highdegree_result.writeToFile(fd);
     // fclose(fd);
 
-    cout << "---------- Testing Sandwich ----------" << endl;
-    testInfluence(diffusionState, network, sandwich_result, k, span);
-
-    cout << endl << "---------- Testing Reverse ----------" << endl;
-    testInfluence(diffusionState, network, reverse_result, k, span);
-
     auto end = chrono::high_resolution_clock::now();
-
     printTime(start, end);
     return 0;
 }
