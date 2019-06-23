@@ -53,6 +53,10 @@ struct Results{
         fprintf(fd, "%lu\n", seedset.size());
         for(pair<int,set<int>> p: seedset){
             fprintf(fd, "%d\n", p.first);
+            if(p.second.empty()){
+                std::cout << "ERROR: empty result" << std::endl;
+                exit(1);
+            }
             for(int s: p.second)
                 fprintf(fd, "%d ", s);
             fprintf(fd, "\n");

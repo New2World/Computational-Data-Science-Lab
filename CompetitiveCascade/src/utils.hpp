@@ -234,18 +234,18 @@ Results ReverseGreedy_computeSeedSet(const Network &network, DiffusionState_MIC 
     Results result;
     bool flag = true;
     for(int i = 0;i < k/span && flag;i++){
-        int k = i*span+span;
+        int nk = i*span+span;
         std::set<int> solution;
         std::set<int>::iterator iter = mid_solution.begin();
-        for(int j = 0;j < k;j++, iter++){
+        for(int j = 0;j < nk;j++, iter++){
             if(iter == mid_solution.end()){
                 flag = false;
                 break;
             }
             solution.insert(*iter);
         }
-        result.seedset[k] = solution;
-        result.supp[k] = 0.;
+        result.seedset[nk] = solution;
+        result.supp[nk] = 0.;
     }
     auto end = std::chrono::high_resolution_clock::now();
     printTime(start, end);
@@ -263,21 +263,37 @@ Results ReverseGreedy_computeSeedSet(const Network &network, DiffusionState_MIC 
     Results result;
     bool flag = true;
     for(int i = 0;i < k/span && flag;i++){
-        int k = i*span+span;
+        int nk = i*span+span;
         std::set<int> solution;
         std::set<int>::iterator iter = mid_solution.begin();
-        for(int j = 0;j < k;j++, iter++){
+        for(int j = 0;j < nk;j++, iter++){
             if(iter == mid_solution.end()){
                 flag = false;
                 break;
             }
             solution.insert(*iter);
         }
-        result.seedset[k] = solution;
-        result.supp[k] = 0.;
+        result.seedset[nk] = solution;
+        result.supp[nk] = 0.;
     }
     auto end = std::chrono::high_resolution_clock::now();
-    printTime(start, end);
+    // printTime(start, end);
+    // std::cout << "========== Reverse greedy finish ==========" << std::endl << std::endl;
+    return result;
+}
+
+Results ReverseGreedy_computeSeedSet(const Network &network, DiffusionState_MIC &diffusionState, int k, std::vector<rTuple> &rtup){
+    // std::cout << "========== Reverse greedy running ==========" << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
+    // std::cout << "r_tuple size: " << rtup.size() << std::endl;
+    std::set<int> mid_solution;
+    // std::cout << "working on mid-solution..." << std::endl;
+    Sandwich_greedyMid(network, diffusionState, rtup, mid_solution, k, nullptr);
+    Results result;
+    result.seedset[k] = mid_solution;
+    result.supp[k] = 0.;
+    auto end = std::chrono::high_resolution_clock::now();
+    // printTime(start, end);
     // std::cout << "========== Reverse greedy finish ==========" << std::endl << std::endl;
     return result;
 }
@@ -472,7 +488,7 @@ Results Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diff
     return result;
 }
 
-Results Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diffusionState, int k, int l, std::vector<rTuple> &rtup, int span){
+Results Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diffusionState, int k, int l, std::vector<rTuple> &rtup){
     // std::cout << "========== Sandwich running ==========" << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
     // std::cout << "l " << l << " " << diffusionState.getRTuples(network, rtup, l) << std::endl;
@@ -483,27 +499,17 @@ Results Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diff
     // std::cout << "working on lower solution..." << std::endl;
     Sandwich_greedy(rtup, lower_solution, k, "lower");
     Results result;
-    for(int i = 0;i < k/span;i++){
-        int k = i*span+span;
-        std::set<int> upper_solution_k, lower_solution_k;
-        std::set<int>::iterator upper_iter = upper_solution.begin();
-        std::set<int>::iterator lower_iter = lower_solution.begin();
-        for(int j = 0;j < k;j++, upper_iter++, lower_iter++){
-            upper_solution_k.insert(*upper_iter);
-            lower_solution_k.insert(*lower_iter);
-        }
-        double upper_G = diffusionState.computeG(upper_solution_k, rtup, network.vertexNum, "mid", nullptr);
-        double lower_G = diffusionState.computeG(lower_solution_k, rtup, network.vertexNum, "mid", nullptr);
-        double ratio = upper_G / diffusionState.computeG(upper_solution_k, rtup, network.vertexNum, "upper", nullptr);
+    double upper_G = diffusionState.computeG(upper_solution, rtup, network.vertexNum, "mid", nullptr);
+    double lower_G = diffusionState.computeG(lower_solution, rtup, network.vertexNum, "mid", nullptr);
+    double ratio = upper_G / diffusionState.computeG(upper_solution, rtup, network.vertexNum, "upper", nullptr);
 
-        result.supp[k] = ratio;
-        if(upper_G > lower_G)
-            result.seedset[k] = upper_solution_k;
-        else
-            result.seedset[k] = lower_solution_k;
-    }
+    result.supp[k] = ratio;
+    if(upper_G > lower_G)
+        result.seedset[k] = upper_solution;
+    else
+        result.seedset[k] = lower_solution;
     auto end = std::chrono::high_resolution_clock::now();
-    printTime(start, end);
+    // printTime(start, end);
     // std::cout << "========== Sandwich finish ==========" << std::endl << std::endl;
     return result;
 }

@@ -1,1 +1,1 @@
-#define THREAD 5
+#define THREAD 10

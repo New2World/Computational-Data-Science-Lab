@@ -33,7 +33,7 @@ void testRTuple(DiffusionState_MIC &diffusionState, const Network &network, Resu
         reverse_influence = diffusionState.expInfluenceComplete(network, 3000, cindex);
         diffusionState.removeSeed(cindex);
     }
-    cout << sandwich_influence << "    " << reverse_influence << endl;
+    cout << "\t" << sandwich_influence << "\t\t" << reverse_influence << endl;
 }
 
 int main(int args, char **argv){
@@ -56,14 +56,20 @@ int main(int args, char **argv){
 
     DiffusionState_MIC diffusionState(network, pri, rand);
 
-    // vector<int> shuffle_node(vnum);
-    // for(int i = 0;i < vnum;i++)
-    //     shuffle_node[i] = i;
-    // shuffle(shuffle_node.begin(), shuffle_node.end(), rand);
-
     int n;
     path = "../data/"+name+"_node.txt";
     FILE *fd = fopen(path.c_str(),"r");
+    vector<int> temp_node(vnum);
+    if(!fd){
+        fd = fopen(path.c_str(), "w");
+        for(int i = 0;i < vnum;i++)
+            temp_node[i] = i;
+        shuffle(temp_node.begin(), temp_node.end(), rand);
+        for(int i = 0;i < vnum;i++)
+            fprintf(fd, "%d ", temp_node[i]);
+        fclose(fd);
+        fd = fopen(path.c_str(), "r");
+    }
     for(int i = 0;i < vnum;i++){
         fscanf(fd, "%d", &n);
         shuffle_node[i] = n;
@@ -81,22 +87,23 @@ int main(int args, char **argv){
 
     Results sandwich_result, reverse_result;
 
-    cout << "sandwich    reverse" << endl;
+    cout << "l\tsandwich\treverse" << endl;
     for(int l = from;l <= to;l += span){
-        sandwich_result = Sandwich_computeSeedSet(network, diffusionState, k, l, rtup, span);
-        reverse_result = ReverseGreedy_computeSeedSet(network, diffusionState, k, rtup, span);
+        rtup.clear();
+        sandwich_result = Sandwich_computeSeedSet(network, diffusionState, k, l, rtup);
+        reverse_result = ReverseGreedy_computeSeedSet(network, diffusionState, k, rtup);
+        cout << l;
         testRTuple(diffusionState, network, sandwich_result, reverse_result, k);
+        // string fname = "inner/sandwich_"+name+"_"+pri+".txt";
+        // fd = fopen(fname.c_str(), "w");
+        // sandwich_result.writeToFile(fd);
+        // fclose(fd);
+        // fname = "inner/reverse_"+name+"_"+pri+".txt";
+        // fd = fopen(fname.c_str(), "w");
+        // reverse_result.writeToFile(fd);
+        // fclose(fd);
     }
-
-    // FILE *fd;
-    // string fname = "inner/sandwich_"+name+"_"+pri+".txt";
-    // fd = fopen(fname.c_str(), "w");
-    // sandwich_result.writeToFile(fd);
-    // fclose(fd);
-    // fname = "inner/reverse_"+name+"_"+pri+".txt";
-    // fd = fopen(fname.c_str(), "w");
-    // reverse_result.writeToFile(fd);
-    // fclose(fd);
+    
     // fname = "inner/highdegree_"+name+"_"+pri+".txt";
     // fd = fopen(fname.c_str(), "w");
     // highdegree_result.writeToFile(fd);
