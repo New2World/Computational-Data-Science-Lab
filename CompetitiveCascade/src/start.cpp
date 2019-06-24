@@ -64,7 +64,7 @@ int main(int args, char **argv){
     string path = "../data/"+name+".txt";
     Network network(path, type, vnum);
     network.setICProb(.1);
-    double eps = .3, N = 10000., partial = .005;
+    double eps = .3, N = 10000., partial = .05;
     int tenpercent = (int)(vnum * partial);
     mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
     auto start = chrono::high_resolution_clock::now();

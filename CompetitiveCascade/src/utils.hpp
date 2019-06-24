@@ -165,7 +165,6 @@ void __parallel(DiffusionState_MIC &diffusionState, std::set<int> seed, int v, s
 void Sandwich_greedyMid(const Network &network, DiffusionState_MIC &diffusionState, std::vector<rTuple> &rtup, std::set<int> &solution, int k, double *coverred){
     std::set<int> candidate;
     std::map<int,int> coverred_state;
-    std::chrono::high_resolution_clock::time_point start, end;
     int tid = 0;
     for(rTuple &rt: rtup){
         for(int v: rt.upper)
@@ -183,18 +182,13 @@ void Sandwich_greedyMid(const Network &network, DiffusionState_MIC &diffusionSta
         tid = 0;
         boost::asio::thread_pool pool(THREAD);
         allSet(scheduler);
-        start = std::chrono::high_resolution_clock::now();
         for(int v: candidate){
             auto bind_fn = boost::bind(__parallel, ref(diffusionState), ref(solution), v, ref(rtup), ref(coverred_state), ref(type1s[tid]), ref(type2s[tid]), ref(utype1s[tid]), results+tid);
             boost::asio::post(pool, bind_fn);
             tid++;
         }
         pool.join();
-        end = std::chrono::high_resolution_clock::now();
-        std::cout << "parallel" << std::endl;
-        printTime(start, end);
         std::set<int>::iterator it = candidate.begin();
-        start = std::chrono::high_resolution_clock::now();
         for(int j = 0;j < candidate_size;j++, it++){
             if(cmaxvalue < results[j]){
                 cmaxvalue = results[j];
@@ -202,16 +196,12 @@ void Sandwich_greedyMid(const Network &network, DiffusionState_MIC &diffusionSta
                 max_id = j;
             }
         }
-        end = std::chrono::high_resolution_clock::now();
-        std::cout << "copy" << std::endl;
-        printTime(start, end, true);
         if(cmaxvalue < 0)
             break;
         profit += cmaxvalue;
         if(coverred)    coverred[i] = profit;
         solution.insert(cmaxindex);
         candidate.erase(cmaxindex);
-        start = std::chrono::high_resolution_clock::now();
         for(int j: type2s[max_id])
             coverred_state.erase(j);
         for(int j: type1s[max_id]){
@@ -228,9 +218,6 @@ void Sandwich_greedyMid(const Network &network, DiffusionState_MIC &diffusionSta
             // }
             coverred_state[j] = 0;
         }
-        end = std::chrono::high_resolution_clock::now();
-        std::cout << "update" << std::endl;
-        printTime(start, end, true);
         std::cout << "greedy mid #" << i+1 << ": " << profit << std::endl;
     }
     delete [] results;
@@ -241,7 +228,7 @@ Results ReverseGreedy_computeSeedSet(const Network &network, DiffusionState_MIC 
     auto start = std::chrono::high_resolution_clock::now();
     std::vector<rTuple> rtup;
     std::cout << "l " << l << " " << diffusionState.getRTuples(network, rtup, l) << std::endl;
-    diffusionState.getRTuples(network, rtup, l);
+    // diffusionState.getRTuples(network, rtup, l);
     std::set<int> mid_solution;
     std::cout << "working on mid-solution..." << std::endl;
     Sandwich_greedyMid(network, diffusionState, rtup, mid_solution, k, nullptr);
@@ -468,8 +455,8 @@ Results Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diff
     eps2 = eps1;
     double low_bound = Sandwich_computeLowerBound(network, diffusionState, k, eps1, N, p);
     int l = (int)Sandwich_decideL(network.vertexNum, k, low_bound, eps1, eps2, N, l2);
-    // *l2 /= low_bound;
-    *l2 = l/log2(network.vertexNum);
+    *l2 /= low_bound;
+    // *l2 = l/log2(network.vertexNum);
     std::cout << "l " << l << " " << diffusionState.getRTuples(network, rtup, l) << std::endl;
     // diffusionState.getRTuples(network, rtup, l);
     std::set<int> upper_solution, lower_solution;
