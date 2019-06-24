@@ -82,9 +82,9 @@ struct Results{
                 seedset[k].insert(v);
             }
         }
-        for(int i = 0;i < sz;i++){
+        for(std::pair<int,std::set<int>> p: seedset){
             fscanf(fd, "%lf", &vv);
-            supp[k] = vv;
+            supp[p.first] = vv;
         }
     }
 };

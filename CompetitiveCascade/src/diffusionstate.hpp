@@ -353,6 +353,10 @@ public:
         return (double)countdiff;
     }
 
+    double expInfluenceComplete_new(const Network &network, std::vector<rTuple> rtup, std::set<int> solution){
+        return computeG(solution, rtup, vnum, "mid", nullptr);
+    }
+
     double expInfluenceComplete(const Network &network, int times, int cindex){
         int c_result[THREAD];
         double result = 0.;
@@ -404,6 +408,12 @@ public:
 
     int compute_g(const std::set<int> &seed, rTuple &rtup, const std::string &type, int *result, int tid){
         int temp = 0;
+        if(tid < 0){
+            mt.lock();
+            tid = scheduler._Find_first();
+            scheduler.flip(tid);
+            mt.unlock();
+        }
         switch(type[0]){
         case 'u':
             if(intersection(seed, rtup.upper))  temp = 1;
@@ -421,15 +431,27 @@ public:
             else    temp = -2;
             break;
         }
+        mt.lock();
+        scheduler.flip(tid);
+        mt.unlock();
         if(result)  *result = temp;
         return temp;
     }
 
     double computeG(std::set<int> &S, std::vector<rTuple> &rtup, int n, const std::string &type, double *result){
-        int count = 0;
+        int count = 0, tid = 0;
         double output;
-        for(rTuple &rt: rtup)
-            if(compute_g(S, rt, type, nullptr, 0) > 0)
+        int *results = new int[rtup.size()];
+        boost::asio::thread_pool pool(THREAD);
+        allSet(scheduler);
+        for(rTuple &rt: rtup){
+            auto bind_fn = boost::bind(&DiffusionState_MIC::compute_g, this, ref(S), ref(rt), ref(type), results+tid, -1);
+            boost::asio::post(pool, bind_fn);
+            tid++;
+        }
+        pool.join();
+        for(int i = 0;i < rtup.size();i++)
+            if(results[i] > 0)
                 count++;
         output = (double)n*count/rtup.size();
         if(result)  *result = output;
