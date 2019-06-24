@@ -73,13 +73,28 @@ int main(int args, char **argv){
 
     DiffusionState_MIC diffusionState(network, string(argv[6]), rand);
 
-    vector<int> shuffle_node(vnum);
-    for(int i = 0;i < vnum;i++)
-        shuffle_node[i] = i;
-    shuffle(shuffle_node.begin(), shuffle_node.end(), rand);
+    int n, shuffle_node[vnum];
+    path = "../data/"+name+"_node.txt";
+    FILE *fd = fopen(path.c_str(),"r");
+    // vector<int> temp_node(vnum);
+    // if(!fd){
+    //     fd = fopen(path.c_str(), "w");
+    //     for(int i = 0;i < vnum;i++)
+    //         temp_node[i] = i;
+    //     shuffle(temp_node.begin(), temp_node.end(), rand);
+    //     for(int i = 0;i < vnum;i++)
+    //         fprintf(fd, "%d ", temp_node[i]);
+    //     fclose(fd);
+    //     fd = fopen(path.c_str(), "r");
+    // }
+    for(int i = 0;i < vnum;i++){
+        fscanf(fd, "%d", &n);
+        shuffle_node[i] = n;
+    }
+    fclose(fd);
 
-    test(network, diffusionState, shuffle_node);
-    return 0;
+    // test(network, diffusionState, shuffle_node);
+    // return 0;
 
     cout << "seed set: " << partial * 100 << "%" << endl;
     for(int j = 0;j < 4;j++){

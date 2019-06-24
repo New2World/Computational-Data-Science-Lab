@@ -33,12 +33,17 @@ void allSet(std::bitset<THREAD> &bs){
         bs.set(i, true);
 }
 
-void printTime(const std::chrono::high_resolution_clock::time_point &start, const std::chrono::high_resolution_clock::time_point &end){
+void printTime(const std::chrono::high_resolution_clock::time_point &start, const std::chrono::high_resolution_clock::time_point &end, bool high_resolution=false){
     auto duration = end-start;
-    auto hour = std::chrono::duration_cast<std::chrono::hours>(duration).count();
-    auto min = std::chrono::duration_cast<std::chrono::minutes>(duration).count();
-    auto sec = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
-    std::cout << "time elapsed: " << hour << " hours " << min%60 << " minutes " << sec%60 << " seconds" << std::endl;
+    if(high_resolution){
+        auto msec = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+        std::cout << "time elapsed: " << msec << " msec" << std::endl;
+    } else{
+        auto hour = std::chrono::duration_cast<std::chrono::hours>(duration).count();
+        auto min = std::chrono::duration_cast<std::chrono::minutes>(duration).count();
+        auto sec = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
+        std::cout << "time elapsed: " << hour << " hours " << min%60 << " minutes " << sec%60 << " seconds" << std::endl;
+    }
 }
 
 struct Results{
