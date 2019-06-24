@@ -111,7 +111,7 @@ int main(int args, char **argv){
 
     // set<int> naivegreedy = NaiveGreedy_computeSeedSet(network, diffusionState, k, eps, N, 1);
 
-    reverse_result = ReverseGreedy_computeSeedSet(network, diffusionState, k, rtup, span);
+    reverse_result = ReverseGreedy_computeSeedSet(network, diffusionState, k, l2, span);
 
     highdegree_result = HighDegree_computeSeedSet(network, diffusionState, k, span);
 
@@ -131,7 +131,7 @@ int main(int args, char **argv){
     cout << "---------- Testing Sandwich ----------" << endl;
     testInfluence(diffusionState, network, sandwich_result, k, span);
 
-    cout << "---------- Testing Sandwich without cascade ----------" << endl;
+    cout << endl << "---------- Testing Sandwich without cascade ----------" << endl;
     testInfluence(diffusionState, network, sandwich_empty_result, k, span);
 
     cout << endl << "---------- Testing Reverse ----------" << endl;

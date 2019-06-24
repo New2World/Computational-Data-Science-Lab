@@ -468,7 +468,8 @@ Results Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diff
     eps2 = eps1;
     double low_bound = Sandwich_computeLowerBound(network, diffusionState, k, eps1, N, p);
     int l = (int)Sandwich_decideL(network.vertexNum, k, low_bound, eps1, eps2, N, l2);
-    *l2 /= low_bound;
+    // *l2 /= low_bound;
+    *l2 = l/log2(network.vertexNum);
     std::cout << "l " << l << " " << diffusionState.getRTuples(network, rtup, l) << std::endl;
     // diffusionState.getRTuples(network, rtup, l);
     std::set<int> upper_solution, lower_solution;
