@@ -44,8 +44,6 @@ void test(const Network &network, DiffusionState_MIC &diffu, vector<int> nodes){
     }
     vector<rTuple> rtup;
     cout << "count diff: " << diffu.getRTuples(network, rtup, 100000) << endl;
-    // for(rTuple rt: rtup)
-    //     rt._stat();
 
     for(int i = 4000;i < 4100;i++)
         seedset.insert(nodes[i]);
@@ -76,25 +74,28 @@ int main(int args, char **argv){
     int n, shuffle_node[vnum];
     path = "../data/"+name+"_node.txt";
     FILE *fd = fopen(path.c_str(),"r");
-    // vector<int> temp_node(vnum);
-    // if(!fd){
-    //     fd = fopen(path.c_str(), "w");
-    //     for(int i = 0;i < vnum;i++)
-    //         temp_node[i] = i;
-    //     shuffle(temp_node.begin(), temp_node.end(), rand);
-    //     for(int i = 0;i < vnum;i++)
-    //         fprintf(fd, "%d ", temp_node[i]);
-    //     fclose(fd);
-    //     fd = fopen(path.c_str(), "r");
-    // }
+    vector<int> temp_node(vnum);
+    if(!fd){
+        fd = fopen(path.c_str(), "w");
+        for(int i = 0;i < vnum;i++)
+            temp_node[i] = i;
+        shuffle(temp_node.begin(), temp_node.end(), rand);
+        for(int i = 0;i < vnum;i++)
+            fprintf(fd, "%d ", temp_node[i]);
+        fclose(fd);
+        fd = fopen(path.c_str(), "r");
+    }
     for(int i = 0;i < vnum;i++){
         fscanf(fd, "%d", &n);
         shuffle_node[i] = n;
     }
     fclose(fd);
 
-    // test(network, diffusionState, shuffle_node);
-    // return 0;
+    double l2;
+    vector<rTuple> rtup;
+    Results sandwich_result, sandwich_empty_result, reverse_result, highdegree_result;
+
+    sandwich_empty_result = Sandwich_computeSeedSet(network, diffusionState, k, eps, N, rtup, 2, span, &l2);
 
     cout << "seed set: " << partial * 100 << "%" << endl;
     for(int j = 0;j < 4;j++){
@@ -103,10 +104,9 @@ int main(int args, char **argv){
             seed.insert(shuffle_node[i]);
         diffusionState.seed(seed);
     }
-    vector<rTuple> rtup;
 
-    double l2;
-    Results sandwich_result, reverse_result, highdegree_result;
+    rtup.clear();
+
     sandwich_result = Sandwich_computeSeedSet(network, diffusionState, k, eps, N, rtup, 2, span, &l2);
 
     // set<int> naivegreedy = NaiveGreedy_computeSeedSet(network, diffusionState, k, eps, N, 1);
@@ -115,7 +115,6 @@ int main(int args, char **argv){
 
     highdegree_result = HighDegree_computeSeedSet(network, diffusionState, k, span);
 
-    FILE *fd;
     string fname = "inner/sandwich_"+name+"_"+string(argv[6])+".txt";
     fd = fopen(fname.c_str(), "w");
     sandwich_result.writeToFile(fd);
@@ -132,12 +131,16 @@ int main(int args, char **argv){
     cout << "---------- Testing Sandwich ----------" << endl;
     testInfluence(diffusionState, network, sandwich_result, k, span);
 
+    cout << "---------- Testing Sandwich without cascade ----------" << endl;
+    testInfluence(diffusionState, network, sandwich_empty_result, k, span);
+
     cout << endl << "---------- Testing Reverse ----------" << endl;
     testInfluence(diffusionState, network, reverse_result, k, span);
 
     cout << endl << "---------- Testing High Degree ----------" << endl;
     testInfluence(diffusionState, network, highdegree_result, k, span);
 
+    cout << endl;
     auto end = chrono::high_resolution_clock::now();
 
     printTime(start, end);

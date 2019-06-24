@@ -59,17 +59,17 @@ int main(int args, char **argv){
     int n;
     path = "../data/"+name+"_node.txt";
     FILE *fd = fopen(path.c_str(),"r");
-    // vector<int> temp_node(vnum);
-    // if(!fd){
-    //     fd = fopen(path.c_str(), "w");
-    //     for(int i = 0;i < vnum;i++)
-    //         temp_node[i] = i;
-    //     shuffle(temp_node.begin(), temp_node.end(), rand);
-    //     for(int i = 0;i < vnum;i++)
-    //         fprintf(fd, "%d ", temp_node[i]);
-    //     fclose(fd);
-    //     fd = fopen(path.c_str(), "r");
-    // }
+    vector<int> temp_node(vnum);
+    if(!fd){
+        fd = fopen(path.c_str(), "w");
+        for(int i = 0;i < vnum;i++)
+            temp_node[i] = i;
+        shuffle(temp_node.begin(), temp_node.end(), rand);
+        for(int i = 0;i < vnum;i++)
+            fprintf(fd, "%d ", temp_node[i]);
+        fclose(fd);
+        fd = fopen(path.c_str(), "r");
+    }
     for(int i = 0;i < vnum;i++){
         fscanf(fd, "%d", &n);
         shuffle_node[i] = n;
@@ -94,21 +94,8 @@ int main(int args, char **argv){
         reverse_result = ReverseGreedy_computeSeedSet(network, diffusionState, k, rtup);
         cout << l;
         testRTuple(diffusionState, network, sandwich_result, reverse_result, k);
-        // string fname = "inner/sandwich_"+name+"_"+pri+".txt";
-        // fd = fopen(fname.c_str(), "w");
-        // sandwich_result.writeToFile(fd);
-        // fclose(fd);
-        // fname = "inner/reverse_"+name+"_"+pri+".txt";
-        // fd = fopen(fname.c_str(), "w");
-        // reverse_result.writeToFile(fd);
-        // fclose(fd);
     }
-    
-    // fname = "inner/highdegree_"+name+"_"+pri+".txt";
-    // fd = fopen(fname.c_str(), "w");
-    // highdegree_result.writeToFile(fd);
-    // fclose(fd);
-
+    cout << endl;
     auto end = chrono::high_resolution_clock::now();
     printTime(start, end);
     return 0;
