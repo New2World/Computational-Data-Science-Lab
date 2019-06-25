@@ -170,23 +170,23 @@ int main(int args, char **argv){
     }
 
     cout << "---------- Testing Sandwich ----------" << endl;
-    testInfluence(diffusionState, network, sandwich_result, k, span);
-    cout << endl;
+    //testInfluence(diffusionState, network, sandwich_result, k, span);
+    //cout << endl;
     testInfluence2(diffusionState, network, sandwich_result, k, span);
 
     cout << endl << "---------- Testing Sandwich without cascade ----------" << endl;
-    testInfluence(diffusionState, network, sandwich_empty_result, k, span);
-    cout << endl;
+    //testInfluence(diffusionState, network, sandwich_empty_result, k, span);
+    //cout << endl;
     testInfluence2(diffusionState, network, sandwich_empty_result, k, span);
 
     cout << endl << "---------- Testing Reverse ----------" << endl;
-    testInfluence(diffusionState, network, reverse_result, k, span);
-    cout << endl;
+    //testInfluence(diffusionState, network, reverse_result, k, span);
+    //cout << endl;
     testInfluence2(diffusionState, network, reverse_result, k, span);
 
     cout << endl << "---------- Testing High Degree ----------" << endl;
-    testInfluence(diffusionState, network, highdegree_result, k, span);
-    cout << endl;
+    //testInfluence(diffusionState, network, highdegree_result, k, span);
+    //cout << endl;
     testInfluence2(diffusionState, network, highdegree_result, k, span);
 
     cout << endl;

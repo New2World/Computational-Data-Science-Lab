@@ -1,0 +1,228 @@
+import ../data/hepph.txt IC
+seed set: 5%
+========== Sandwich running ==========
+35000 542500
+35000 271250
+19266.1 135625
+11187.2 67812.5
+8291.57 33906.2
+6808.87 16953.1
+5471.86 8476.56
+5034.11 4238.28
+l 66565 0
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 5 seconds
+========== Sandwich finish ==========
+
+========== Sandwich running ==========
+29814.8 542500
+27870.4 271250
+16055 135625
+8150.68 67812.5
+4703.87 33906.2
+3225.26 16953.1
+2248.44 8476.56
+1581.86 4238.28
+1099.19 2119.14
+808.228 1059.57
+668.964 529.785
+l 500918 100917
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 17 seconds
+========== Sandwich finish ==========
+
+========== Reverse greedy running ==========
+l 10708 2155
+working on mid-solution...
+greedy mid #1: 17
+greedy mid #2: 32
+greedy mid #3: 44
+greedy mid #4: 54
+greedy mid #5: 63
+greedy mid #6: 72
+greedy mid #7: 81
+greedy mid #8: 89
+greedy mid #9: 97
+greedy mid #10: 105
+greedy mid #11: 112
+greedy mid #12: 119
+greedy mid #13: 126
+greedy mid #14: 133
+greedy mid #15: 140
+greedy mid #16: 147
+greedy mid #17: 154
+greedy mid #18: 160
+greedy mid #19: 166
+greedy mid #20: 172
+greedy mid #21: 178
+greedy mid #22: 184
+greedy mid #23: 190
+greedy mid #24: 196
+greedy mid #25: 202
+greedy mid #26: 208
+greedy mid #27: 214
+greedy mid #28: 220
+greedy mid #29: 226
+greedy mid #30: 232
+greedy mid #31: 238
+greedy mid #32: 244
+greedy mid #33: 249
+greedy mid #34: 254
+greedy mid #35: 259
+greedy mid #36: 264
+greedy mid #37: 269
+greedy mid #38: 274
+greedy mid #39: 279
+greedy mid #40: 284
+greedy mid #41: 289
+greedy mid #42: 294
+greedy mid #43: 299
+greedy mid #44: 304
+greedy mid #45: 309
+greedy mid #46: 314
+greedy mid #47: 319
+greedy mid #48: 324
+greedy mid #49: 329
+greedy mid #50: 334
+time elapsed: 0 hours 28 minutes 9 seconds
+========== Reverse greedy finish ==========
+
+========== High degree running ==========
+time elapsed: 0 hours 0 minutes 0 seconds
+========== High degree finish ==========
+
+---------- Testing Sandwich ----------
+5 84.4403 0.644
+10 161.005 0.663512
+15 258.916 0.658097
+20 310.883 0.653935
+25 393.312 0.663643
+30 459.783 0.666211
+35 530.454 0.665216
+40 591.634 0.666835
+45 644.693 0.672072
+50 710.113 0.676304
+
+5 124.828 0.644
+10 236.355 0.663512
+15 386.61 0.658097
+20 459.41 0.653935
+25 579.04 0.663643
+30 673.89 0.666211
+35 775.688 0.665216
+40 857.062 0.666835
+45 932.383 0.672072
+50 1027.32 0.676304
+
+---------- Testing Sandwich without cascade ----------
+diffusionState.seed: seeding an active node
+5 72.7427 1
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+10 134.443 1
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+15 221.36 1
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+20 296.9 1
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+25 334.769 1
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+30 387.765 1
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+35 438.064 1
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+40 483.004 1
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+45 505.852 1
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+diffusionState.seed: seeding an active node
+50 533.632 1
+
+5 108.412 1
+10 197.61 1
+15 320.635 1
+20 435.89 1
+25 488.985 1
+30 562.52 1
+35 633.237 1
+40 694.173 1
+45 721.997 1
+50 761.758 1
+
+---------- Testing Reverse ----------
+5 71.1173 0
+10 113.446 0
+15 177.273 0
+20 255.214 0
+25 277.472 0
+30 332.092 0
+35 388.849 0
+40 454.478 0
+45 514.836 0
+50 565.68 0
+
+5 106.05 0
+10 167.405 0
+15 260.085 0
+20 374.885 0
+25 406.507 0
+30 484.855 0
+35 561.977 0
+40 656.513 0
+45 739.795 0
+50 809.83 0
+
+---------- Testing High Degree ----------
+5 60.602 0
+10 132.208 0
+15 187.594 0
+20 257.486 0
+25 343.622 0
+30 391.244 0
+35 471.798 0
+40 552.755 0
+45 616.705 0
+50 683.036 0
+
+5 87.5875 0
+10 193.48 0
+15 274.68 0
+20 378.56 0
+25 507.062 0
+30 577.01 0
+35 695.31 0
+40 812.577 0
+45 900.62 0
+50 991.462 0
+
+time elapsed: 0 hours 34 minutes 32 seconds
