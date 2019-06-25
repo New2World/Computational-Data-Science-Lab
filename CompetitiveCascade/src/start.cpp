@@ -48,7 +48,7 @@ void testInfluence2(DiffusionState_MIC &diffusionState, const Network &network, 
     }
 }
 
-void test(const Network &network, DiffusionState_MIC &diffu, vector<int> nodes){
+void test(const Network &network, DiffusionState_MIC &diffu, int *nodes){
     set<int> seedset;
     int tenpercent = 830;
     for(int j = 0;j < 4;j++){
@@ -110,6 +110,9 @@ int main(int args, char **argv){
     }
     fclose(fd);
 
+    // test(network, diffusionState, shuffle_node);
+    // return 0;
+
     double l2;
     vector<rTuple> rtup;
     Results sandwich_result, sandwich_empty_result, reverse_result, highdegree_result;
@@ -170,24 +173,24 @@ int main(int args, char **argv){
     }
 
     cout << "---------- Testing Sandwich ----------" << endl;
-    //testInfluence(diffusionState, network, sandwich_result, k, span);
-    //cout << endl;
-    testInfluence2(diffusionState, network, sandwich_result, k, span);
+    testInfluence(diffusionState, network, sandwich_result, k, span);
+    // cout << endl;
+    // testInfluence2(diffusionState, network, sandwich_result, k, span);
 
     cout << endl << "---------- Testing Sandwich without cascade ----------" << endl;
-    //testInfluence(diffusionState, network, sandwich_empty_result, k, span);
-    //cout << endl;
-    testInfluence2(diffusionState, network, sandwich_empty_result, k, span);
+    testInfluence(diffusionState, network, sandwich_empty_result, k, span);
+    // cout << endl;
+    // testInfluence2(diffusionState, network, sandwich_empty_result, k, span);
 
     cout << endl << "---------- Testing Reverse ----------" << endl;
-    //testInfluence(diffusionState, network, reverse_result, k, span);
-    //cout << endl;
-    testInfluence2(diffusionState, network, reverse_result, k, span);
+    testInfluence(diffusionState, network, reverse_result, k, span);
+    // cout << endl;
+    // testInfluence2(diffusionState, network, reverse_result, k, span);
 
     cout << endl << "---------- Testing High Degree ----------" << endl;
-    //testInfluence(diffusionState, network, highdegree_result, k, span);
-    //cout << endl;
-    testInfluence2(diffusionState, network, highdegree_result, k, span);
+    testInfluence(diffusionState, network, highdegree_result, k, span);
+    // cout << endl;
+    // testInfluence2(diffusionState, network, highdegree_result, k, span);
 
     cout << endl;
     auto end = chrono::high_resolution_clock::now();

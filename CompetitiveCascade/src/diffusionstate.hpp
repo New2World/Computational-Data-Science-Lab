@@ -62,11 +62,31 @@ class DiffusionState_MIC{
     }
 
     int pri_cas(std::set<std::pair<int,short>> pri, int node, int shift){
-        std::vector<int> prior = caspriority[cnum+shift][node%_max];
+        std::vector<int> prior = caspriority[10][node%_max];
         int maxpri = -1;
         for(std::pair<int,short> p: pri)
             if(prior[p.second] > prior[maxpri])
                 maxpri = p.second;
+        return maxpri;
+    }
+
+    int pri_cas(std::set<short> pri, int node, int shift){
+        // if(caspriority.find(cnum+shift) == caspriority.end()){
+        //     std::cout << "caspriority overflow" << std::endl;
+        //     std::cout << "looking for caspriority[" << cnum+shift << "]" << std::endl;
+        //     exit(1);
+        // }
+        // if(caspriority[cnum+shift].size() < node%_max){
+        //     std::cout << "caspriority[" << node%_max << "] overflow" << std::endl;
+        //     std::cout << "size " << caspriority[cnum+shift].size() << " < " << node%_max << std::endl;
+        //     exit(1);
+        // }
+        // std::vector<int> prior = caspriority[cnum+shift][node%_max];
+        std::vector<int> prior = caspriority[10][node%_max];
+        int maxpri = -1;
+        for(short p: pri)
+            if(prior[p] > prior[maxpri])
+                maxpri = p;
         return maxpri;
     }
 
@@ -90,6 +110,10 @@ class DiffusionState_MIC{
         case 'n':
             return pri_nei(pri);
         }
+    }
+
+    int priority(std::set<short> pri, int n, int shift=0){
+        return pri_cas(pri, n, shift);
     }
 
     void diffuseOneRound(const Network &network, short *state, int tid){
@@ -169,9 +193,9 @@ class DiffusionState_MIC{
                 rtup.seed.insert(i);
             } else {
                 new_active[tid].insert(i);
-                rtup.upper.insert(i);
                 state[i] = -2;
             }
+            rtup.upper.insert(i);
         }
         if(islast){
             new_active[tid].clear();
@@ -219,6 +243,20 @@ class DiffusionState_MIC{
         scheduler.flip(tid);
         mt.unlock();
         return ret;
+    }
+
+    void updateCascade(){
+        memset(seed_state, -1, vnum*sizeof(short));
+        std::map<int,std::set<short>> seed_cascade;     // node, cascade
+        for(std::pair<int,std::set<int>> p: seedsets){  // cascade, seeds
+            for(int n: p.second){
+                if(seed_cascade.find(n) == seed_cascade.end())
+                    seed_cascade[n] = std::set<short>();
+                seed_cascade[n].insert(p.first);
+            }
+        }
+        for(std::pair<int,std::set<short>> p: seed_cascade)
+            seed_state[p.first] = priority(p.second, p.first);
     }
 
     template <typename T>
@@ -309,15 +347,16 @@ public:
     int seed(const std::set<int> &seed_set){
         std::set<int> new_seed;
         for(int i: seed_set){
-            if(seed_state[i] == -1){
-                seed_state[i] = cnum;
+            // if(seed_state[i] == -1){
+                // seed_state[i] = cnum;
                 seednodes.insert(i);
                 new_seed.insert(i);
-            }
-            else
-                std::cout << "diffusionState.seed: seeding an active node" << std::endl;
+            // }
+            // else
+                // std::cout << "diffusionState.seed: seeding an active node" << std::endl;
         }
         seedsets[cnum++] = new_seed;
+        updateCascade();
         return cnum-1;
     }
 
@@ -327,11 +366,12 @@ public:
             return;
         }
         for(int i: seedsets[cindex]){
-            seed_state[i] = -1;
+            // seed_state[i] = -1;
             seednodes.erase(i);
         }
         seedsets.erase(cindex);
         cnum--;
+        updateCascade();
     }
 
     double getRTuples(const Network &network, std::vector<rTuple> &rtup, double size){
@@ -377,7 +417,7 @@ public:
 
     bool computeMid_g(const std::set<int> &seed, rTuple &rtup, int tid){
         new_active[tid].clear();
-        int base = vnum * tid;
+        int base = vnum * tid, cid;
         for(int i = 0;i < vnum;i++) temp_state_1[base+i] = -1;
         for(int i: rtup.seed){
             temp_state_1[base+i] = seed_state[i];
@@ -390,7 +430,14 @@ public:
         }
         for(int i: seed){
             if(rtup.upper.find(i) != rtup.upper.end()){
-                temp_state_1[base+i] = cnum;
+                cid = cnum;
+                if(seed_state[i] > -1){
+                    std::set<std::pair<int,short>> temp_set;
+                    temp_set.insert(std::make_pair(0, seed_state[i]));
+                    temp_set.insert(std::make_pair(0, cnum));
+                    cid = priority(temp_set, i, tid, 0);
+                }
+                temp_state_1[base+i] = cid;
                 new_active[tid].insert(i);
             }
         }

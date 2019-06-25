@@ -466,11 +466,11 @@ Results Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diff
     Sandwich_greedy(rtup, lower_solution, k, "lower");
     Results result;
     for(int i = 0;i < k/span;i++){
-        int k = i*span+span;
+        int nk = i*span+span;
         std::set<int> upper_solution_k, lower_solution_k;
         std::set<int>::iterator upper_iter = upper_solution.begin();
         std::set<int>::iterator lower_iter = lower_solution.begin();
-        for(int j = 0;j < k;j++, upper_iter++, lower_iter++){
+        for(int j = 0;j < nk;j++, upper_iter++, lower_iter++){
             upper_solution_k.insert(*upper_iter);
             lower_solution_k.insert(*lower_iter);
         }
@@ -478,11 +478,11 @@ Results Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diff
         double lower_G = diffusionState.computeG(lower_solution_k, rtup, network.vertexNum, "mid", nullptr);
         double ratio = upper_G / diffusionState.computeG(upper_solution_k, rtup, network.vertexNum, "upper", nullptr);
 
-        result.supp[k] = ratio;
+        result.supp[nk] = ratio;
         if(upper_G > lower_G)
-            result.seedset[k] = upper_solution_k;
+            result.seedset[nk] = upper_solution_k;
         else
-            result.seedset[k] = lower_solution_k;
+            result.seedset[nk] = lower_solution_k;
     }
     auto end = std::chrono::high_resolution_clock::now();
     printTime(start, end);
