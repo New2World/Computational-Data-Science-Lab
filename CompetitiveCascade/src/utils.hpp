@@ -160,7 +160,7 @@ void __parallel(DiffusionState_MIC &diffusionState, std::set<int> seed, int v, s
     mt.unlock();
 }
 
-void Sandwich_greedyMid(const Network &network, DiffusionState_MIC &diffusionState, std::vector<rTuple> &rtup, std::set<int> &solution, int k, double *coverred){
+void Sandwich_greedyMid(const Network &network, DiffusionState_MIC &diffusionState, std::vector<rTuple> &rtup, std::set<int> &solution, int k, double *coverred, bool verbose=true){
     std::set<int> candidate;
     std::map<int,int> coverred_state;
     int tid = 0;
@@ -216,7 +216,7 @@ void Sandwich_greedyMid(const Network &network, DiffusionState_MIC &diffusionSta
             // }
             coverred_state[j] = 0;
         }
-        std::cout << "greedy mid #" << i+1 << ": " << profit << std::endl;
+        if(verbose) std::cout << "greedy mid #" << i+1 << ": " << profit << std::endl;
     }
     delete [] results;
 }
@@ -226,7 +226,6 @@ Results ReverseGreedy_computeSeedSet(const Network &network, DiffusionState_MIC 
     auto start = std::chrono::high_resolution_clock::now();
     std::vector<rTuple> rtup;
     std::cout << "l " << l << " " << diffusionState.getRTuples(network, rtup, l) << std::endl;
-    // diffusionState.getRTuples(network, rtup, l);
     std::set<int> mid_solution;
     std::cout << "working on mid-solution..." << std::endl;
     Sandwich_greedyMid(network, diffusionState, rtup, mid_solution, k, nullptr);
@@ -249,6 +248,33 @@ Results ReverseGreedy_computeSeedSet(const Network &network, DiffusionState_MIC 
     auto end = std::chrono::high_resolution_clock::now();
     printTime(start, end);
     std::cout << "========== Reverse greedy finish ==========" << std::endl << std::endl;
+    return result;
+}
+
+Results ReverseGreedy_computeSeedSet_noneoutput(const Network &network, DiffusionState_MIC &diffusionState, int k, int l, int span){
+    auto start = std::chrono::high_resolution_clock::now();
+    std::vector<rTuple> rtup;
+    diffusionState.getRTuples(network, rtup, l);
+    std::set<int> mid_solution;
+    Sandwich_greedyMid(network, diffusionState, rtup, mid_solution, k, nullptr, false);
+    Results result;
+    bool flag = true;
+    for(int i = 0;i < k/span && flag;i++){
+        int nk = i*span+span;
+        std::set<int> solution;
+        std::set<int>::iterator iter = mid_solution.begin();
+        for(int j = 0;j < nk;j++, iter++){
+            if(iter == mid_solution.end()){
+                flag = false;
+                break;
+            }
+            solution.insert(*iter);
+        }
+        result.seedset[nk] = solution;
+        result.supp[nk] = 0.;
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    printTime(start, end);
     return result;
 }
 

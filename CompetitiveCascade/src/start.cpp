@@ -93,7 +93,7 @@ int main(int args, char **argv){
 
     DiffusionState_MIC diffusionState(network, priority, rand);
 
-    int n, shuffle_node[vnum];
+    int n, *shuffle_node = new int[vnum];
     path = "../data/"+name+"_node.txt";
     FILE *fd = fopen(path.c_str(),"r");
     vector<int> temp_node(vnum);
@@ -174,6 +174,7 @@ int main(int args, char **argv){
         highdegree_result.readFromFile(fd);
         fclose(fd);
     }
+    delete [] shuffle_node;
 
     if(newtest)
         cout << "NEW TESTING" << endl;
