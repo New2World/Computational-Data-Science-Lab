@@ -43,27 +43,24 @@ class Network{
 
     void importRelation(string path){
         _Edge *edge = new _Edge[100000000];
-        char line[256];
+        char line[50];
         int u, v, tmp;
         // set<int> nodeSet;
         
         FILE *fd = fopen(path.c_str(), "r");
-        while(NULL != fgets(line, 256, fd)){
+        while(NULL != fgets(line, 50, fd)){
             vector<string> inStr;
             boost::split(inStr, line, boost::is_any_of(" "));
             u = stoi(inStr[0]);
             v = stoi(inStr[1]);
             edge[edgeNum].u = u;
             edge[edgeNum].v = v;
-            edgeNum++;
             inDegree[v]++;
             outDegree[u]++;
             if(type == "VIC")
                 edge[edgeNum].p = stod(inStr[2]);
-            // nodeSet.insert(u);
-            // nodeSet.insert(v);
+            edgeNum++;
         }
-        // std::cout << "Total node: " << nodeSet.size() << std::endl;
         fclose(fd);
 
         neighbor = new int[edgeNum];

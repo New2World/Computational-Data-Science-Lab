@@ -33,8 +33,10 @@ void allSet(std::bitset<THREAD> &bs){
         bs.set(i, true);
 }
 
-void printTime(const std::chrono::high_resolution_clock::time_point &start, const std::chrono::high_resolution_clock::time_point &end, bool high_resolution=false){
+void printTime(const std::chrono::high_resolution_clock::time_point &start, const std::chrono::high_resolution_clock::time_point &end, bool high_resolution=false, const std::string str=""){
     auto duration = end-start;
+    if(!str.empty())
+        std::cout << str << " ";
     if(high_resolution){
         auto msec = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
         std::cout << "time elapsed: " << msec << " msec" << std::endl;

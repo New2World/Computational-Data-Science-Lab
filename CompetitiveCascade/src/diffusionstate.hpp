@@ -52,7 +52,7 @@ class DiffusionState_MIC{
         fclose(fd);
     }
 
-    int pri_rand(std::set<std::pair<int,short>> pri, int tid){
+    int pri_rand(const std::set<std::pair<int,short>> &pri, int tid){
         int n = randn[tid]() % pri.size();
         for(std::pair<int,short> p: pri){
             if(n == 0)
@@ -61,8 +61,8 @@ class DiffusionState_MIC{
         }
     }
 
-    int pri_cas(std::set<std::pair<int,short>> pri, int node, int shift){
-        std::vector<int> prior = caspriority[10][node%_max];
+    int pri_cas(const std::set<std::pair<int,short>> &pri, int node, int shift){
+        std::vector<int> prior = caspriority[5][node%_max];
         int maxpri = -1;
         for(std::pair<int,short> p: pri)
             if(prior[p.second] > prior[maxpri])
@@ -70,19 +70,8 @@ class DiffusionState_MIC{
         return maxpri;
     }
 
-    int pri_cas(std::set<short> pri, int node, int shift){
-        // if(caspriority.find(cnum+shift) == caspriority.end()){
-        //     std::cout << "caspriority overflow" << std::endl;
-        //     std::cout << "looking for caspriority[" << cnum+shift << "]" << std::endl;
-        //     exit(1);
-        // }
-        // if(caspriority[cnum+shift].size() < node%_max){
-        //     std::cout << "caspriority[" << node%_max << "] overflow" << std::endl;
-        //     std::cout << "size " << caspriority[cnum+shift].size() << " < " << node%_max << std::endl;
-        //     exit(1);
-        // }
-        // std::vector<int> prior = caspriority[cnum+shift][node%_max];
-        std::vector<int> prior = caspriority[10][node%_max];
+    int pri_cas(const std::set<short> &pri, int node, int shift){
+        std::vector<int> prior = caspriority[5][node%_max];
         int maxpri = -1;
         for(short p: pri)
             if(prior[p] > prior[maxpri])
@@ -90,7 +79,7 @@ class DiffusionState_MIC{
         return maxpri;
     }
 
-    int pri_nei(std::set<std::pair<int,short>> pri){
+    int pri_nei(const std::set<std::pair<int,short>> &pri){
         int maxpri = -1, minnode = vnum;
         for(std::pair<int,short> p: pri){
             if(p.first < minnode){
@@ -101,7 +90,7 @@ class DiffusionState_MIC{
         return maxpri;
     }
 
-    int priority(std::set<std::pair<int,short>> pri, int n, int tid, int shift=0){
+    int priority(const std::set<std::pair<int,short>> &pri, int n, int tid, int shift=0){
         switch(pri_type[0]){
         case 'c':
             return pri_cas(pri, n, shift);
@@ -112,7 +101,7 @@ class DiffusionState_MIC{
         }
     }
 
-    int priority(std::set<short> pri, int n, int shift=0){
+    int priority(const std::set<short> &pri, int n, int shift=0){
         return pri_cas(pri, n, shift);
     }
 
@@ -131,7 +120,6 @@ class DiffusionState_MIC{
                     if(cas_pri.find(cseede) == cas_pri.end())
                         cas_pri[cseede] = std::set<std::pair<int,short>>();
                     cas_pri[cseede].insert(std::make_pair(cseed, state[cseed]));
-                    // state[cseede] = priority(state[cseede], state[cseed], cseede, tid);
                     if(new_active_temp[tid].find(cseede) == new_active_temp[tid].end())
                         new_active_temp[tid].insert(cseede);
                 }
@@ -155,7 +143,6 @@ class DiffusionState_MIC{
                     if(cas_pri.find(cseede) == cas_pri.end())
                         cas_pri[cseede] = std::set<std::pair<int,short>>();
                     cas_pri[cseede].insert(std::make_pair(cseed, state[cseed]));
-                    // state[cseede] = priority(state[cseede], state[cseed], cseede, tid, 1);
                     if(new_active_temp[tid].find(cseede) == new_active_temp[tid].end())
                         new_active_temp[tid].insert(cseede);
                 }
@@ -455,7 +442,9 @@ public:
 
     int compute_g(const std::set<int> &seed, rTuple &rtup, const std::string &type, int *result, int tid){
         int temp = 0;
+        bool flag = false;
         if(tid < 0){
+            flag = true;
             mt.lock();
             tid = scheduler._Find_first();
             scheduler.flip(tid);
@@ -478,28 +467,58 @@ public:
             else    temp = -2;
             break;
         }
-        mt.lock();
-        scheduler.flip(tid);
-        mt.unlock();
+        if(flag){
+            mt.lock();
+            scheduler.flip(tid);
+            mt.unlock();
+        }
         if(result)  *result = temp;
         return temp;
     }
 
-    double computeG(std::set<int> &S, std::vector<rTuple> &rtup, int n, const std::string &type, double *result){
-        int count = 0, tid = 0;
-        double output;
-        int *results = new int[rtup.size()];
-        boost::asio::thread_pool pool(THREAD);
-        allSet(scheduler);
-        for(rTuple &rt: rtup){
-            auto bind_fn = boost::bind(&DiffusionState_MIC::compute_g, this, ref(S), ref(rt), ref(type), results+tid, -1);
-            boost::asio::post(pool, bind_fn);
-            tid++;
-        }
-        pool.join();
-        for(int i = 0;i < rtup.size();i++)
-            if(results[i] > 0)
+    void __parallel(std::set<int> &S, std::vector<rTuple>::iterator _first, std::vector<rTuple>::iterator _second, const std::string type, int *result, int tid){
+        auto start = std::chrono::high_resolution_clock::now();
+        int count = 0;
+        for(auto it = _first;it != _second;it++)
+            if(compute_g(S, *it, type, nullptr, tid) > 0)
                 count++;
+        *result = count;
+        auto end = std::chrono::high_resolution_clock::now();
+        printTime(start, end, true, std::to_string(tid));
+    }
+
+    double computeG(std::set<int> &S, std::vector<rTuple> &rtup, int n, const std::string &type, double *result){
+        int count = 0, each_thread = rtup.size()/THREAD, rest = rtup.size()%each_thread;
+        double output;
+        int results[THREAD];
+        std::vector<boost::thread> thread_list;
+        std::vector<rTuple>::iterator head = rtup.begin(), tail;
+        auto start = std::chrono::high_resolution_clock::now();
+        for(int i = 0;i < THREAD;i++){
+            head += each_thread;
+            tail = head+each_thread;
+            if(rest){
+                tail++;
+                rest--;
+            }
+            if(tail > rtup.end())   tail = rtup.end();
+            boost::thread new_thread(
+                boost::bind(&DiffusionState_MIC::__parallel, this, ref(S), head, tail, ref(type), results+i, i)
+            );
+            thread_list.push_back(boost::move(new_thread));
+        }
+        for(boost::thread &t: thread_list)
+            t.join();
+        auto end = std::chrono::high_resolution_clock::now();
+        printTime(start, end, true, "total");
+        // for(rTuple &rt: rtup){
+        //     auto bind_fn = boost::bind(&DiffusionState_MIC::compute_g, this, ref(S), ref(rt), ref(type), results+tid, -1);
+        //     boost::asio::post(pool, bind_fn);
+        //     tid++;
+        // }
+        // pool.join();
+        for(int i = 0;i < THREAD;i++)
+            count += results[i];
         output = (double)n*count/rtup.size();
         if(result)  *result = output;
         return output;

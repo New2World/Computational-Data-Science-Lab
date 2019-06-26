@@ -139,7 +139,8 @@ int main(int args, char **argv){
         fd = fopen(fname.c_str(), "w");
         sandwich_result.writeToFile(fd);
         fclose(fd);
-
+        return 0;
+        
         // set<int> naivegreedy = NaiveGreedy_computeSeedSet(network, diffusionState, k, eps, N, 1);
 
         reverse_result = ReverseGreedy_computeSeedSet(network, diffusionState, k, l2, span);
