@@ -62,8 +62,8 @@ class DiffusionState_MIC{
     }
 
     int pri_cas(const std::set<std::pair<int,short>> &pri, int node, int shift){
-        std::vector<int> prior = caspriority[5][node%_max];
-        int maxpri = -1;
+        std::vector<int> prior = caspriority[10][node%_max];
+        int maxpri = pri.begin()->second;
         for(std::pair<int,short> p: pri)
             if(prior[p.second] > prior[maxpri])
                 maxpri = p.second;
@@ -71,8 +71,8 @@ class DiffusionState_MIC{
     }
 
     int pri_cas(const std::set<short> &pri, int node, int shift){
-        std::vector<int> prior = caspriority[5][node%_max];
-        int maxpri = -1;
+        std::vector<int> prior = caspriority[10][node%_max];
+        int maxpri = *(pri.begin());
         for(short p: pri)
             if(prior[p] > prior[maxpri])
                 maxpri = p;
@@ -110,13 +110,13 @@ class DiffusionState_MIC{
         double prob, rd;
         new_active_temp[tid].clear();
         std::map<int,std::set<std::pair<int,short>>> cas_pri;
-        for(int i = 0;i < vnum;i++) temp_state_2[base+i] = state[i];
+        // for(int i = 0;i < vnum;i++) temp_state_2[base+i] = state[i];
         for(int cseed: new_active[tid]){
             for(int i = 0;i < network.outDegree[cseed];i++){
                 cseede = network.getNeighbor(cseed, i);
                 prob = network.getProb(cseed, cseede);
                 rd = (double)randn[tid]()/randn[tid].max();
-                if(rd < prob && temp_state_2[base+cseede] == -1){
+                if(rd < prob && state[cseede] == -1){
                     if(cas_pri.find(cseede) == cas_pri.end())
                         cas_pri[cseede] = std::set<std::pair<int,short>>();
                     cas_pri[cseede].insert(std::make_pair(cseed, state[cseed]));
@@ -136,10 +136,11 @@ class DiffusionState_MIC{
         int base = tid * vnum;
         new_active_temp[tid].clear();
         std::map<int,std::set<std::pair<int,short>>> cas_pri;
-        for(int i = 0;i < vnum;i++) temp_state_2[base+i] = state[i];
+        // for(int i: rtup.upper)
+        //     temp_state_2[base+i] = state[i];
         for(int cseed: new_active[tid]){
             for(int cseede: rtup.relations[cseed]){
-                if(temp_state_2[base+cseede] == -1){
+                if(state[cseede] == -1){
                     if(cas_pri.find(cseede) == cas_pri.end())
                         cas_pri[cseede] = std::set<std::pair<int,short>>();
                     cas_pri[cseede].insert(std::make_pair(cseed, state[cseed]));
@@ -198,7 +199,6 @@ class DiffusionState_MIC{
         for(int i = 0;i < vnum;i++) temp_state_1[base+i] = seed_state[i];
         temp_state_1[base+cindex] = -2;
         new_active[tid].clear();
-        rtup.upper.insert(cindex);
         rtup.lower.insert(cindex);
         new_active[tid].insert(cindex);
         while(!new_active[tid].empty())
@@ -217,6 +217,7 @@ class DiffusionState_MIC{
         int cindex = randn[tid]()%vnum;
         rtup.clear();
         rtup.node_v = cindex;
+        rtup.upper.insert(cindex);
         rtup.relations[cindex] = std::set<int>();
         if(seed_state[cindex] != -1){
             rtup.seed.insert(cindex);
@@ -362,6 +363,7 @@ public:
     }
 
     double getRTuples(const Network &network, std::vector<rTuple> &rtup, double size){
+        auto start = std::chrono::high_resolution_clock::now();
         int countdiff = 0;
         int rtup_size = rtup.size();
         if(rtup.empty())    rtup = std::vector<rTuple>(size);
@@ -377,10 +379,12 @@ public:
         for(int i = rtup_size;i < new_size;i++)
             if(rtup[i].isdiff)
                 countdiff++;
+        auto end = std::chrono::high_resolution_clock::now();
+        // printTime(start,end, true,"get r tuple");
         return (double)countdiff;
     }
 
-    double expInfluenceComplete_new(const Network &network, std::vector<rTuple> rtup, std::set<int> solution){
+    double expInfluenceComplete_new(const Network &network, std::vector<rTuple> &rtup, std::set<int> &solution){
         return computeG(solution, rtup, vnum, "mid", nullptr);
     }
 
@@ -405,7 +409,10 @@ public:
     bool computeMid_g(const std::set<int> &seed, rTuple &rtup, int tid){
         new_active[tid].clear();
         int base = vnum * tid, cid;
-        for(int i = 0;i < vnum;i++) temp_state_1[base+i] = -1;
+        // for(int i = 0;i < vnum;i++)
+        //     temp_state_1[base+i] = -1;
+        for(int i: rtup.upper)
+            temp_state_1[base+i] = -1;
         for(int i: rtup.seed){
             temp_state_1[base+i] = seed_state[i];
             if(seed_state[i] > -1)
@@ -491,11 +498,11 @@ public:
         int count = 0, each_thread = rtup.size()/THREAD, rest = rtup.size()%each_thread;
         double output;
         int results[THREAD];
+        memset(results, 0, sizeof(results));
         std::vector<boost::thread> thread_list;
         std::vector<rTuple>::iterator head = rtup.begin(), tail;
         auto start = std::chrono::high_resolution_clock::now();
         for(int i = 0;i < THREAD;i++){
-            head += each_thread;
             tail = head+each_thread;
             if(rest){
                 tail++;
@@ -505,6 +512,7 @@ public:
             boost::thread new_thread(
                 boost::bind(&DiffusionState_MIC::__parallel, this, ref(S), head, tail, ref(type), results+i, i)
             );
+            head += each_thread;
             thread_list.push_back(boost::move(new_thread));
         }
         for(boost::thread &t: thread_list)
@@ -519,6 +527,26 @@ public:
         // pool.join();
         for(int i = 0;i < THREAD;i++)
             count += results[i];
+        output = (double)n*count/rtup.size();
+        if(result)  *result = output;
+        return output;
+    }
+
+    double computeG_old(std::set<int> &S, std::vector<rTuple> &rtup, int n, const std::string &type, double *result){
+        int count = 0, tid = 0;
+        double output;
+        int *results = new int[rtup.size()];
+        boost::asio::thread_pool pool(THREAD);
+        allSet(scheduler);
+        for(rTuple &rt: rtup){
+            auto bind_fn = boost::bind(&DiffusionState_MIC::compute_g, this, ref(S), ref(rt), ref(type), results+tid, -1);
+            boost::asio::post(pool, bind_fn);
+            tid++;
+        }
+        pool.join();
+        for(int i = 0;i < rtup.size();i++)
+            if(results[i] > 0)
+                count++;
         output = (double)n*count/rtup.size();
         if(result)  *result = output;
         return output;

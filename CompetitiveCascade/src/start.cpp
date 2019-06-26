@@ -50,7 +50,7 @@ void testInfluence2(DiffusionState_MIC &diffusionState, const Network &network, 
 
 void test(const Network &network, DiffusionState_MIC &diffu, int *nodes){
     set<int> seedset;
-    int tenpercent = 830;
+    int tenpercent = 83;
     for(int j = 0;j < 4;j++){
         set<int> seed;
         for(int i = j*tenpercent;i < j*tenpercent+tenpercent;i++)
@@ -58,7 +58,7 @@ void test(const Network &network, DiffusionState_MIC &diffu, int *nodes){
         diffu.seed(seed);
     }
     vector<rTuple> rtup;
-    cout << "count diff: " << diffu.getRTuples(network, rtup, 2000000) << endl;
+    cout << "count diff: " << diffu.getRTuples(network, rtup, 4000000) << endl;
 
     for(int i = 4000;i < 4100;i++)
         seedset.insert(nodes[i]);
