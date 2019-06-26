@@ -306,13 +306,11 @@ public:
         freeSpace(temp_state_2);
     }
 
-    void diffuse(const Network &network, int *result, int cindex, int round){
+    void diffuse(const Network &network, int *result, int cindex, int round, int j){
         // auto start = std::chrono::high_resolution_clock::now();
         int tid = -1;
         mt.lock();
         tid = scheduler._Find_first();
-        if(tid >= THREAD)
-            std::cout << "diffuse" << std::endl;
         scheduler.flip(tid);
         mt.unlock();
         new_active[tid] = seednodes;
@@ -324,7 +322,7 @@ public:
         }
         for(int i = 0;i < vnum;i++)
             if(temp_state_1[base+i] == cindex)
-                result[tid]++;
+                result[j]++;
         mt.lock();
         scheduler.flip(tid);
         mt.unlock();
@@ -389,19 +387,19 @@ public:
     }
 
     double expInfluenceComplete(const Network &network, int times, int cindex){
-        int c_result[THREAD];
+        int c_result[times], tid = 0;
         double result = 0.;
-        memset(c_result, 0, THREAD*sizeof(int));
+        memset(c_result, 0, times*sizeof(int));
         boost::asio::thread_pool pool(THREAD);
         allSet(scheduler);
         for(int i = 0;i < times;i++){
-            auto bind_fn = boost::bind(&DiffusionState_MIC::diffuse, this, ref(network), c_result, cindex, vnum);
+            auto bind_fn = boost::bind(&DiffusionState_MIC::diffuse, this, ref(network), c_result, cindex, vnum, tid);
             boost::asio::post(pool, bind_fn);
+            tid++;
         }
         pool.join();
-        for(int j = 0;j < THREAD;j++){
+        for(int j = 0;j < times;j++){
             result += c_result[j];
-            c_result[j] = 0;
         }
         return result/times;
     }
@@ -495,7 +493,7 @@ public:
     }
 
     double computeG(std::set<int> &S, std::vector<rTuple> &rtup, int n, const std::string &type, double *result){
-        int count = 0, each_thread = rtup.size()/THREAD, rest = rtup.size()%each_thread;
+        int count = 0, each_thread = rtup.size()/THREAD, rest = rtup.size()-THREAD*each_thread;
         double output;
         int results[THREAD];
         memset(results, 0, sizeof(results));
@@ -512,7 +510,7 @@ public:
             boost::thread new_thread(
                 boost::bind(&DiffusionState_MIC::__parallel, this, ref(S), head, tail, ref(type), results+i, i)
             );
-            head += each_thread;
+            head = tail;
             thread_list.push_back(boost::move(new_thread));
         }
         for(boost::thread &t: thread_list)

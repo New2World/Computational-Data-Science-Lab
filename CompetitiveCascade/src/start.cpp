@@ -38,7 +38,7 @@ void testInfluence2(DiffusionState_MIC &diffusionState, const Network &network, 
     set<int> seedset;
     bool flag = true;
     vector<rTuple> rtup;
-    diffusionState.getRTuples(network, rtup, 2000000);
+    diffusionState.getRTuples(network, rtup, 4000000);
     for(int i = 0;i < k/span && flag;i++){
         int nk = i*span+span;
         seedset = result.seedset[nk];
