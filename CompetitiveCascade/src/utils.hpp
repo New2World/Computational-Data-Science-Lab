@@ -123,8 +123,6 @@ void __parallel(DiffusionState_MIC &diffusionState, std::set<int> seed, int v, s
     double cmaxvalue = -1.;
     mt.lock();
     tid = scheduler._Find_first();
-    if(tid >= THREAD)
-        std::cout << "parallel" << std::endl;
     scheduler.flip(tid);
     mt.unlock();
     type1.clear();

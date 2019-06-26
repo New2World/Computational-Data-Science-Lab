@@ -484,7 +484,7 @@ public:
                 count++;
         *result = count;
         auto end = std::chrono::high_resolution_clock::now();
-        printTime(start, end, true, std::to_string(tid));
+        // printTime(start, end, true, std::to_string(tid));
     }
 
     double computeG(std::set<int> &S, std::vector<rTuple> &rtup, int n, const std::string &type, double *result){
@@ -510,7 +510,7 @@ public:
         for(boost::thread &t: thread_list)
             t.join();
         auto end = std::chrono::high_resolution_clock::now();
-        printTime(start, end, true, "total");
+        // printTime(start, end, true, "total");
         // for(rTuple &rt: rtup){
         //     auto bind_fn = boost::bind(&DiffusionState_MIC::compute_g, this, ref(S), ref(rt), ref(type), results+tid, -1);
         //     boost::asio::post(pool, bind_fn);

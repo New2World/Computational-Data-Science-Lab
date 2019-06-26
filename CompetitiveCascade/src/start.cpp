@@ -22,13 +22,13 @@ void testInfluence(DiffusionState_MIC &diffusionState, const Network &network, R
     set<int> seedset;
     bool flag = true;
     for(int i = 0;i < k/span && flag;i++){
-        int k = i*span+span;
-        seedset = result.seedset[k];
-        if(seedset.size() != k)
+        int nk = i*span+span;
+        seedset = result.seedset[nk];
+        if(seedset.size() != nk)
             flag = false;
         if(seedset.empty()) break;
         cindex = diffusionState.seed(seedset);
-        cout << seedset.size() << " " << diffusionState.expInfluenceComplete(network, 3000, cindex) << " " << result.supp[k] << endl;
+        cout << seedset.size() << " " << diffusionState.expInfluenceComplete(network, 3000, cindex) << " " << result.supp[nk] << endl;
         diffusionState.removeSeed(cindex);
     }
 }
@@ -40,11 +40,11 @@ void testInfluence2(DiffusionState_MIC &diffusionState, const Network &network, 
     vector<rTuple> rtup;
     diffusionState.getRTuples(network, rtup, 2000000);
     for(int i = 0;i < k/span && flag;i++){
-        int k = i*span+span;
-        seedset = result.seedset[k];
-        if(seedset.size() != k)
+        int nk = i*span+span;
+        seedset = result.seedset[nk];
+        if(seedset.size() != nk)
             flag = false;
-        cout << seedset.size() << " " << diffusionState.expInfluenceComplete_new(network, rtup, result.seedset[k]) << " " << result.supp[k] << endl;
+        cout << seedset.size() << " " << diffusionState.expInfluenceComplete_new(network, rtup, result.seedset[nk]) << " " << result.supp[nk] << endl;
     }
 }
 
@@ -58,7 +58,7 @@ void test(const Network &network, DiffusionState_MIC &diffu, int *nodes){
         diffu.seed(seed);
     }
     vector<rTuple> rtup;
-    cout << "count diff: " << diffu.getRTuples(network, rtup, 100000) << endl;
+    cout << "count diff: " << diffu.getRTuples(network, rtup, 2000000) << endl;
 
     for(int i = 4000;i < 4100;i++)
         seedset.insert(nodes[i]);
@@ -78,8 +78,11 @@ int main(int args, char **argv){
     int span = atoi(argv[5]);
     string priority = string(argv[6]);
     bool load = false;
-    if(args > 7)
+    bool newtest = true;
+    if(args > 7 && strcmp("true", argv[7]) == 0)
         load = true;
+    if(args > 8 && strcmp("old", argv[8]) == 0)
+        newtest = false;
     string path = "../data/"+name+".txt", fname;
     Network network(path, type, vnum);
     network.setICProb(.1);
@@ -122,7 +125,7 @@ int main(int args, char **argv){
         sandwich_empty_result = Sandwich_computeSeedSet(network, diffusionState, k, eps, N, rtup, 2, span, &l2);
         fname = "inner/sandwich_no_cascade_"+name+"_"+priority+".txt";
         fd = fopen(fname.c_str(), "w");
-        sandwich_result.writeToFile(fd);
+        sandwich_empty_result.writeToFile(fd);
         fclose(fd);
 
         for(int j = 0;j < 4;j++){
@@ -139,7 +142,6 @@ int main(int args, char **argv){
         fd = fopen(fname.c_str(), "w");
         sandwich_result.writeToFile(fd);
         fclose(fd);
-        return 0;
         
         // set<int> naivegreedy = NaiveGreedy_computeSeedSet(network, diffusionState, k, eps, N, 1);
 
@@ -161,7 +163,7 @@ int main(int args, char **argv){
         fclose(fd);
         fname = "inner/sandwich_no_cascade_"+name+"_"+priority+".txt";
         fd = fopen(fname.c_str(), "r");
-        sandwich_result.readFromFile(fd);
+        sandwich_empty_result.readFromFile(fd);
         fclose(fd);
         fname = "inner/reverse_"+name+"_"+priority+".txt";
         fd = fopen(fname.c_str(), "r");
@@ -173,25 +175,34 @@ int main(int args, char **argv){
         fclose(fd);
     }
 
+    if(newtest)
+        cout << "NEW TESTING" << endl;
+    else
+        cout << "OLD TESTING" << endl;
+
     cout << "---------- Testing Sandwich ----------" << endl;
-    testInfluence(diffusionState, network, sandwich_result, k, span);
-    // cout << endl;
-    // testInfluence2(diffusionState, network, sandwich_result, k, span);
+    if(newtest)
+        testInfluence2(diffusionState, network, sandwich_result, k, span);
+    else
+        testInfluence(diffusionState, network, sandwich_result, k, span);
 
     cout << endl << "---------- Testing Sandwich without cascade ----------" << endl;
-    testInfluence(diffusionState, network, sandwich_empty_result, k, span);
-    // cout << endl;
-    // testInfluence2(diffusionState, network, sandwich_empty_result, k, span);
+    if(newtest)
+        testInfluence2(diffusionState, network, sandwich_empty_result, k, span);
+    else
+        testInfluence(diffusionState, network, sandwich_empty_result, k, span);
 
     cout << endl << "---------- Testing Reverse ----------" << endl;
-    testInfluence(diffusionState, network, reverse_result, k, span);
-    // cout << endl;
-    // testInfluence2(diffusionState, network, reverse_result, k, span);
+    if(newtest)
+        testInfluence2(diffusionState, network, reverse_result, k, span);
+    else
+        testInfluence(diffusionState, network, reverse_result, k, span);
 
     cout << endl << "---------- Testing High Degree ----------" << endl;
-    testInfluence(diffusionState, network, highdegree_result, k, span);
-    // cout << endl;
-    // testInfluence2(diffusionState, network, highdegree_result, k, span);
+    if(newtest)
+        testInfluence2(diffusionState, network, highdegree_result, k, span);
+    else
+        testInfluence(diffusionState, network, highdegree_result, k, span);
 
     cout << endl;
     auto end = chrono::high_resolution_clock::now();
