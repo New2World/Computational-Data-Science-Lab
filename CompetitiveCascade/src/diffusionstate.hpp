@@ -110,7 +110,6 @@ class DiffusionState_MIC{
         double prob, rd;
         new_active_temp[tid].clear();
         std::map<int,std::set<std::pair<int,short>>> cas_pri;
-        // for(int i = 0;i < vnum;i++) temp_state_2[base+i] = state[i];
         for(int cseed: new_active[tid]){
             for(int i = 0;i < network.outDegree[cseed];i++){
                 cseede = network.getNeighbor(cseed, i);
@@ -136,8 +135,6 @@ class DiffusionState_MIC{
         int base = tid * vnum;
         new_active_temp[tid].clear();
         std::map<int,std::set<std::pair<int,short>>> cas_pri;
-        // for(int i: rtup.upper)
-        //     temp_state_2[base+i] = state[i];
         for(int cseed: new_active[tid]){
             for(int cseede: rtup.relations[cseed]){
                 if(state[cseede] == -1){
@@ -333,13 +330,8 @@ public:
     int seed(const std::set<int> &seed_set){
         std::set<int> new_seed;
         for(int i: seed_set){
-            // if(seed_state[i] == -1){
-                // seed_state[i] = cnum;
-                seednodes.insert(i);
-                new_seed.insert(i);
-            // }
-            // else
-                // std::cout << "diffusionState.seed: seeding an active node" << std::endl;
+            seednodes.insert(i);
+            new_seed.insert(i);
         }
         seedsets[cnum++] = new_seed;
         updateCascade();
@@ -398,17 +390,14 @@ public:
             tid++;
         }
         pool.join();
-        for(int j = 0;j < times;j++){
+        for(int j = 0;j < times;j++)
             result += c_result[j];
-        }
         return result/times;
     }
 
     bool computeMid_g(const std::set<int> &seed, rTuple &rtup, int tid){
         new_active[tid].clear();
         int base = vnum * tid, cid;
-        // for(int i = 0;i < vnum;i++)
-        //     temp_state_1[base+i] = -1;
         for(int i: rtup.upper)
             temp_state_1[base+i] = -1;
         for(int i: rtup.seed){

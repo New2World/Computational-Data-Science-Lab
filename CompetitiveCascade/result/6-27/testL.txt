@@ -1,0 +1,34 @@
+import ../data/hepph.txt IC
+seed set: 5%
+l	sandwich	reverse
+time elapsed: 0 hours 6 minutes 19 seconds
+10000	819.158		646.905
+
+time elapsed: 0 hours 19 minutes 45 seconds
+20000	819.158		709.188
+
+time elapsed: 0 hours 35 minutes 28 seconds
+30000	819.158		821.188
+
+time elapsed: 0 hours 54 minutes 3 seconds
+40000	819.158		797.808
+
+time elapsed: 1 hours 9 minutes 20 seconds
+50000	819.158		814.695
+
+time elapsed: 1 hours 27 minutes 51 seconds
+60000	819.158		828.398
+
+time elapsed: 1 hours 44 minutes 14 seconds
+70000	819.158		842.607
+
+time elapsed: 2 hours 3 minutes 37 seconds
+80000	819.158		840.717
+
+time elapsed: 2 hours 20 minutes 42 seconds
+90000	819.158		849.485
+
+time elapsed: 2 hours 40 minutes 1 seconds
+100000	819.158		848.592
+
+time elapsed: 13 hours 22 minutes 52 seconds

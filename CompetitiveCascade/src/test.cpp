@@ -65,12 +65,13 @@ int main(int args, char **argv){
     fd = fopen(fname.c_str(), "r");
     sandwich_result.readFromFile(fd);
     fclose(fd);
-    double sandwich_value = testInfluence(diffusionState, network, sandwich_result, k), reverse_value;
+    double sandwich_value, reverse_value;
     cout << "l\tsandwich\treverse" << endl;
     for(l2 = from;l2 <= to;l2 += span){
         reverse_result = ReverseGreedy_computeSeedSet_noneoutput(network, diffusionState, k, l2, 5);
+        sandwich_value = testInfluence(diffusionState, network, sandwich_result, k);
         reverse_value = testInfluence(diffusionState, network, reverse_result, k);
-        cout << l2 << "\t" << sandwich_value << "\t\t" << reverse_value << endl;
+        cout << l2 << "\t" << sandwich_value << "\t\t" << reverse_value << endl << endl;
     }
 
     cout << endl;
