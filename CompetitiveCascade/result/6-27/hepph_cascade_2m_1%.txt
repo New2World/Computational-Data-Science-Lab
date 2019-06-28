@@ -1,0 +1,143 @@
+import ../data/hepph.txt IC
+seed set: 1%
+========== Sandwich running ==========
+35000 542500
+35000 271250
+17981.7 135625
+10707.8 67812.5
+8132.12 33906.2
+6808.87 16953.1
+5511.65 8476.56
+4815.24 4238.28
+l 69590 0
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 2 seconds
+========== Sandwich finish ==========
+
+========== Sandwich running ==========
+32407.4 542500
+33055.6 271250
+17018.3 135625
+9589.04 67812.5
+6138.95 33906.2
+4499.43 16953.1
+3183.63 8476.56
+2546.9 4238.28
+2133.72 2119.14
+l 157048 20487
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 1 seconds
+========== Sandwich finish ==========
+
+========== Reverse greedy running ==========
+l 3357 429
+working on mid-solution...
+greedy mid #1: 15
+greedy mid #2: 27
+greedy mid #3: 37
+greedy mid #4: 46
+greedy mid #5: 55
+greedy mid #6: 63
+greedy mid #7: 71
+greedy mid #8: 79
+greedy mid #9: 87
+greedy mid #10: 94
+greedy mid #11: 101
+greedy mid #12: 108
+greedy mid #13: 115
+greedy mid #14: 122
+greedy mid #15: 129
+greedy mid #16: 135
+greedy mid #17: 141
+greedy mid #18: 147
+greedy mid #19: 153
+greedy mid #20: 159
+greedy mid #21: 165
+greedy mid #22: 171
+greedy mid #23: 177
+greedy mid #24: 182
+greedy mid #25: 187
+greedy mid #26: 192
+greedy mid #27: 197
+greedy mid #28: 202
+greedy mid #29: 207
+greedy mid #30: 212
+greedy mid #31: 217
+greedy mid #32: 222
+greedy mid #33: 227
+greedy mid #34: 231
+greedy mid #35: 235
+greedy mid #36: 239
+greedy mid #37: 243
+greedy mid #38: 247
+greedy mid #39: 251
+greedy mid #40: 255
+greedy mid #41: 259
+greedy mid #42: 263
+greedy mid #43: 267
+greedy mid #44: 271
+greedy mid #45: 275
+greedy mid #46: 279
+greedy mid #47: 283
+greedy mid #48: 287
+greedy mid #49: 291
+greedy mid #50: 295
+time elapsed: 0 hours 1 minutes 45 seconds
+========== Reverse greedy finish ==========
+
+========== High degree running ==========
+time elapsed: 0 hours 0 minutes 0 seconds
+========== High degree finish ==========
+
+NEW TESTING
+---------- Testing Sandwich ----------
+5 315.123 0.712725
+10 544.399 0.7804
+15 941.281 0.802942
+20 1156.38 0.816247
+25 1369.88 0.829467
+30 1612.25 0.838121
+35 1801.26 0.842348
+40 1960.67 0.834922
+45 2111.65 0.8254
+50 2261.33 0.831953
+
+---------- Testing Sandwich without cascade ----------
+5 343.954 1
+10 659.908 1
+15 943.854 1
+20 1235.59 1
+25 1419.39 1
+30 1543.13 1
+35 1727.06 1
+40 1845.25 1
+45 1961.36 1
+50 2079.59 1
+
+---------- Testing Reverse ----------
+5 240.24 0
+10 463.671 0
+15 565.574 0
+20 718.112 0
+25 814.258 0
+30 942.428 0
+35 1209.12 0
+40 1324.83 0
+45 1482.99 0
+50 1621.09 0
+
+---------- Testing High Degree ----------
+5 206.745 0
+10 422.126 0
+15 575.636 0
+20 712.679 0
+25 952.403 0
+30 1211.64 0
+35 1473.22 0
+40 1701.1 0
+45 1868.12 0
+50 2039.06 0
+
+time elapsed: 0 hours 3 minutes 23 seconds

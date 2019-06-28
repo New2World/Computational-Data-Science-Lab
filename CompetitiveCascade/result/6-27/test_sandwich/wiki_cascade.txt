@@ -1,0 +1,173 @@
+import ../data/wiki.txt IC
+seed set: 1%
+l	sandwich
+========== Sandwich running ==========
+l 10000 1985
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 0 seconds
+========== Sandwich finish ==========
+
+10000	1354.53
+
+========== Sandwich running ==========
+l 40000 7788
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 0 seconds
+========== Sandwich finish ==========
+
+40000	1385.01
+
+========== Sandwich running ==========
+l 70000 13435
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 1 seconds
+========== Sandwich finish ==========
+
+70000	1376.73
+
+========== Sandwich running ==========
+l 100000 19608
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 1 seconds
+========== Sandwich finish ==========
+
+100000	1384.16
+
+========== Sandwich running ==========
+l 130000 25304
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 2 seconds
+========== Sandwich finish ==========
+
+130000	1388.22
+
+========== Sandwich running ==========
+l 160000 30878
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 2 seconds
+========== Sandwich finish ==========
+
+160000	1390.03
+
+========== Sandwich running ==========
+l 190000 37083
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 3 seconds
+========== Sandwich finish ==========
+
+190000	1396.59
+
+========== Sandwich running ==========
+l 220000 43048
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 4 seconds
+========== Sandwich finish ==========
+
+220000	1389.64
+
+========== Sandwich running ==========
+l 250000 48693
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 4 seconds
+========== Sandwich finish ==========
+
+250000	1388.62
+
+========== Sandwich running ==========
+l 280000 54572
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 5 seconds
+========== Sandwich finish ==========
+
+280000	1389.98
+
+========== Sandwich running ==========
+l 310000 60310
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 6 seconds
+========== Sandwich finish ==========
+
+310000	1389.89
+
+========== Sandwich running ==========
+l 340000 65793
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 6 seconds
+========== Sandwich finish ==========
+
+340000	1390.31
+
+========== Sandwich running ==========
+l 370000 71863
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 7 seconds
+========== Sandwich finish ==========
+
+370000	1389.4
+
+========== Sandwich running ==========
+l 400000 77964
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 8 seconds
+========== Sandwich finish ==========
+
+400000	1397.2
+
+========== Sandwich running ==========
+l 430000 84342
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 8 seconds
+========== Sandwich finish ==========
+
+430000	1377.8
+
+========== Sandwich running ==========
+l 460000 89397
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 9 seconds
+========== Sandwich finish ==========
+
+460000	1395.54
+
+========== Sandwich running ==========
+l 490000 94874
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 10 seconds
+========== Sandwich finish ==========
+
+490000	1386.03
+
+========== Sandwich running ==========
+l 520000 101315
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 10 seconds
+========== Sandwich finish ==========
+
+520000	1388.59
+
+========== Sandwich running ==========
+l 550000 106979
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 11 seconds
+========== Sandwich finish ==========
+
+550000	1388.84

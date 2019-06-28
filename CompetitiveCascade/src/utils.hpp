@@ -514,6 +514,42 @@ Results Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diff
     return result;
 }
 
+Results Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diffusionState, int k, int l, int p, int span){
+    std::cout << "========== Sandwich running ==========" << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
+    std::vector<rTuple> rtup;
+    std::cout << "l " << l << " " << diffusionState.getRTuples(network, rtup, l) << std::endl;
+    std::set<int> upper_solution, lower_solution;
+    std::cout << "working on upper solution..." << std::endl;
+    Sandwich_greedy(rtup, upper_solution, k, "upper");
+    std::cout << "working on lower solution..." << std::endl;
+    Sandwich_greedy(rtup, lower_solution, k, "lower");
+    Results result;
+    for(int i = 0;i < k/span;i++){
+        int nk = i*span+span;
+        std::set<int> upper_solution_k, lower_solution_k;
+        std::set<int>::iterator upper_iter = upper_solution.begin();
+        std::set<int>::iterator lower_iter = lower_solution.begin();
+        for(int j = 0;j < nk;j++, upper_iter++, lower_iter++){
+            upper_solution_k.insert(*upper_iter);
+            lower_solution_k.insert(*lower_iter);
+        }
+        double upper_G = diffusionState.computeG(upper_solution_k, rtup, network.vertexNum, "mid", nullptr);
+        double lower_G = diffusionState.computeG(lower_solution_k, rtup, network.vertexNum, "mid", nullptr);
+        double ratio = upper_G / diffusionState.computeG(upper_solution_k, rtup, network.vertexNum, "upper", nullptr);
+
+        result.supp[nk] = ratio;
+        if(upper_G > lower_G)
+            result.seedset[nk] = upper_solution_k;
+        else
+            result.seedset[nk] = lower_solution_k;
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    printTime(start, end);
+    std::cout << "========== Sandwich finish ==========" << std::endl << std::endl;
+    return result;
+}
+
 Results Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diffusionState, int k, int l, std::vector<rTuple> &rtup){
     // std::cout << "========== Sandwich running ==========" << std::endl;
     auto start = std::chrono::high_resolution_clock::now();

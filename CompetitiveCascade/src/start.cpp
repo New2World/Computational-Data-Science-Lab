@@ -86,7 +86,7 @@ int main(int args, char **argv){
     string path = "../data/"+name+".txt", fname;
     Network network(path, type, vnum);
     network.setICProb(.1);
-    double eps = .3, N = 10000., partial = .05;
+    double eps = .3, N = 10000., partial = .01;
     int tenpercent = (int)(vnum * partial);
     mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
     auto start = chrono::high_resolution_clock::now();
@@ -96,25 +96,11 @@ int main(int args, char **argv){
     int n, *shuffle_node = new int[vnum];
     path = "../data/"+name+"_node.txt";
     FILE *fd = fopen(path.c_str(),"r");
-    vector<int> temp_node(vnum);
-    if(!fd){
-        fd = fopen(path.c_str(), "w");
-        for(int i = 0;i < vnum;i++)
-            temp_node[i] = i;
-        shuffle(temp_node.begin(), temp_node.end(), rand);
-        for(int i = 0;i < vnum;i++)
-            fprintf(fd, "%d ", temp_node[i]);
-        fclose(fd);
-        fd = fopen(path.c_str(), "r");
-    }
     for(int i = 0;i < vnum;i++){
         fscanf(fd, "%d", &n);
         shuffle_node[i] = n;
     }
     fclose(fd);
-
-    // test(network, diffusionState, shuffle_node);
-    // return 0;
 
     double l2;
     vector<rTuple> rtup;

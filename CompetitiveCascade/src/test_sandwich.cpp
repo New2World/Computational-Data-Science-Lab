@@ -17,9 +17,7 @@
 
 using namespace std;
 
-double testInfluence(DiffusionState_MIC &diffusionState, const Network &network, Results &result, int k){
-    vector<rTuple> rtup;
-    diffusionState.getRTuples(network, rtup, 2000000);
+double testInfluence(DiffusionState_MIC &diffusionState, const Network &network, Results &result, int k, vector<rTuple> &rtup){
     return diffusionState.expInfluenceComplete_new(network, rtup, result.seedset[k]);
 }
 
@@ -32,10 +30,13 @@ int main(int args, char **argv){
     int to = atoi(argv[5]);
     int span = atoi(argv[6]);
     string priority = string(argv[7]);
+    int threshold = -1;
+    if(args > 7)
+        threshold = atoi(argv[8]);
     string path = "../data/"+name+".txt", fname;
     Network network(path, type, vnum);
     network.setICProb(.1);
-    double eps = .3, N = 10000., partial = .05;
+    double eps = .1, N = 10000., partial = .01;
     int percent = (int)(vnum * partial);
     mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
     auto start = chrono::high_resolution_clock::now();
@@ -52,26 +53,26 @@ int main(int args, char **argv){
     fclose(fd);
 
     double l2;
-    Results sandwich_result, sandwich_empty_result, reverse_result, highdegree_result;
+    Results sandwich_result;
     cout << "seed set: " << partial * 100 << "%" << endl;
 
-    for(int j = 0;j < 4;j++){
-        set<int> seed;
-        for(int i = j*percent;i < j*percent+percent;i++)
-            seed.insert(shuffle_node[i]);
-        diffusionState.seed(seed);
-    }
-    fname = "inner/sandwich_"+name+"_"+priority+".txt";
-    fd = fopen(fname.c_str(), "r");
-    sandwich_result.readFromFile(fd);
-    fclose(fd);
-    double sandwich_value, reverse_value;
-    cout << "l\tsandwich\treverse" << endl;
+    // for(int j = 0;j < 4;j++){
+    //     set<int> seed;
+    //     for(int i = j*percent;i < j*percent+percent;i++)
+    //         seed.insert(shuffle_node[i]);
+    //     diffusionState.seed(seed);
+    // }
+    
+    double sandwich_value;
+    vector<rTuple> test_rtup;
+    diffusionState.getRTuples(network, test_rtup, 2000000);
+    cout << "l\tsandwich" << endl;
     for(l2 = from;l2 <= to;l2 += span){
-        reverse_result = ReverseGreedy_computeSeedSet_noneoutput(network, diffusionState, k, l2, 5);
-        sandwich_value = testInfluence(diffusionState, network, sandwich_result, k);
-        reverse_value = testInfluence(diffusionState, network, reverse_result, k);
-        cout << l2 << "\t" << sandwich_value << "\t\t" << reverse_value << endl << endl;
+        sandwich_result = Sandwich_computeSeedSet(network, diffusionState, k, l2, 2, 5);
+        sandwich_value = testInfluence(diffusionState, network, sandwich_result, k, test_rtup);
+        cout << l2 << "\t" << sandwich_value << endl << endl;
+        if(threshold > 0 && sandwich_value > threshold)
+            break;
     }
 
     cout << endl;

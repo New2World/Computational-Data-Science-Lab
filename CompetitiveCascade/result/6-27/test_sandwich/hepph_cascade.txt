@@ -1,0 +1,128 @@
+import ../data/hepph.txt IC
+seed set: 1%
+l	sandwich
+========== Sandwich running ==========
+l 10000 0
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 0 seconds
+========== Sandwich finish ==========
+
+10000	4150.95
+
+========== Sandwich running ==========
+l 20000 0
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 0 seconds
+========== Sandwich finish ==========
+
+20000	4221.82
+
+========== Sandwich running ==========
+l 30000 0
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 1 seconds
+========== Sandwich finish ==========
+
+30000	4261.9
+
+========== Sandwich running ==========
+l 40000 0
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 1 seconds
+========== Sandwich finish ==========
+
+40000	4295.1
+
+========== Sandwich running ==========
+l 50000 0
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 1 seconds
+========== Sandwich finish ==========
+
+50000	4287.97
+
+========== Sandwich running ==========
+l 60000 0
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 2 seconds
+========== Sandwich finish ==========
+
+60000	4304.39
+
+========== Sandwich running ==========
+l 70000 0
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 2 seconds
+========== Sandwich finish ==========
+
+70000	4313.38
+
+========== Sandwich running ==========
+l 80000 0
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 3 seconds
+========== Sandwich finish ==========
+
+80000	4317.83
+
+========== Sandwich running ==========
+l 90000 0
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 3 seconds
+========== Sandwich finish ==========
+
+90000	4330.62
+
+========== Sandwich running ==========
+l 100000 0
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 3 seconds
+========== Sandwich finish ==========
+
+100000	4319.75
+
+========== Sandwich running ==========
+l 110000 0
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 4 seconds
+========== Sandwich finish ==========
+
+110000	4325.63
+
+========== Sandwich running ==========
+l 120000 0
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 4 seconds
+========== Sandwich finish ==========
+
+120000	4323.02
+
+========== Sandwich running ==========
+l 130000 0
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 5 seconds
+========== Sandwich finish ==========
+
+130000	4308.99
+
+========== Sandwich running ==========
+l 140000 0
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 6 seconds
+========== Sandwich finish ==========
+
+140000	4325.23
