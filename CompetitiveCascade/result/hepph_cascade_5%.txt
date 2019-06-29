@@ -1,0 +1,62 @@
+import ../data/hepph.txt IC
+seed set: 5%
+WITHOUT CASCADE
+========== Sandwich running ==========
+35000 542500
+35000 271250
+19587.2 135625
+11826.5 67812.5
+7892.94 33906.2
+6530.15 16953.1
+5193.29 8476.56
+4646.11 4238.28
+l 72124 0
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 3 seconds
+========== Sandwich finish ==========
+
+========== Sandwich running ==========
+27222.2 542500
+25925.9 271250
+16055 135625
+8310.5 67812.5
+4384.97 33906.2
+2747.44 16953.1
+2069.36 8476.56
+1402.79 4238.28
+984.795 2119.14
+778.386 1059.57
+646.582 529.785
+l 518258 104270
+working on upper solution...
+working on lower solution...
+time elapsed: 0 hours 0 minutes 4 seconds
+========== Sandwich finish ==========
+
+NEW TESTING
+---------- Testing Sandwich ----------
+5 97.9213 0.727723
+10 182.271 0.642857
+15 298.077 0.677135
+20 359.826 0.633815
+25 458.789 0.649801
+30 538.423 0.651552
+35 615.834 0.657264
+40 697.366 0.654646
+45 755.825 0.651318
+50 823.524 0.647969
+
+---------- Testing Sandwich without cascade ----------
+5 85.0413 1
+10 168.123 1
+15 263.279 1
+20 366.581 1
+25 408.441 1
+30 451.692 1
+35 532.893 1
+40 573.965 1
+45 612.719 1
+50 656.766 1
+
+time elapsed: 0 hours 0 minutes 38 seconds
