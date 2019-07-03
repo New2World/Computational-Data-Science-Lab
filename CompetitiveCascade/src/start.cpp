@@ -38,7 +38,7 @@ void testInfluence2(DiffusionState_MIC &diffusionState, const Network &network, 
     set<int> seedset;
     bool flag = true;
     vector<rTuple> rtup;
-    diffusionState.getRTuples(network, rtup, 4000000);
+    diffusionState.getRTuples(network, rtup, 2000000);
     for(int i = 0;i < k/span && flag;i++){
         int nk = i*span+span;
         seedset = result.seedset[nk];
@@ -86,7 +86,7 @@ int main(int args, char **argv){
     string path = "../data/"+name+".txt", fname;
     Network network(path, type, vnum);
     network.setICProb(.1);
-    double eps = .3, N = 10000., partial = .01;
+    double eps = .3, N = 10000., partial = .001;
     int tenpercent = (int)(vnum * partial);
     mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
     auto start = chrono::high_resolution_clock::now();
@@ -104,7 +104,7 @@ int main(int args, char **argv){
 
     double l2;
     vector<rTuple> rtup;
-    Results sandwich_result, sandwich_empty_result, reverse_result, highdegree_result;
+    Results sandwich_result, sandwich_empty_result, sandwich_lower_result, sandwich_upper_result;
     cout << "seed set: " << partial * 100 << "%" << endl;
 
     if(!load){
@@ -122,26 +122,39 @@ int main(int args, char **argv){
         }
 
         rtup.clear();
-
         sandwich_result = Sandwich_computeSeedSet(network, diffusionState, k, eps, N, rtup, 2, span, &l2);
         fname = "inner/sandwich_"+name+"_"+priority+".txt";
+        fd = fopen(fname.c_str(), "w");
+        sandwich_result.writeToFile(fd);
+        fclose(fd);
+
+        rtup.clear();
+        sandwich_lower_result = Sandwich_computeSeedSet_lower(network, diffusionState, k, eps, N, rtup, 2, span, &l2);
+        fname = "inner/sandwich_lower_"+name+"_"+priority+".txt";
+        fd = fopen(fname.c_str(), "w");
+        sandwich_result.writeToFile(fd);
+        fclose(fd);
+
+        rtup.clear();
+        sandwich_upper_result = Sandwich_computeSeedSet_upper(network, diffusionState, k, eps, N, rtup, 2, span, &l2);
+        fname = "inner/sandwich_upper_"+name+"_"+priority+".txt";
         fd = fopen(fname.c_str(), "w");
         sandwich_result.writeToFile(fd);
         fclose(fd);
         
         // set<int> naivegreedy = NaiveGreedy_computeSeedSet(network, diffusionState, k, eps, N, 1);
 
-        reverse_result = ReverseGreedy_computeSeedSet(network, diffusionState, k, l2, span);
-        fname = "inner/reverse_"+name+"_"+priority+".txt";
-        fd = fopen(fname.c_str(), "w");
-        reverse_result.writeToFile(fd);
-        fclose(fd);
+        // reverse_result = ReverseGreedy_computeSeedSet(network, diffusionState, k, l2, span);
+        // fname = "inner/reverse_"+name+"_"+priority+".txt";
+        // fd = fopen(fname.c_str(), "w");
+        // reverse_result.writeToFile(fd);
+        // fclose(fd);
 
-        highdegree_result = HighDegree_computeSeedSet(network, diffusionState, k, span);
-        fname = "inner/highdegree_"+name+"_"+priority+".txt";
-        fd = fopen(fname.c_str(), "w");
-        highdegree_result.writeToFile(fd);
-        fclose(fd);
+        // highdegree_result = HighDegree_computeSeedSet(network, diffusionState, k, span);
+        // fname = "inner/highdegree_"+name+"_"+priority+".txt";
+        // fd = fopen(fname.c_str(), "w");
+        // highdegree_result.writeToFile(fd);
+        // fclose(fd);
     } else{
         fname = "inner/sandwich_"+name+"_"+priority+".txt";
         fd = fopen(fname.c_str(), "r");
@@ -151,14 +164,14 @@ int main(int args, char **argv){
         fd = fopen(fname.c_str(), "r");
         sandwich_empty_result.readFromFile(fd);
         fclose(fd);
-        fname = "inner/reverse_"+name+"_"+priority+".txt";
-        fd = fopen(fname.c_str(), "r");
-        reverse_result.readFromFile(fd);
-        fclose(fd);
-        fname = "inner/highdegree_"+name+"_"+priority+".txt";
-        fd = fopen(fname.c_str(), "r");
-        highdegree_result.readFromFile(fd);
-        fclose(fd);
+        // fname = "inner/reverse_"+name+"_"+priority+".txt";
+        // fd = fopen(fname.c_str(), "r");
+        // reverse_result.readFromFile(fd);
+        // fclose(fd);
+        // fname = "inner/highdegree_"+name+"_"+priority+".txt";
+        // fd = fopen(fname.c_str(), "r");
+        // highdegree_result.readFromFile(fd);
+        // fclose(fd);
     }
     delete [] shuffle_node;
 
@@ -178,18 +191,30 @@ int main(int args, char **argv){
         testInfluence2(diffusionState, network, sandwich_empty_result, k, span);
     else
         testInfluence(diffusionState, network, sandwich_empty_result, k, span);
-
-    cout << endl << "---------- Testing Reverse ----------" << endl;
+    
+    cout << endl << "---------- Testing Sandwich upper ----------" << endl;
     if(newtest)
-        testInfluence2(diffusionState, network, reverse_result, k, span);
+        testInfluence2(diffusionState, network, sandwich_upper_result, k, span);
     else
-        testInfluence(diffusionState, network, reverse_result, k, span);
-
-    cout << endl << "---------- Testing High Degree ----------" << endl;
+        testInfluence(diffusionState, network, sandwich_upper_result, k, span);
+    
+    cout << endl << "---------- Testing Sandwich lower ----------" << endl;
     if(newtest)
-        testInfluence2(diffusionState, network, highdegree_result, k, span);
+        testInfluence2(diffusionState, network, sandwich_lower_result, k, span);
     else
-        testInfluence(diffusionState, network, highdegree_result, k, span);
+        testInfluence(diffusionState, network, sandwich_lower_result, k, span);
+
+    // cout << endl << "---------- Testing Reverse ----------" << endl;
+    // if(newtest)
+    //     testInfluence2(diffusionState, network, reverse_result, k, span);
+    // else
+    //     testInfluence(diffusionState, network, reverse_result, k, span);
+
+    // cout << endl << "---------- Testing High Degree ----------" << endl;
+    // if(newtest)
+    //     testInfluence2(diffusionState, network, highdegree_result, k, span);
+    // else
+    //     testInfluence(diffusionState, network, highdegree_result, k, span);
 
     cout << endl;
     auto end = chrono::high_resolution_clock::now();

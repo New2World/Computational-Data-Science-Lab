@@ -26,7 +26,7 @@
 
 class DiffusionState_MIC{
     short *temp_state_1, *temp_state_2;
-    std::string pri_type;
+    std::string pri_type, type_bak;
     std::vector<std::mt19937> randn;
     std::set<int> new_active[THREAD], new_active_temp[THREAD];
     boost::mutex mt;
@@ -55,43 +55,82 @@ class DiffusionState_MIC{
     int pri_rand(const std::set<std::pair<int,short>> &pri, int tid){
         int n = randn[tid]() % pri.size();
         for(std::pair<int,short> p: pri){
+            switch(pri_type[0]){
+            case 'u':
+                if(p.second == 4)
+                    return 4;
+                break;
+            case 'l':
+                if(p.second == 4)
+                    n++;
+                break;
+            }
             if(n == 0)
                 return p.second;
             --n;
         }
+        return pri.begin()->second;
     }
 
     int pri_cas(const std::set<std::pair<int,short>> &pri, int node, int shift){
         std::vector<int> prior = caspriority[10][node%_max];
         int maxpri = pri.begin()->second;
-        for(std::pair<int,short> p: pri)
+        for(std::pair<int,short> p: pri){
+            switch(pri_type[0]){
+            case 'u':
+                if(p.second == 4)
+                    return 4;
+            case 'l':
+                if(p.second == 4)
+                    continue;
+            }
             if(prior[p.second] > prior[maxpri])
                 maxpri = p.second;
+        }
         return maxpri;
     }
 
     int pri_cas(const std::set<short> &pri, int node, int shift){
         std::vector<int> prior = caspriority[10][node%_max];
         int maxpri = *(pri.begin());
-        for(short p: pri)
+        for(short p: pri){
+            switch(pri_type[0]){
+            case 'u':
+                if(p == 4)
+                    return 4;
+            case 'l':
+                if(p == 4)
+                    continue;
+            }
             if(prior[p] > prior[maxpri])
                 maxpri = p;
+        }
         return maxpri;
     }
 
     int pri_nei(const std::set<std::pair<int,short>> &pri){
         int maxpri = -1, minnode = vnum;
         for(std::pair<int,short> p: pri){
+            switch(pri_type[0]){
+            case 'u':
+                if(p.second == 4)
+                    return 4;
+            case 'l':
+                if(p.second == 4)
+                    continue;
+            }
             if(p.first < minnode){
                 minnode = p.first;
                 maxpri = p.second;
             }
         }
+        if(maxpri == -1)
+            return pri.begin()->second;
         return maxpri;
     }
 
     int priority(const std::set<std::pair<int,short>> &pri, int n, int tid, int shift=0){
-        switch(pri_type[0]){
+        switch(type_bak[0]){
         case 'c':
             return pri_cas(pri, n, shift);
         case 'r':
@@ -254,7 +293,7 @@ public:
     int cnum, vnum, _max;
     std::set<int> seednodes;
     std::map<int,std::set<int>> seedsets;
-    std::map<int,std::vector<std::vector<int>>> caspriority;
+    std::map<int,std::vector<std::vector<int>>> caspriority, caspriority_upper, caspriority_lower;
     std::bitset<THREAD> scheduler;
 
     DiffusionState_MIC(const Network &network, const std::string pri_type, mt19937 &rand){
@@ -268,6 +307,7 @@ public:
         temp_state_1 = new short[vnum*THREAD];
         temp_state_2 = new short[vnum*THREAD];
         this->pri_type = pri_type;
+        type_bak = pri_type;
         for(int i = 0;i < THREAD;i++)
             randn.push_back(mt19937(rand()));
         memset(seed_state, -1, vnum*sizeof(short));
@@ -293,6 +333,7 @@ public:
         seedsets = diffusionState.seedsets;
         caspriority = diffusionState.caspriority;
         pri_type = diffusionState.pri_type;
+        type_bak = pri_type;
         for(int i = 0;i < THREAD;i++)
             randn.push_back(mt19937(diffusionState.randn[i]));
     }
@@ -537,5 +578,19 @@ public:
         output = (double)n*count/rtup.size();
         if(result)  *result = output;
         return output;
+    }
+
+    void setBack(){
+        pri_type = type_bak;
+    }
+
+    void setUpper(){
+        type_bak = pri_type;
+        pri_type = "upper";
+    }
+
+    void setLower(){
+        type_bak = pri_type;
+        pri_type = "lower";
     }
 };
