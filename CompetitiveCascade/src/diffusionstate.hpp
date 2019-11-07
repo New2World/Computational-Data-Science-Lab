@@ -296,7 +296,7 @@ public:
     std::map<int,std::vector<std::vector<int>>> caspriority, caspriority_upper, caspriority_lower;
     std::bitset<THREAD> scheduler;
 
-    DiffusionState_MIC(const Network &network, const std::string pri_type, mt19937 &rand){
+    DiffusionState_MIC(const Network &network, const std::string pri_type, mt19937 &mrand){
         cnum = 0;
         vnum = network.vertexNum;
         _max = 13;
@@ -309,7 +309,7 @@ public:
         this->pri_type = pri_type;
         type_bak = pri_type;
         for(int i = 0;i < THREAD;i++)
-            randn.push_back(mt19937(rand()));
+            randn.push_back(mt19937(mrand()));
         memset(seed_state, -1, vnum*sizeof(short));
         
         readPriority(1);

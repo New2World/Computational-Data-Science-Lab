@@ -413,7 +413,8 @@ double Sandwich_computeLowerBound(const Network &network, DiffusionState_MIC &di
     std::vector<rTuple> rtup;
     std::set<int> S;
     double eps0 = 100 * eps1;
-    double lambda = (n*(2+eps0)*log(N*boost::math::binomial_coefficient<double>(n,k)*log2(n)))/(eps0*eps0);
+    // boost::math::binomial_coefficient<double>(n,k)
+    double lambda = (n*(2+eps0)*log(N*k*log(n)*log2(n)))/(eps0*eps0);
     double x, l, g_lower, pw = p;
     for(int i = 1;i < (int)log2(n-1.)/log2(p);i++){
         x = n/pw;
@@ -432,7 +433,7 @@ double Sandwich_computeLowerBound(const Network &network, DiffusionState_MIC &di
 }
 
 double Sandwich_decideL(int n, int k, double low_bound, double eps1, double eps2, double N, double *l2){
-    double l1 = ((2+eps1)*n*log(N+boost::math::binomial_coefficient<double>(n,k)))/(eps1*eps1);
+    double l1 = ((2+eps1)*n*log(N*k*log(n)))/(eps1*eps1);
     *l2 = 2*n*log(N)/(eps2*eps2);
     return (l1>*l2?l1:*l2)/low_bound;
 }
