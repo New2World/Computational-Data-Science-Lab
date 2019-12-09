@@ -128,19 +128,19 @@ int main(int args, char **argv){
         sandwich_result.writeToFile(fd);
         fclose(fd);
 
-        rtup.clear();
-        sandwich_lower_result = Sandwich_computeSeedSet_lower(network, diffusionState, k, eps, N, rtup, 2, span, &l2);
-        fname = "inner/sandwich_lower_"+name+"_"+priority+".txt";
-        fd = fopen(fname.c_str(), "w");
-        sandwich_result.writeToFile(fd);
-        fclose(fd);
+        // rtup.clear();
+        // sandwich_lower_result = Sandwich_computeSeedSet_lower(network, diffusionState, k, eps, N, rtup, 2, span, &l2);
+        // fname = "inner/sandwich_lower_"+name+"_"+priority+".txt";
+        // fd = fopen(fname.c_str(), "w");
+        // sandwich_result.writeToFile(fd);
+        // fclose(fd);
 
-        rtup.clear();
-        sandwich_upper_result = Sandwich_computeSeedSet_upper(network, diffusionState, k, eps, N, rtup, 2, span, &l2);
-        fname = "inner/sandwich_upper_"+name+"_"+priority+".txt";
-        fd = fopen(fname.c_str(), "w");
-        sandwich_result.writeToFile(fd);
-        fclose(fd);
+        // rtup.clear();
+        // sandwich_upper_result = Sandwich_computeSeedSet_upper(network, diffusionState, k, eps, N, rtup, 2, span, &l2);
+        // fname = "inner/sandwich_upper_"+name+"_"+priority+".txt";
+        // fd = fopen(fname.c_str(), "w");
+        // sandwich_result.writeToFile(fd);
+        // fclose(fd);
         
         // set<int> naivegreedy = NaiveGreedy_computeSeedSet(network, diffusionState, k, eps, N, 1);
 
@@ -192,17 +192,17 @@ int main(int args, char **argv){
     else
         testInfluence(diffusionState, network, sandwich_empty_result, k, span);
     
-    cout << endl << "---------- Testing Sandwich upper ----------" << endl;
-    if(newtest)
-        testInfluence2(diffusionState, network, sandwich_upper_result, k, span);
-    else
-        testInfluence(diffusionState, network, sandwich_upper_result, k, span);
+    // cout << endl << "---------- Testing Sandwich upper ----------" << endl;
+    // if(newtest)
+    //     testInfluence2(diffusionState, network, sandwich_upper_result, k, span);
+    // else
+    //     testInfluence(diffusionState, network, sandwich_upper_result, k, span);
     
-    cout << endl << "---------- Testing Sandwich lower ----------" << endl;
-    if(newtest)
-        testInfluence2(diffusionState, network, sandwich_lower_result, k, span);
-    else
-        testInfluence(diffusionState, network, sandwich_lower_result, k, span);
+    // cout << endl << "---------- Testing Sandwich lower ----------" << endl;
+    // if(newtest)
+    //     testInfluence2(diffusionState, network, sandwich_lower_result, k, span);
+    // else
+    //     testInfluence(diffusionState, network, sandwich_lower_result, k, span);
 
     // cout << endl << "---------- Testing Reverse ----------" << endl;
     // if(newtest)
