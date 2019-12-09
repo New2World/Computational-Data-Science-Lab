@@ -432,7 +432,7 @@ double Sandwich_computeLowerBound(const Network &network, DiffusionState_MIC &di
 }
 
 double Sandwich_decideL(int n, int k, double low_bound, double eps1, double eps2, double N, double *l2){
-    double l1 = ((2+eps1)*n*log(N+boost::math::binomial_coefficient<double>(n,k)))/(eps1*eps1);
+    double l1 = ((2+eps1)*n*(log(N+boost::math::binomial_coefficient<double>(n,k))))/(eps1*eps1);
     *l2 = 2*n*log(N)/(eps2*eps2);
     return (l1>*l2?l1:*l2)/low_bound;
 }
@@ -481,7 +481,8 @@ Results Sandwich_computeSeedSet(const Network &network, DiffusionState_MIC &diff
     int l = (int)Sandwich_decideL(network.vertexNum, k, low_bound, eps1, eps2, N, l2);
     *l2 /= low_bound;
     // *l2 = l/log2(network.vertexNum);
-    std::cout << "l " << l << " " << diffusionState.getRTuples(network, rtup, l) << std::endl;
+    std::cout << "l " << l;
+    std::cout << " " << diffusionState.getRTuples(network, rtup, l) << std::endl;
     // diffusionState.getRTuples(network, rtup, l);
     std::set<int> upper_solution, lower_solution;
     std::cout << "working on upper solution..." << std::endl;

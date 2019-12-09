@@ -86,7 +86,7 @@ int main(int args, char **argv){
     string path = "../data/"+name+".txt", fname;
     Network network(path, type, vnum);
     network.setICProb(.1);
-    double eps = .3, N = 10000., partial = .001;
+    double eps = .3, N = 10000., partial = .01;
     int tenpercent = (int)(vnum * partial);
     mt19937 rand(chrono::high_resolution_clock::now().time_since_epoch().count());
     auto start = chrono::high_resolution_clock::now();
@@ -108,11 +108,11 @@ int main(int args, char **argv){
     cout << "seed set: " << partial * 100 << "%" << endl;
 
     if(!load){
-        sandwich_empty_result = Sandwich_computeSeedSet(network, diffusionState, k, eps, N, rtup, 2, span, &l2);
-        fname = "inner/sandwich_no_cascade_"+name+"_"+priority+".txt";
-        fd = fopen(fname.c_str(), "w");
-        sandwich_empty_result.writeToFile(fd);
-        fclose(fd);
+        // sandwich_empty_result = Sandwich_computeSeedSet(network, diffusionState, k, eps, N, rtup, 2, span, &l2);
+        // fname = "inner/sandwich_no_cascade_"+name+"_"+priority+".txt";
+        // fd = fopen(fname.c_str(), "w");
+        // sandwich_empty_result.writeToFile(fd);
+        // fclose(fd);
 
         for(int j = 0;j < 4;j++){
             set<int> seed;
